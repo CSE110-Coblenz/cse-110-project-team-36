@@ -30,6 +30,7 @@ export function QuestionAnswer() {
           padding: "1em 2em",
           borderRadius: "12px",
           color: "white",
+          zIndex: 10,
         }}
       >
         <div style={{ fontSize: "1.2em", marginBottom: "0.5em" }}>
