@@ -1,30 +1,48 @@
-import type { GameState } from "../models/game-state";
-import { events } from "../../shared/events";
+import { GameState } from "../models/game-state";
+import { Track } from "../models/track";
+import type { TrackJSON } from "../models/track";
+import sampleTrack from "../../assets/tracks/track1.json";
+import { Car } from "../models/car";
+import { CarController } from "./CarController";
+
 
 export class RaceController {
-  constructor(private gs: GameState) {
-    events.on("AnsweredCorrectly", () => this.increaseSpeed());
-    events.on("AnsweredIncorrectly", () => this.decreaseSpeed());
-  }
+    private gameState: GameState;
+    private carController: CarController;
 
-  increaseSpeed() {
-    this.gs.carSpeed = Math.min(this.gs.carSpeed + 30, 300);
-  }
+    constructor() {
+        const track = Track.fromJSON(sampleTrack as TrackJSON);
+        const camera = { pos: { x: 0, y: 0 }, zoom: 1 };
+        
+        // Create GameState as source of truth
+        this.gameState = new GameState(camera, track);
+        
+        // Add player car
+        const playerCar = new Car(0, '#22c55e');
+        this.gameState.addPlayerCar(playerCar);
+        
+        // Add AI cars
+        this.gameState.addCar(new Car(-100, '#ef4444'));
+        this.gameState.addCar(new Car(-200, '#ef4444'));
+        this.gameState.addCar(new Car(-300, '#ef4444'));
+        
+        // Create CarController to handle physics
+        this.carController = new CarController(this.gameState);
+        
+        // Initialize all cars with proper velocities
+        this.carController.initializeCars();
+    }
 
-  decreaseSpeed() {
-    this.gs.carSpeed = Math.max(this.gs.carSpeed - 20, 0);
-  }
+    step(dt: number) {
+        // CarController operates on GameState's cars
+        this.carController.step(dt);
+        
+        // Update camera to follow player car
+        const pos = this.gameState.track.posAt(this.gameState.playerCar.sPhys);
+        this.gameState.updateCamera({ pos, zoom: this.gameState.camera.zoom });
+    }
 
-  step(dt: number) {
-    const speed = this.gs.carSpeed;
-    const radius = 240;
-
-    this.gs.carHeading += (speed / radius) * dt;
-    this.gs.carPos.x = Math.cos(this.gs.carHeading) * radius;
-    this.gs.carPos.y = Math.sin(this.gs.carHeading) * radius;
-
-    // Player-centric camera
-    this.gs.camera.pos.x = this.gs.carPos.x;
-    this.gs.camera.pos.y = this.gs.carPos.y;
-  }
+    getGameState() {
+        return this.gameState;
+    }
 }
