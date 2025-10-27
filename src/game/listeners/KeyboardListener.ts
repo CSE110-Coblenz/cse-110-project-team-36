@@ -9,3 +9,15 @@ export class EscapeListener {
     start() { window.addEventListener("keydown", this.onKey); }
     stop() { window.removeEventListener("keydown", this.onKey); }
 }
+
+export class SpaceRewardListener {
+    private onKey = (e: KeyboardEvent) => {
+        if (e.key === " " || e.key === "Spacebar") {
+            e.preventDefault();
+            this.onReward();
+        }
+    };
+    constructor(private onReward: () => void) { }
+    start() { window.addEventListener("keydown", this.onKey); }
+    stop() { window.removeEventListener("keydown", this.onKey); }
+}
