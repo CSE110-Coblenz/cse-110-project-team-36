@@ -5,6 +5,8 @@ import { ResizeListener } from "../game/listeners/ResizeListener";
 import { EscapeListener, SpaceRewardListener } from "../game/listeners/KeyboardListener";
 import { RaceController } from "../game/controllers/RaceController";
 import { ANIMATION_TICK, PAGE_WIDTH, PAGE_HEIGHT } from "../const";
+import { QuestionAnswer } from "../rendering/game/QuestionAnswer";
+import { events } from "../shared/events";
 
 export const RacePage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
     const containerRef = useRef<HTMLDivElement>(null);
@@ -27,6 +29,14 @@ export const RacePage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
         });
         spaceReward.start();
         
+        const unsubscribeCorrect = events.on("AnsweredCorrectly", () => {
+            const playerCar = gs.playerCar;
+            gs.applyReward(playerCar, 150);
+        });
+        const unsubscribeIncorrect = events.on("AnsweredIncorrectly", () => {
+            // TODO: Placeholder
+        });
+        
         const clock = new GameClock(ANIMATION_TICK);
         let mounted = true;
         clock.start(
@@ -39,6 +49,8 @@ export const RacePage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
             resize.stop();
             esc.stop();
             spaceReward.stop();
+            unsubscribeCorrect();
+            unsubscribeIncorrect();
         };
     }, [raceController, gs, onExit]);
 
