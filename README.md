@@ -25,10 +25,3 @@ npm run dev
 Then open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ---
-
-## ✅ Getting Started
-
-After installing dependencies and running `npm run dev`,
-you should see a simple animated car moving in a circular path.
-
----
