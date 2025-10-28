@@ -18,7 +18,7 @@ export default function App() {
   if (screen === 'signup')
     return <SignUpPage 
       onPlayGuest={() => setScreen('race')}
-      onSignUp={(name: string, email: string, password: string) => {
+      onSignUp={(name: string, email: string) => {
         // handle sign-up (placeholder)
         console.log('SignUp:', name, email)
         setScreen('menu')

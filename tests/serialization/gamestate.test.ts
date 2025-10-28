@@ -263,7 +263,6 @@ describe('GameState Serialization', () => {
       const deserializedGameState = deserializeGameState(jsonString);
 
       // Act - test that game state methods still work
-      const originalPlayerCar = originalGameState.playerCar;
       const deserializedPlayerCar = deserializedGameState.playerCar;
 
       // Test reward application (simulate what queueReward would do)
@@ -361,12 +360,17 @@ describe('GameState Serialization', () => {
         // Arrange
         const gameState = createTestGameState();
         const mockSetItem = (global as any).testUtils.localStorage.setItem;
+        const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+        
         mockSetItem.mockImplementation(() => {
           throw new Error('Storage quota exceeded');
         });
 
         // Act & Assert - should not throw
         expect(() => saveGameToLocalStorage(gameState, 'test')).not.toThrow();
+        expect(consoleSpy).toHaveBeenCalledWith('Failed to save game state:', expect.any(Error));
+        
+        consoleSpy.mockRestore();
       });
     });
 
@@ -402,6 +406,8 @@ describe('GameState Serialization', () => {
       it('should handle corrupted save data gracefully', () => {
         // Arrange
         const mockGetItem = (global as any).testUtils.localStorage.getItem;
+        const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+        
         mockGetItem.mockReturnValue('corrupted data');
 
         // Act
@@ -409,6 +415,9 @@ describe('GameState Serialization', () => {
 
         // Assert
         expect(loadedGameState).toBeNull();
+        expect(consoleSpy).toHaveBeenCalledWith('Failed to load game state:', expect.any(SyntaxError));
+        
+        consoleSpy.mockRestore();
       });
     });
 
@@ -454,12 +463,17 @@ describe('GameState Serialization', () => {
       it('should handle removal errors gracefully', () => {
         // Arrange
         const mockRemoveItem = (global as any).testUtils.localStorage.removeItem;
+        const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+        
         mockRemoveItem.mockImplementation(() => {
           throw new Error('Access denied');
         });
 
         // Act & Assert
         expect(() => deleteSavedGame('test-slot')).not.toThrow();
+        expect(consoleSpy).toHaveBeenCalledWith('Failed to delete game state:', expect.any(Error));
+        
+        consoleSpy.mockRestore();
       });
     });
 

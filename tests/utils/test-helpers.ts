@@ -186,7 +186,7 @@ export function validateSerializedTrack(serialized: any) {
   expect(Array.isArray(serialized.samples)).toBe(true);
   expect(Array.isArray(serialized.sTable)).toBe(true);
   expect(serialized.samples.length).toBeGreaterThan(0);
-  expect(serialized.sTable.length).toBe(serialized.samples.length);
+  expect(serialized.sTable).toHaveLength(serialized.samples.length);
 }
 
 /**

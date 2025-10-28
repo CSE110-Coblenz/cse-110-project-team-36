@@ -2,7 +2,7 @@
  * Unit tests for Track serialization methods
  */
 
-import { Track, TrackJSON, Vec2 } from '../../src/game/models/track';
+import { Track, TrackJSON } from '../../src/game/models/track';
 
 describe('Track Serialization', () => {
   // Helper function to create a simple test track
@@ -43,7 +43,7 @@ describe('Track Serialization', () => {
       
       expect(serialized.width).toBe(20);
       expect(serialized.samples.length).toBeGreaterThan(0);
-      expect(serialized.sTable.length).toBe(serialized.samples.length);
+      expect(serialized.sTable).toHaveLength(serialized.samples.length);
       expect(serialized.totalLength).toBeGreaterThan(0);
     });
 
@@ -121,8 +121,8 @@ describe('Track Serialization', () => {
 
       // Assert
       expect(deserializedTrack.width).toBe(originalTrack.width);
-      expect(deserializedTrack.length).toBe(originalTrack.length);
-      expect(deserializedTrack.getSamples().length).toBe(originalTrack.getSamples().length);
+      expect(deserializedTrack.length).toBe(originalTrack.length); // eslint-disable-line jest/prefer-to-have-length
+      expect(deserializedTrack.getSamples()).toHaveLength(originalTrack.getSamples().length);
     });
 
     it('should preserve exact sample data', () => {
@@ -137,7 +137,7 @@ describe('Track Serialization', () => {
       const originalSamples = originalTrack.getSamples();
       const deserializedSamples = deserializedTrack.getSamples();
       
-      expect(deserializedSamples.length).toBe(originalSamples.length);
+      expect(deserializedSamples).toHaveLength(originalSamples.length);
       
       for (let i = 0; i < originalSamples.length; i++) {
         expect(deserializedSamples[i].x).toBeCloseTo(originalSamples[i].x, 10);
@@ -165,8 +165,8 @@ describe('Track Serialization', () => {
 
       // Assert
       expect(track.width).toBe(15);
-      expect(track.length).toBe(40);
-      expect(track.getSamples().length).toBe(5);
+      expect(track).toHaveLength(40);
+      expect(track.getSamples()).toHaveLength(5);
     });
   });
 
@@ -183,8 +183,8 @@ describe('Track Serialization', () => {
       // Assert
       expect(reSerialized.width).toBe(serialized.width);
       expect(reSerialized.totalLength).toBeCloseTo(serialized.totalLength, 10);
-      expect(reSerialized.samples.length).toBe(serialized.samples.length);
-      expect(reSerialized.sTable.length).toBe(serialized.sTable.length);
+      expect(reSerialized.samples).toHaveLength(serialized.samples.length);
+      expect(reSerialized.sTable).toHaveLength(serialized.sTable.length);
 
       // Check samples match
       for (let i = 0; i < serialized.samples.length; i++) {
