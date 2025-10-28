@@ -1,24 +1,33 @@
+/**
+ * Car class
+ * 
+ * This class represents a car in the game.
+ */
 export class Car {
-    // Authoritative progress state (used for laps/ranking)
     public sProg: number = 0;           // along-track position [0, L)
     public vProg: number = 0;           // progress velocity
     public r: number = 0;               // smoothed reward state
 
-    // Physical rendering state
     public sPhys: number = 0;           // physical along-track position
     public vPhys: number = 0;           // physical velocity
     public lateral: number = 0;         // lateral offset (world units)
 
-    // Visual properties
     public color: string = '#22c55e';   // car color
     public carLength: number = 40;      // car size (world units)
     public carWidth: number = 22;
 
-    // Lap tracking
     public lapCount: number = 0;
     private lastSProg: number = 0;
     private crossedFinish: boolean = false;
 
+    /**
+     * Constructor
+     * 
+     * @param initialS - The initial along-track position
+     * @param color - The color of the car
+     * @param carLength - The length of the car
+     * @param carWidth - The width of the car
+     */
     constructor(
         initialS: number = 0,
         color: string = '#22c55e',
@@ -35,6 +44,8 @@ export class Car {
 
     /**
      * Initialize velocities (called once by the physics controller)
+     * 
+     * @param vMin - The minimum velocity
      */
     initialize(vMin: number) {
         this.vProg = vMin;
@@ -43,6 +54,8 @@ export class Car {
 
     /**
      * Check for lap completion based on crossing the finish line (s=0)
+     * 
+     * @param trackLength - The length of the track
      */
     updateLaps(trackLength: number) {
         if (!this.crossedFinish && this.lastSProg > trackLength * 0.9 && this.sProg < trackLength * 0.1) {
@@ -57,6 +70,9 @@ export class Car {
 
     /**
      * Get total distance traveled
+     * 
+     * @param trackLength - The length of the track
+     * @returns The total distance traveled
      */
     getTotalDistance(trackLength: number): number {
         return this.lapCount * trackLength + this.sProg;
