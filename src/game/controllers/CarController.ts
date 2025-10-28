@@ -12,9 +12,10 @@ export interface RewardEvent {
 
 export class CarController {
     private gameState: GameState;
-    
-    private vMin: number = 5;              // minimum progress velocity
-    private vMax: number = 10;             // maximum progress velocity
+    private pendingRewards = new Map<Car, number>();
+
+    private vMin: number = 5;               // minimum progress velocity
+    private vMax: number = 50;              // maximum progress velocity
     private aBase: number = 0;              // baseline acceleration
     private tauA: number = 0.5;             // reward smoothing time constant (seconds)
     private beta: number = 30;              // velocity decay rate above vMin
@@ -22,12 +23,12 @@ export class CarController {
     private kp: number = 2;                 // position control gain (Kp > 0)
     private vBonus: number = 10;            // extra headroom above curvature cap
     private deltaSMax: number = 1;          // max progress step per frame
-    private rho: number;                    // exp(-dt/tauA) for discrete smoothing
+    private mu: number = 0.8;               // friction coeff used in v_kappa,max
+    private kappaEps: number = 1e-3;        // small curvature floor (smaller than 0.01)
+    private vKappaScale: number = 10;       // simple multiplicative scale on the cap
 
     constructor(gameState: GameState) {
         this.gameState = gameState;
-        const dt = 1 / 60; // assuming 60Hz fixed timestep
-        this.rho = Math.exp(-dt / this.tauA);
     }
 
     /**
@@ -44,7 +45,7 @@ export class CarController {
     step(dt: number): void {
         const cars = this.gameState.getCars();
         const track = this.gameState.track;
-        
+
         for (const car of cars) {
             this.updateCar(car, dt, track);
         }
@@ -57,43 +58,52 @@ export class CarController {
      * @param track - The track to update the car on
      */
     private updateCar(car: Car, dt: number, track: Track): void {
-        // Update lap tracking
         car.updateLaps(track.length);
-
-        // Reward smoothing (first-order filter)
-        car.r = this.rho * car.r;  // Exponential decay
-
-        // Velocity decay (negative acceleration modifier)
+        const rPrev = car.r;
         const aDecay = car.vProg > this.vMin ? -this.beta : 0;
-
-        // Update progress velocity with decay and clipping
-        car.vProg += (this.aBase + car.r + aDecay) * dt;
+        car.vProg += (this.aBase + rPrev + aDecay) * dt;
         const vProgClipped = Math.max(this.vMin, Math.min(this.vMax, car.vProg));
-
-        // Update progress position with max step cap
         const deltaS = Math.min(vProgClipped * dt, this.deltaSMax);
         car.sProg = track.wrapS(car.sProg + deltaS);
-
-        // Update physical/rendered state tracking
+    
+        const rho = Math.exp(-dt / this.tauA);
+        car.r = rho * car.r;
+        const Ak = this.pendingRewards.get(car) ?? 0;
+        if (Ak !== 0) {
+            car.r += Ak;
+            this.pendingRewards.set(car, 0);
+        }
+    
         this.updatePhysicalState(car, dt, track);
     }
+    
 
     /**
      * Update physical rendering state to track progress state
      */
     private updatePhysicalState(car: Car, dt: number, track: Track): void {
+        // curvature at current physical position
         const kappa = this.estimateCurvature(car.sPhys, track);
-        const vKappaMax = Math.sqrt((0.8 * 9.81) / (Math.abs(kappa) + 0.01));
-        
-        // Cap desired velocity by curvature limit, but track vProg directly
-        const vDes = Math.min(car.vProg, vKappaMax + this.vBonus);
 
-        // Control acceleration to track desired velocity
+        // curvature-based velocity cap, with a tunable scale
+        const vKappaRaw = Math.sqrt((this.mu * 9.81) / (Math.abs(kappa) + this.kappaEps));
+        const vKappaMax = this.vKappaScale * vKappaRaw;
+
+        // wrapped progress->physical error e_s in (-L/2, L/2]
+        const L = track.length;
+        let eS = car.sProg - car.sPhys;
+        eS = ((eS + L / 2) % L + L) % L - L / 2;
+
+        // desired speed: v_min + k_p * e_s, clipped by curvature cap + bonus
+        const vDesUnclipped = this.vMin + this.kp * eS;
+        const vDes = Math.max(0, Math.min(vDesUnclipped, vKappaMax + this.vBonus));
+
+        // simple velocity controller
         const aT = this.kv * (vDes - car.vPhys);
         car.vPhys += aT * dt;
-        car.vPhys = Math.max(0, car.vPhys); // Don't go backward
+        if (car.vPhys < 0) car.vPhys = 0;
 
-        // Advance physical position
+        // advance physical position
         car.sPhys = track.wrapS(car.sPhys + car.vPhys * dt);
     }
 
@@ -109,6 +119,17 @@ export class CarController {
             t1.x * t2.x + t1.y * t2.y
         );
         return dTheta / (2 * eps);
+    }
+
+    queueReward(car: Car, magnitude: number): void {
+        this.pendingRewards.set(car, (this.pendingRewards.get(car) ?? 0) + magnitude);
+    }
+
+    queueRewardByIndex(index: number, magnitude: number): void {
+        const cars = this.gameState.getCars();
+        if (index >= 0 && index < cars.length) {
+            this.queueReward(cars[index], magnitude);
+        }
     }
 
     /**
@@ -133,10 +154,5 @@ export class CarController {
      */
     setParams(params: Partial<ReturnType<typeof this.getParams>>): void {
         Object.assign(this, params);
-        // Recompute rho if tauA changed
-        if (params.tauA !== undefined) {
-            const dt = 1 / 60;
-            this.rho = Math.exp(-dt / params.tauA);
-        }
     }
 }

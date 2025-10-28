@@ -1,6 +1,3 @@
-// car.ts
-// Car model with authoritative progress tracking and physical rendering state
-
 export class Car {
     // Authoritative progress state (used for laps/ranking)
     public sProg: number = 0;           // along-track position [0, L)
