@@ -5,8 +5,11 @@ import { CarLayer } from "./CarLayer";
 
 /**
  * Game stage component rendering the game state.
- * @param param0 props
- * @returns JSX element
+ * 
+ * @param gs - The game state
+ * @param width - The width of the game stage
+ * @param height - The height of the game stage
+ * @returns The game stage component
  */
 export function GameStage({ gs, width, height }: { gs: GameState; width: number; height: number }) {
     if (!gs.track) {
