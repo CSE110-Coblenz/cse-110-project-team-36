@@ -121,7 +121,7 @@ describe('Track Serialization', () => {
 
       // Assert
       expect(deserializedTrack.width).toBe(originalTrack.width);
-      expect(deserializedTrack.length).toBe(originalTrack.length); // eslint-disable-line jest/prefer-to-have-length
+      expect(deserializedTrack.length).toBe(originalTrack.length);
       expect(deserializedTrack.getSamples()).toHaveLength(originalTrack.getSamples().length);
     });
 
