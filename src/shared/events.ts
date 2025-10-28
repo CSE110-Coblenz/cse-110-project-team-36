@@ -1,42 +1,37 @@
 export type Handler<T> = (payload: T) => void;
 
 export class EventBus<M extends Record<string, unknown>> {
-  private handlers: Partial<{ [K in keyof M]: Set<Handler<M[K]>> }>;
-
-  constructor() {
-    this.handlers = {};
-  }
-
-  private getSet<K extends keyof M>(type: K): Set<Handler<M[K]>> {
-    const map = this.handlers as any;
-    let set = map[type] as Set<Handler<M[K]>> | undefined;
-    if (!set) {
-      set = new Set<Handler<M[K]>>();
-      map[type] = set;
-    }
-    return set;
-  }
+  private handlers = new Map<keyof M, Set<Handler<unknown>>>();
 
   on<K extends keyof M>(type: K, fn: Handler<M[K]>): () => void {
-    this.getSet(type).add(fn);
+    let set = this.handlers.get(type);
+    if (!set) {
+      set = new Set();
+      this.handlers.set(type, set);
+    }
+    set.add(fn as Handler<unknown>);
     return () => this.off(type, fn);
   }
 
   off<K extends keyof M>(type: K, fn: Handler<M[K]>): void {
-    const set = (this.handlers as any)[type] as Set<Handler<M[K]>> | undefined;
-    if (set) set.delete(fn);
+    const set = this.handlers.get(type);
+    if (set) {
+      set.delete(fn as Handler<unknown>);
+    }
   }
 
   emit<K extends keyof M>(type: K, payload: M[K]): void {
-    const set = (this.handlers as any)[type] as Set<Handler<M[K]>> | undefined;
+    const set = this.handlers.get(type);
     if (!set) return;
-    const arr = Array.from(set);
-    for (let i = 0; i < arr.length; i++) arr[i](payload);
+    
+    for (const handler of set) {
+      (handler as Handler<M[K]>)(payload);
+    }
   }
 }
 
 export type EventMap = {
-  ExitRequested: {};
+  ExitRequested: Record<string, never>;
   ViewportResized: { width: number; height: number };
   AnsweredCorrectly: { question: string; answer: number };
   AnsweredIncorrectly: { question: string; answer: number };

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { QuestionManager } from "../../game/managers/QuestionManager";
 import { NumberInputListener, EnterSubmitListener, DeleteListener } from "../../game/listeners/KeyboardListener";
 
@@ -13,7 +13,7 @@ export function QuestionAnswer() {
   const [feedback, setFeedback] = useState<FeedbackState>('none');
   const feedbackTimeoutRef = useRef<number>(0);
 
-  const handleSubmit = () => {
+  const handleSubmit = useCallback(() => {
     if (answer.trim() === "" || answer === "-" || answer === "." || answer === "-.") return;
     
     const numAnswer = Number(answer);
@@ -30,7 +30,7 @@ export function QuestionAnswer() {
     
     setCurrentQuestion(questionManager.getCurrentQuestion());
     setAnswer("");
-  };
+  }, [answer, questionManager]);
 
   useEffect(() => {
     const handleNumberInput = (char: string) => {
@@ -67,7 +67,7 @@ export function QuestionAnswer() {
     return () => {
       enterListener.stop();
     };
-  }, [answer]);
+  }, [handleSubmit]);
 
   useEffect(() => {
     return () => {

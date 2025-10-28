@@ -198,4 +198,34 @@ export class Track {
      * @returns The samples of the track
      */
     getSamples(): readonly Vec2[] { return this.samples; }
+
+    // === SERIALIZATION METHODS ===
+
+    /**
+     * Export track data for serialization
+     * 
+     * @returns Serializable track data
+     */
+    toSerializedData() {
+        return {
+            width: this.width,
+            samples: this.samples.map(s => ({ x: s.x, y: s.y })),
+            sTable: [...this.sTable],
+            totalLength: this.totalLength,
+        };
+    }
+
+    /**
+     * Create a track from serialized data (for loading saves)
+     * 
+     * @param data - The serialized track data
+     * @returns A new Track instance
+     */
+    static fromSerializedData(data: { width: number; samples: Vec2[]; sTable: number[]; totalLength: number }): Track {
+        const track = new Track(data.width);
+        track.samples = [...data.samples];
+        track.sTable = [...data.sTable];
+        track.totalLength = data.totalLength;
+        return track;
+    }
 }

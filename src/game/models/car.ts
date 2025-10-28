@@ -77,4 +77,61 @@ export class Car {
     getTotalDistance(trackLength: number): number {
         return this.lapCount * trackLength + this.sProg;
     }
+
+    // === SERIALIZATION METHODS ===
+
+    /**
+     * Export car data for serialization
+     * 
+     * @returns Serializable car data
+     */
+    toSerializedData() {
+        return {
+            sProg: this.sProg,
+            vProg: this.vProg,
+            r: this.r,
+            sPhys: this.sPhys,
+            vPhys: this.vPhys,
+            lateral: this.lateral,
+            color: this.color,
+            carLength: this.carLength,
+            carWidth: this.carWidth,
+            lapCount: this.lapCount,
+            lastSProg: this.lastSProg,
+            crossedFinish: this.crossedFinish,
+        };
+    }
+
+    /**
+     * Create a car from serialized data (for loading saves)
+     * 
+     * @param data - The serialized car data
+     * @returns A new Car instance
+     */
+    static fromSerializedData(data: {
+        sProg: number;
+        vProg: number;
+        r: number;
+        sPhys: number;
+        vPhys: number;
+        lateral: number;
+        color: string;
+        carLength: number;
+        carWidth: number;
+        lapCount: number;
+        lastSProg: number;
+        crossedFinish: boolean;
+    }): Car {
+        const car = new Car(data.sProg, data.color, data.carLength, data.carWidth);
+        car.sProg = data.sProg;
+        car.vProg = data.vProg;
+        car.r = data.r;
+        car.sPhys = data.sPhys;
+        car.vPhys = data.vPhys;
+        car.lateral = data.lateral;
+        car.lapCount = data.lapCount;
+        car.lastSProg = data.lastSProg;
+        car.crossedFinish = data.crossedFinish;
+        return car;
+    }
 }

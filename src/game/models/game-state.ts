@@ -87,4 +87,5 @@ export class GameState {
     updateTrack(track: Track) {
         this.track = track;
     }
+
 }
