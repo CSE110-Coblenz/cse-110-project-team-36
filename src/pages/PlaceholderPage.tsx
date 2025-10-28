@@ -1,3 +1,4 @@
+/******
 import React from 'react'
 
 export const PlaceholderPage: React.FC<{ onStart: () => void }> = ({ onStart }) => {
@@ -22,3 +23,4 @@ export const PlaceholderPage: React.FC<{ onStart: () => void }> = ({ onStart }) 
         </div>
     )
 }
+****/
