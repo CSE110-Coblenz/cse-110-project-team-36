@@ -3,23 +3,21 @@ import { Layer, Line, Group } from 'react-konva';
 import type { Track } from '../../game/models/track';
 import type { Camera } from '../../game/types';
 
-export function TrackLayer({
-    track,
-    stageWidth,
-    stageHeight,
-    camera,
-    roadColor = '#646b75',
-    centerlineColor = '#b7bdc7',
-    detailStep = 1,        // skip samples for perf if needed
-}: {
-    track: Track;
-    stageWidth: number;
-    stageHeight: number;
-    camera: Camera;
-    roadColor?: string;
-    centerlineColor?: string;
-    detailStep?: number;
-}) {
+/**
+ * Track layer component
+ * 
+ * This component renders the track on the game stage.
+ * 
+ * @param track - The track to render
+ * @param stageWidth - The width of the game stage
+ * @param stageHeight - The height of the game stage
+ * @param camera - The camera to render the track with
+ * @param roadColor - The color of the road
+ * @param centerlineColor - The color of the centerline
+ * @param detailStep - The step to skip for performance if needed
+ * @returns The track layer component
+ */
+export function TrackLayer({ track, stageWidth, stageHeight, camera, roadColor = '#646b75', centerlineColor = '#b7bdc7', detailStep = 1 }: { track: Track; stageWidth: number; stageHeight: number; camera: Camera; roadColor?: string; centerlineColor?: string; detailStep?: number }) {
     const { tx, ty, scale } = useMemo(() => {
         const { pos, zoom } = camera;
         return {

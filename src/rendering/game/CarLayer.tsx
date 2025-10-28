@@ -4,19 +4,19 @@ import type { Track } from '../../game/models/track';
 import type { Camera } from '../../game/types';
 import type { Car } from '../../game/models/car';
 
-export function CarLayer({
-    track,
-    cars,
-    stageWidth,
-    stageHeight,
-    camera,
-}: {
-    track: Track;
-    cars: readonly Car[];
-    stageWidth: number;
-    stageHeight: number;
-    camera: Camera;
-}) {
+/**
+ * Car layer component
+ * 
+ * This component renders the cars on the game stage.
+ * 
+ * @param track - The track to render
+ * @param cars - The cars to render
+ * @param stageWidth - The width of the game stage
+ * @param stageHeight - The height of the game stage
+ * @param camera - The camera to render the cars with
+ * @returns The car layer component
+ */
+export function CarLayer({ track, cars, stageWidth, stageHeight, camera }: { track: Track; cars: readonly Car[]; stageWidth: number; stageHeight: number; camera: Camera }) {
     return (
         <Layer listening={false}>
             {cars.map((car, i) => (
@@ -33,19 +33,19 @@ export function CarLayer({
     );
 }
 
-function CarRenderer({
-    track,
-    car,
-    stageWidth,
-    stageHeight,
-    camera,
-}: {
-    track: Track;
-    car: Car;
-    stageWidth: number;
-    stageHeight: number;
-    camera: Camera;
-}) {
+/**
+ * Car renderer component
+ * 
+ * This component renders a single car on the game stage.
+ * 
+ * @param track - The track to render the car on
+ * @param car - The car to render
+ * @param stageWidth - The width of the game stage
+ * @param stageHeight - The height of the game stage
+ * @param camera - The camera to render the car with
+ * @returns The car renderer component
+ */
+function CarRenderer({ track, car, stageWidth, stageHeight, camera }: { track: Track; car: Car; stageWidth: number; stageHeight: number; camera: Camera }) {
     const { angleDeg, screen, scale } = useMemo(() => {
         const p = track.posAt(car.sPhys);
         const t = track.tangentAt(car.sPhys);
