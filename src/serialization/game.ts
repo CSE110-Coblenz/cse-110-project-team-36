@@ -134,8 +134,12 @@ export function deserializeGameState(jsonString: string): GameState {
  * Save game state to localStorage
  */
 export function saveGameToLocalStorage(gameState: GameState, slotName: string = 'default'): void {
-    const serialized = serializeGameState(gameState);
-    localStorage.setItem(`formulafun_save_${slotName}`, serialized);
+    try {
+        const serialized = serializeGameState(gameState);
+        localStorage.setItem(`formulafun_save_${slotName}`, serialized);
+    } catch (error) {
+        console.error('Failed to save game state:', error);
+    }
 }
 
 /**
@@ -166,7 +170,11 @@ export function hasSavedGame(slotName: string = 'default'): boolean {
  * Delete a save from localStorage
  */
 export function deleteSavedGame(slotName: string = 'default'): void {
-    localStorage.removeItem(`formulafun_save_${slotName}`);
+    try {
+        localStorage.removeItem(`formulafun_save_${slotName}`);
+    } catch (error) {
+        console.error('Failed to delete game state:', error);
+    }
 }
 
 /**
