@@ -39,16 +39,14 @@ export const RacePage: React.FC<RacePageProps> = ({ onExit, topics, difficulty }
     const [gs] = useState(() => raceController.getGameState());
     const [, setFrame] = useState(0);
     const [statsManager] = useState(() => new QuestionStatsManager());
-    const [questionManager, setQuestionManager] = useState<QuestionManager | null>(null);
-
-    useEffect(() => {
+    const [questionManager] = useState(() => {
         if (topics && difficulty) {
             const topicEnum = topicStringToEnum(topics);
             const difficultyEnum = difficultyStringToEnum(difficulty);
-            const qm = new QuestionManager({ topic: topicEnum, difficulty: difficultyEnum });
-            setQuestionManager(qm);
+            return new QuestionManager({ topic: topicEnum, difficulty: difficultyEnum });
         }
-    }, [topics, difficulty]);
+        return null;
+    });
 
     useEffect(() => {
         if (!containerRef.current) return;

@@ -10,18 +10,14 @@ interface QuestionAnswerProps {
 
 export function QuestionAnswer({ questionManager }: QuestionAnswerProps) {
   const [answer, setAnswer] = useState("");
-  const [currentQuestion, setCurrentQuestion] = useState(
-    questionManager?.getCurrentQuestion()
-  );
+
   const [feedback, setFeedback] = useState<FeedbackState>('none');
   const feedbackTimeoutRef = useRef<number>(0);
 
-  useEffect(() => {
-    if (questionManager) {
-      setCurrentQuestion(questionManager.getCurrentQuestion());
-    }
-  }, [questionManager]);
-  
+  const [currentQuestion, setCurrentQuestion] = useState(
+    () => questionManager?.getCurrentQuestion() || ""
+  );
+
   const handleSubmit = useCallback(() => {
     if (!questionManager) return;
     if (answer.trim() === "" || answer === "-" || answer === "." || answer === "-.") return;
