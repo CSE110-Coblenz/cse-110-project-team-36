@@ -14,6 +14,7 @@ export class GameState {
     private cars: Car[] = [];
     private playerCarIndex: number = 0;
     private skidMarks = new Map<Car, SkidMark>();
+    paused: boolean = false;
 
     /**
      * Constructor

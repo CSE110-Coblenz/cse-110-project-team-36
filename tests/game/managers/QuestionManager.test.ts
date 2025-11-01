@@ -85,13 +85,18 @@ describe('QuestionManager', () => {
             expect(divisionQuestion).not.toBeNull();
             if (divisionQuestion) {
                 const match = divisionQuestion.match(/^(\d+)\s\/\s(\d+)$/);
+                expect(match).not.toBeNull();
                 if (match) {
                     const a = parseInt(match[1]);
                     const b = parseInt(match[2]);
-                    const result = parseFloat((a / b).toFixed(2));
-
-                    expect(result).toBeDefined();
-                    expect(result).toBeCloseTo(a / b, 2);
+                    const correctAnswer = manager.getCurrentQuestionModel().correctAnswer;
+                    const expectedAnswer = parseFloat((a / b).toFixed(2));
+                    expect(correctAnswer).toBe(expectedAnswer);
+                    const answerStr = correctAnswer.toString();
+                    if (answerStr.includes('.')) {
+                        const decimalPlaces = answerStr.split('.')[1].length;
+                        expect(decimalPlaces).toBeLessThanOrEqual(2);
+                    }
                 }
             }
         });
