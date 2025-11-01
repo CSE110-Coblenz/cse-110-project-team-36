@@ -10,12 +10,28 @@ import { events } from "../shared/events";
 import { Track } from "../game/models/track";
 import type { TrackJSON } from "../game/models/track";
 import { QuestionStatsManager } from "../game/managers/QuestionStatsManager";
-import { Question } from "../game/models/question";
+import { Question, QuestionTopic, QuestionDifficulty } from "../game/models/question";
+import { QuestionManager } from "../game/managers/QuestionManager";
 
 // TODO: manage track selection and loading
 import sampleTrack from "../assets/tracks/track1.json";
 
-export const RacePage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
+interface RacePageProps {
+    onExit: () => void;
+    topics: string | null;
+    difficulty: string | null;
+}
+
+// Helper function to convert Capital string to enum value
+const topicStringToEnum = (topic: string): QuestionTopic => {
+    return topic.toLowerCase() as QuestionTopic;
+};
+
+const difficultyStringToEnum = (difficulty: string): QuestionDifficulty => {
+    return difficulty.toLowerCase() as QuestionDifficulty;
+};
+
+export const RacePage: React.FC<RacePageProps> = ({ onExit, topics, difficulty }) => {
     const track = Track.fromJSON(sampleTrack as TrackJSON);
     const containerRef = useRef<HTMLDivElement>(null);
     const [size, setSize] = useState({ w: PAGE_WIDTH, h: PAGE_HEIGHT });
@@ -23,12 +39,23 @@ export const RacePage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
     const [gs] = useState(() => raceController.getGameState());
     const [, setFrame] = useState(0);
     const [statsManager] = useState(() => new QuestionStatsManager());
+    const [questionManager, setQuestionManager] = useState<QuestionManager | null>(null);
+
+    useEffect(() => {
+        if (topics && difficulty) {
+            const topicEnum = topicStringToEnum(topics);
+            const difficultyEnum = difficultyStringToEnum(difficulty);
+            const qm = new QuestionManager({ topic: topicEnum, difficulty: difficultyEnum });
+            setQuestionManager(qm);
+        }
+    }, [topics, difficulty]);
 
     useEffect(() => {
         if (!containerRef.current) return;
 
         const resize = new ResizeListener(containerRef.current, (w, h) => setSize({ w, h }));
         resize.start();
+
         const esc = new EscapeListener(onExit);
         esc.start();
 
@@ -86,7 +113,7 @@ export const RacePage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
                 background: "#0b1020",
             }}
         >
-            <QuestionAnswer></QuestionAnswer>
+            <QuestionAnswer questionManager={questionManager} />
             <GameStage gs={gs} width={size.w} height={size.h} />
             <div style={{ position: "absolute", left: 12, top: 12 }}>
                 <button onClick={onExit}>⟵ Main Menu (Esc)</button>
