@@ -9,23 +9,39 @@ import { QuestionAnswer } from "../rendering/game/QuestionAnswer";
 import { events } from "../shared/events";
 import { Track } from "../game/models/track";
 import type { TrackJSON } from "../game/models/track";
+import { QuestionManager } from "../game/managers/QuestionManager";
 
 // TODO: manage track selection and loading
 import sampleTrack from "../assets/tracks/track1.json";
 
-export const RacePage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
+interface RacePageProps {
+    onExit: () => void;
+    topics: string | null;
+    difficulty: string | null;
+}
+
+export const RacePage: React.FC<RacePageProps> = ({ onExit, topics, difficulty }) => {
     const track = Track.fromJSON(sampleTrack as TrackJSON);
     const containerRef = useRef<HTMLDivElement>(null);
     const [size, setSize] = useState({ w: PAGE_WIDTH, h: PAGE_HEIGHT });
     const [raceController] = useState(() => new RaceController(track));
     const [gs] = useState(() => raceController.getGameState());
     const [, setFrame] = useState(0);
+    const [questionManager, setQuestionManager] = useState<QuestionManager | null>(null);
+
+    useEffect(() => {
+        if (topics && difficulty) {
+            const qm = new QuestionManager(topics, difficulty);
+            setQuestionManager(qm);
+        }
+    }, [topics, difficulty]);
 
     useEffect(() => {
         if (!containerRef.current) return;
 
         const resize = new ResizeListener(containerRef.current, (w, h) => setSize({ w, h }));
         resize.start();
+
         const esc = new EscapeListener(onExit);
         esc.start();
 
@@ -70,7 +86,7 @@ export const RacePage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
                 background: "#0b1020",
             }}
         >
-            <QuestionAnswer></QuestionAnswer>
+            <QuestionAnswer questionManager={questionManager} />
             <GameStage gs={gs} width={size.w} height={size.h} />
             <div style={{ position: "absolute", left: 12, top: 12 }}>
                 <button onClick={onExit}>⟵ Main Menu (Esc)</button>
