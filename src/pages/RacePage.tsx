@@ -27,14 +27,13 @@ export const RacePage: React.FC<RacePageProps> = ({ onExit, topics, difficulty }
     const [raceController] = useState(() => new RaceController(track));
     const [gs] = useState(() => raceController.getGameState());
     const [, setFrame] = useState(0);
-    const [questionManager, setQuestionManager] = useState<QuestionManager | null>(null);
 
-    useEffect(() => {
+    const [questionManager] = useState(() => {
         if (topics && difficulty) {
-            const qm = new QuestionManager(topics, difficulty);
-            setQuestionManager(qm);
+            return new QuestionManager(topics, difficulty);
         }
-    }, [topics, difficulty]);
+        return null;
+    });
 
     useEffect(() => {
         if (!containerRef.current) return;
