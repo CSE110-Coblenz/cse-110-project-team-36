@@ -56,3 +56,15 @@ export class EnterSubmitListener {
     start() { window.addEventListener("keydown", this.onKey); }
     stop() { window.removeEventListener("keydown", this.onKey); }
 }
+
+export class SkipQuestionListener {
+    private onKey = (e: KeyboardEvent) => {
+        if (e.key === "s" || e.key === "S") {
+            e.preventDefault();
+            this.onSkip();
+        }
+    };
+    constructor(private onSkip: () => void) { }
+    start() { window.addEventListener("keydown", this.onKey); }
+    stop() { window.removeEventListener("keydown", this.onKey); }
+}

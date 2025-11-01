@@ -2,6 +2,7 @@ import { Stage } from "react-konva";
 import type { GameState } from "../../game/models/game-state";
 import { TrackLayer } from "./TrackLayer";
 import { CarLayer } from "./CarLayer";
+import { SkidMarkLayer } from "./SkidMarkLayer";
 
 /**
  * Game stage component rendering the game state.
@@ -22,6 +23,12 @@ export function GameStage({ gs, width, height }: { gs: GameState; width: number;
         <Stage width={width} height={height} listening={false}>
             <TrackLayer
                 track={gs.track}
+                stageWidth={width}
+                stageHeight={height}
+                camera={gs.camera}
+            />
+            <SkidMarkLayer
+                gs={gs}
                 stageWidth={width}
                 stageHeight={height}
                 camera={gs.camera}

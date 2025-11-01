@@ -35,6 +35,8 @@ export type EventMap = {
   ViewportResized: { width: number; height: number };
   AnsweredCorrectly: { question: string; answer: number };
   AnsweredIncorrectly: { question: string; answer: number };
+  QuestionSkipped: { question: string };
+  QuestionCompleted: { question: unknown };
 };
 
 export const events = new EventBus<EventMap>();

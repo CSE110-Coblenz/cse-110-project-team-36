@@ -9,6 +9,8 @@ import { QuestionAnswer } from "../rendering/game/QuestionAnswer";
 import { events } from "../shared/events";
 import { Track } from "../game/models/track";
 import type { TrackJSON } from "../game/models/track";
+import { QuestionStatsManager } from "../game/managers/QuestionStatsManager";
+import { Question } from "../game/models/question";
 
 // TODO: manage track selection and loading
 import sampleTrack from "../assets/tracks/track1.json";
@@ -20,6 +22,7 @@ export const RacePage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
     const [raceController] = useState(() => new RaceController(track));
     const [gs] = useState(() => raceController.getGameState());
     const [, setFrame] = useState(0);
+    const [statsManager] = useState(() => new QuestionStatsManager());
 
     useEffect(() => {
         if (!containerRef.current) return;
@@ -40,7 +43,18 @@ export const RacePage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
             raceController.queueReward(playerCar, 150);
         });
         const unsubscribeIncorrect = events.on("AnsweredIncorrectly", () => {
-            // TODO: Placeholder
+            const playerCar = gs.playerCar;
+            raceController.applyPenalty(playerCar, 0.8);
+        });
+
+        const unsubscribeSkipped = events.on("QuestionSkipped", () => {
+            const playerCar = gs.playerCar;
+            raceController.applyPenalty(playerCar, 0.6);
+        });
+
+        const unsubscribeCompleted = events.on("QuestionCompleted", (payload) => {
+            const question = payload.question as Question;
+            statsManager.recordQuestion(question);
         });
 
         const clock = new GameClock(ANIMATION_TICK);
@@ -57,8 +71,10 @@ export const RacePage: React.FC<{ onExit: () => void }> = ({ onExit }) => {
             spaceReward.stop();
             unsubscribeCorrect();
             unsubscribeIncorrect();
+            unsubscribeSkipped();
+            unsubscribeCompleted();
         };
-    }, [raceController, gs, onExit]);
+    }, [raceController, gs, onExit, statsManager]);
 
     return (
         <div

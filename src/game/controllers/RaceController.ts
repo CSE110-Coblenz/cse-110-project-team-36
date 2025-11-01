@@ -97,6 +97,16 @@ export class RaceController {
     }
 
     /**
+     * Apply penalty to a car
+     * 
+     * @param car - The car to apply penalty to
+     * @param magnitude - The penalty magnitude (0-1)
+     */
+    applyPenalty(car: Car, magnitude: number) {
+        this.carController.applyPenalty(car, magnitude);
+    }
+
+    /**
      * Serialize the current game state to a JSON string
      * 
      * @returns The serialized game state as JSON string
