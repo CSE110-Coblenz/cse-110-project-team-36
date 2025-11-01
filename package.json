@@ -12,6 +12,8 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test:serialization": "jest tests/serialization/",
+    "test:game": "jest tests/game/",
+    "test:rendering": "jest tests/rendering/",
     "test:ci": "jest --ci --coverage --watchAll=false"
   },
   "dependencies": {
