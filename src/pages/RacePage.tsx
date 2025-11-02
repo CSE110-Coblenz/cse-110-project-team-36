@@ -18,8 +18,8 @@ import sampleTrack from "../assets/tracks/track1.json";
 
 interface RacePageProps {
     onExit: () => void;
-    topics: string | null;
-    difficulty: string | null;
+    topics: string;
+    difficulty: string;
 }
 
 // Helper function to convert Capital string to enum value
@@ -40,12 +40,9 @@ export const RacePage: React.FC<RacePageProps> = ({ onExit, topics, difficulty }
     const [, setFrame] = useState(0);
     const [statsManager] = useState(() => new QuestionStatsManager());
     const [questionManager] = useState(() => {
-        if (topics && difficulty) {
-            const topicEnum = topicStringToEnum(topics);
-            const difficultyEnum = difficultyStringToEnum(difficulty);
-            return new QuestionManager({ topic: topicEnum, difficulty: difficultyEnum });
-        }
-        return null;
+        const topicEnum = topicStringToEnum(topics);
+        const difficultyEnum = difficultyStringToEnum(difficulty);
+        return new QuestionManager({ topic: topicEnum, difficulty: difficultyEnum });
     });
 
     useEffect(() => {
