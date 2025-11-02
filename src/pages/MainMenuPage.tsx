@@ -9,9 +9,11 @@
 import React, { useState } from 'react'
 
 export const MainMenuPage: React.FC<{
+  currentUser: string | null
   onStart: () => void
   onSignUpClick: () => void
-}> = ({ onStart, onSignUpClick }) => {
+  onLogout: () => void
+}> = ({ currentUser, onStart, onSignUpClick, onLogout }) => {
   const [soundOn, setSoundOn] = useState(true)
   const [fullscreen, setFullscreen] = useState(false)
 
@@ -56,6 +58,7 @@ export const MainMenuPage: React.FC<{
       <div
         style={{
           zIndex: 1,
+          position: 'relative',
           background:
             'linear-gradient(180deg, rgba(15,15,30,0.9) 0%, rgba(30,30,60,0.9) 100%)',
           border: '3px solid #fff',
@@ -71,6 +74,37 @@ export const MainMenuPage: React.FC<{
           animation: 'cardPulse 2s infinite',
         }}
       >
+        {/* Logout button in top-right corner */}
+        {currentUser && (
+          <button
+            onClick={onLogout}
+            style={{
+              position: 'absolute',
+              top: 12,
+              right: 12,
+              padding: '6px 12px',
+              borderRadius: 8,
+              border: '1px solid #ff4444',
+              background: 'rgba(255, 68, 68, 0.2)',
+              color: '#ff6666',
+              fontSize: '0.75rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(255, 68, 68, 0.4)'
+              e.currentTarget.style.transform = 'scale(1.05)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(255, 68, 68, 0.2)'
+              e.currentTarget.style.transform = 'scale(1)'
+            }}
+          >
+            Logout
+          </button>
+        )}
+
         {/* animated title */}
         <h1
           style={{
@@ -87,13 +121,28 @@ export const MainMenuPage: React.FC<{
         FORMULA FUN 🏁 
         </h1>
 
+        {currentUser && (
+          <p
+            style={{
+              color: '#00ffd5',
+              fontWeight: 700,
+              fontSize: '1.1rem',
+              textShadow: '0 0 8px #00ffd5, 0 0 4px #000',
+              marginTop: -12,
+              marginBottom: 4,
+            }}
+          >
+            Welcome, {currentUser}! 🏎️
+          </p>
+        )}
+
         <p
           style={{
             color: '#ffd6a8',
             fontWeight: 600,
             fontSize: '1rem',
             textShadow: '0 0 4px #000',
-            marginTop: -8,
+            marginTop: currentUser ? -8 : -8,
             marginBottom: 12,
           }}
         >
@@ -106,7 +155,7 @@ export const MainMenuPage: React.FC<{
         </button>
 
         <button style={btnBlue} onClick={onSignUpClick}>
-          Create Account
+          {currentUser ? 'Switch Account' : 'Create Account'}
         </button>
 
         <button style={btnGreen} onClick={toggleSound}>
