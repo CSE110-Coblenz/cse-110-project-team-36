@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { GameClock } from "../game/clock";
 import { GameStage } from "../rendering/game/GameStage";
 import { ResizeListener } from "../game/listeners/ResizeListener";
-import { EscapeListener, SpaceRewardListener } from "../game/listeners/KeyboardListener";
+import { SpaceRewardListener } from "../game/listeners/KeyboardListener";
 import { RaceController } from "../game/controllers/RaceController";
 import { ANIMATION_TICK, PAGE_WIDTH, PAGE_HEIGHT } from "../const";
 import { QuestionAnswer } from "../rendering/game/QuestionAnswer";
@@ -12,6 +12,7 @@ import type { TrackJSON } from "../game/models/track";
 import { QuestionStatsManager } from "../game/managers/QuestionStatsManager";
 import { Question, QuestionTopic, QuestionDifficulty } from "../game/models/question";
 import { QuestionManager } from "../game/managers/QuestionManager";
+import { PauseOverlay } from "../rendering/game/PauseOverlay";
 
 // TODO: manage track selection and loading
 import sampleTrack from "../assets/tracks/track1.json";
@@ -45,14 +46,14 @@ export const RacePage: React.FC<RacePageProps> = ({ onExit, topics, difficulty }
         return new QuestionManager({ topic: topicEnum, difficulty: difficultyEnum });
     });
 
+    // React state reflecting pause (mirrors gs.paused via events)
+    const [paused, setPaused] = useState(false);
+
     useEffect(() => {
         if (!containerRef.current) return;
 
         const resize = new ResizeListener(containerRef.current, (w, h) => setSize({ w, h }));
         resize.start();
-
-        const esc = new EscapeListener(onExit);
-        esc.start();
 
         const spaceReward = new SpaceRewardListener(() => {
             const playerCar = gs.playerCar;
@@ -79,24 +80,53 @@ export const RacePage: React.FC<RacePageProps> = ({ onExit, topics, difficulty }
             statsManager.recordQuestion(question);
         });
 
+        // Pause events: toggle (mutates gs.paused) and reflect into React state
+        const unsubToggle = events.on("TogglePause", () => {
+            gs.paused = !gs.paused;
+            events.emit("PausedSet", { value: gs.paused });
+        });
+        const unsubSet = events.on("PausedSet", ({ value }) => setPaused(!!value));
+
+        // Keyboard: Esc or P toggles pause (no longer exits)
+        const onKey = (e: KeyboardEvent) => {
+            const k = e.key.toLowerCase();
+            if (k === "escape" || k === "p") {
+                e.preventDefault();
+                events.emit("TogglePause", {});
+            }
+        };
+        window.addEventListener("keydown", onKey);
+
         const clock = new GameClock(ANIMATION_TICK);
         let mounted = true;
         clock.start(
-            (dt) => { raceController.step(dt); },
+            // Freeze simulation while paused; still render overlay
+            (dt) => { if (!gs.paused) raceController.step(dt); },
             () => { if (mounted) setFrame(f => f + 1); }
         );
 
         return () => {
             mounted = false;
             resize.stop();
-            esc.stop();
             spaceReward.stop();
             unsubscribeCorrect();
             unsubscribeIncorrect();
             unsubscribeSkipped();
             unsubscribeCompleted();
+
+            unsubToggle();
+            unsubSet();
+            window.removeEventListener("keydown", onKey);
         };
     }, [raceController, gs, onExit, statsManager]);
+
+    // Pause overlay actions
+    const handleResume = () => events.emit("TogglePause", {});
+    const handleSettings = () => events.emit("SettingsRequested", {});
+    const handleExitToMenu = () => {
+        events.emit("PausedSet", { value: false });
+        onExit();
+    };
 
     return (
         <div
@@ -109,10 +139,19 @@ export const RacePage: React.FC<RacePageProps> = ({ onExit, topics, difficulty }
             }}
         >
             <QuestionAnswer questionManager={questionManager} />
+
             <GameStage gs={gs} width={size.w} height={size.h} />
             <div style={{ position: "absolute", left: 12, top: 12 }}>
-                <button onClick={onExit}>⟵ Main Menu (Esc)</button>
+                {/* Direct exit button (redundant with Pause → Exit) */}
+                <button onClick={handleExitToMenu}>⟵ Pause (Main Menu + Settings)</button>
             </div>
+            {/* Pause overlay with Resume / Settings / Exit */}
+            <PauseOverlay
+                visible={paused}
+                onResume={handleResume}
+                onSettings={handleSettings}
+                onExit={handleExitToMenu}
+            />
         </div>
     );
 };
