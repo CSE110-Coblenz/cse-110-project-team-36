@@ -32,6 +32,11 @@ export class CarController {
     private mu: number = 0.8;               // μ (effective friction coefficient)
     private kappaEps: number = 1e-3;        // ε (curvature floor to avoid div by 0)
     private vKappaScale: number = 10;       // γ_κ (scale knob; spec addendum)
+    private slipDecay: number = 0.5;        // slip decay rate per second (slower)
+    private slipWobbleAmp: number = 25;     // wobble amplitude in degrees (stronger)
+    private slipWobbleFreq: number = 2;     // wobble frequency in Hz (slower)
+    private baseMu: number = 0.8;           // base friction coefficient
+    private slipVelocityDecay: number = 8;  // how quickly slip forces vProg to vMin
 
     constructor(gameState: GameState) {
         this.gameState = gameState;
@@ -55,6 +60,9 @@ export class CarController {
         for (const car of cars) {
             this.updateCar(car, dt, track);
         }
+
+        // Update skid marks after all car physics
+        this.gameState.updateSkidMarks(dt);
     }
 
     /**
@@ -68,8 +76,10 @@ export class CarController {
         const rPrev = car.r; // r_{k-1}
         // a_decay(v) = -β for v > v_min; else 0
         const aDecay = car.vProg > this.vMin ? -this.beta : 0;
-        // v_{k+1} = v_k + (a_base + r_{k-1} + a_decay(v_k)) * dt
-        car.vProg += (this.aBase + rPrev + aDecay) * dt;
+        // Apply slip deceleration to reduce vProg to vMin quickly
+        const slipDecel = car.slipFactor > 0 ? -this.slipVelocityDecay * (car.vProg - this.vMin) : 0;
+        // v_{k+1} = v_k + (a_base + r_{k-1} + a_decay(v_k) + slip_decel) * dt
+        car.vProg += (this.aBase + rPrev + aDecay + slipDecel) * dt;
         // v_prog clipped to [v_min, v_max]
         const vProgClipped = Math.max(this.vMin, Math.min(this.vMax, car.vProg)); 
         // Δs = min(v_prog_clipped * dt, Δs_max)
@@ -89,6 +99,7 @@ export class CarController {
         }
     
         this.updatePhysicalState(car, dt, track);
+        this.updateSlip(car, dt);
     }
     
 
@@ -101,8 +112,10 @@ export class CarController {
      */
     private updatePhysicalState(car: Car, dt: number, track: Track): void {
         const kappa = this.estimateCurvature(car.sPhys, track);
+        // Apply slip to friction: μ_effective = μ * (1 - slipFactor)
+        const muEffective = this.baseMu * (1 - car.slipFactor * 0.6); // slip reduces friction by 60%
         // v_kappa_raw = sqrt(μ * g / (|κ| + ε))
-        const vKappaRaw = Math.sqrt((this.mu * 9.81) / (Math.abs(kappa) + this.kappaEps));
+        const vKappaRaw = Math.sqrt((muEffective * 9.81) / (Math.abs(kappa) + this.kappaEps));
         // v_kappa_max = γ_κ * v_kappa_raw
         const vKappaMax = this.vKappaScale * vKappaRaw;
         // L = track.length
@@ -193,5 +206,84 @@ export class CarController {
      */
     setParams(params: Partial<ReturnType<typeof this.getParams>>): void {
         Object.assign(this, params);
+    }
+
+    /**
+     * Update slip state - decay and wobble, and generate skid marks
+     * 
+     * @param car - The car to update
+     * @param dt - The time step in seconds
+     */
+    private updateSlip(car: Car, dt: number): void {
+        const track = this.gameState.track;
+        
+        // Decay slip over time
+        car.slipFactor = Math.max(0, car.slipFactor - this.slipDecay * dt);
+        
+        // Update wobble based on slip factor
+        if (car.slipFactor > 0) {
+            // Oscillating wobble based on frequency
+            const wobblePhase = this.slipWobbleFreq * car.sPhys * 0.1; // Use position for phase
+            car.slipWobble = car.slipFactor * this.slipWobbleAmp * Math.sin(wobblePhase);
+            
+            // Generate double skid marks at back corners of car when slipping
+            const skidMark = this.gameState.getSkidMarks(car);
+            if (skidMark) {
+                // Calculate car position and orientation
+                const p = track.posAt(car.sPhys);
+                const t = track.tangentAt(car.sPhys);
+                const n = track.normalAt(car.sPhys);
+                
+                // Car center position with lateral offset
+                const centerPos = {
+                    x: p.x + n.x * car.lateral,
+                    y: p.y + n.y * car.lateral
+                };
+                
+                // Car angle
+                const angle = Math.atan2(t.y, t.x);
+                const cosAngle = Math.cos(angle);
+                const sinAngle = Math.sin(angle);
+                
+                // Car dimensions in world units
+                const halfLength = car.carLength / 2;
+                const halfWidth = car.carWidth / 2;
+                
+                // Back corner positions (relative to car center)
+                const backLeftRel = {
+                    x: -halfLength * cosAngle - halfWidth * sinAngle,
+                    y: -halfLength * sinAngle + halfWidth * cosAngle
+                };
+                const backRightRel = {
+                    x: -halfLength * cosAngle + halfWidth * sinAngle,
+                    y: -halfLength * sinAngle - halfWidth * cosAngle
+                };
+                
+                // Convert to world coordinates
+                const backLeft = {
+                    x: centerPos.x + backLeftRel.x,
+                    y: centerPos.y + backLeftRel.y
+                };
+                const backRight = {
+                    x: centerPos.x + backRightRel.x,
+                    y: centerPos.y + backRightRel.y
+                };
+                
+                // Add double skid marks
+                skidMark.addPoints(backLeft.x, backLeft.y, backRight.x, backRight.y);
+            }
+        } else {
+            car.slipWobble = 0;
+        }
+    }
+
+    /**
+     * Apply penalty/slip to a car
+     * 
+     * @param car - The car to apply penalty to
+     * @param magnitude - The penalty magnitude (0-1, affects slipFactor)
+     */
+    applyPenalty(car: Car, magnitude: number): void {
+        car.slipFactor = Math.min(1, car.slipFactor + magnitude);
     }
 }

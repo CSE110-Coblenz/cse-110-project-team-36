@@ -1,6 +1,7 @@
 import type { Track } from './track';
 import type { Camera } from '../types';
 import { Car } from './car';
+import { SkidMark } from './skid-mark';
 
 /**
  * Game state class
@@ -12,6 +13,7 @@ export class GameState {
     track: Track;
     private cars: Car[] = [];
     private playerCarIndex: number = 0;
+    private skidMarks = new Map<Car, SkidMark>();
 
     /**
      * Constructor
@@ -32,6 +34,7 @@ export class GameState {
     addPlayerCar(car: Car) {
         this.playerCarIndex = this.cars.length;
         this.cars.push(car);
+        this.skidMarks.set(car, new SkidMark());
     }
 
     /**
@@ -41,6 +44,7 @@ export class GameState {
      */
     addCar(car: Car) {
         this.cars.push(car);
+        this.skidMarks.set(car, new SkidMark());
     }
 
     /**
@@ -86,6 +90,27 @@ export class GameState {
      */
     updateTrack(track: Track) {
         this.track = track;
+    }
+
+    /**
+     * Get skid marks for a car
+     * 
+     * @param car - The car to get skid marks for
+     * @returns The skid marks for the car
+     */
+    getSkidMarks(car: Car): SkidMark | undefined {
+        return this.skidMarks.get(car);
+    }
+
+    /**
+     * Update all skid marks
+     * 
+     * @param dt - Time step in seconds
+     */
+    updateSkidMarks(dt: number): void {
+        for (const skidMark of this.skidMarks.values()) {
+            skidMark.update(dt);
+        }
     }
 
 }

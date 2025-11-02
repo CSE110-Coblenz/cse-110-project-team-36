@@ -12,6 +12,9 @@ export class Car {
     public vPhys: number = 0;           // physical velocity
     public lateral: number = 0;         // lateral offset (world units)
 
+    public slipFactor: number = 0;      // slip state [0, 1] for slip effect
+    public slipWobble: number = 0;      // angular wobble for slip effect
+
     public color: string = '#22c55e';   // car color
     public carLength: number = 40;      // car size (world units)
     public carWidth: number = 22;
@@ -93,6 +96,8 @@ export class Car {
             sPhys: this.sPhys,
             vPhys: this.vPhys,
             lateral: this.lateral,
+            slipFactor: this.slipFactor,
+            slipWobble: this.slipWobble,
             color: this.color,
             carLength: this.carLength,
             carWidth: this.carWidth,
@@ -115,6 +120,8 @@ export class Car {
         sPhys: number;
         vPhys: number;
         lateral: number;
+        slipFactor?: number;
+        slipWobble?: number;
         color: string;
         carLength: number;
         carWidth: number;
@@ -129,6 +136,8 @@ export class Car {
         car.sPhys = data.sPhys;
         car.vPhys = data.vPhys;
         car.lateral = data.lateral;
+        car.slipFactor = data.slipFactor ?? 0;
+        car.slipWobble = data.slipWobble ?? 0;
         car.lapCount = data.lapCount;
         car.lastSProg = data.lastSProg;
         car.crossedFinish = data.crossedFinish;

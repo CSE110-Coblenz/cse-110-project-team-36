@@ -46,7 +46,7 @@ export function CarLayer({ track, cars, stageWidth, stageHeight, camera }: { tra
  * @returns The car renderer component
  */
 function CarRenderer({ track, car, stageWidth, stageHeight, camera }: { track: Track; car: Car; stageWidth: number; stageHeight: number; camera: Camera }) {
-    const { angleDeg, screen, scale } = useMemo(() => {
+    const { angleDeg, screen, scale, wobble } = useMemo(() => {
         const p = track.posAt(car.sPhys);
         const t = track.tangentAt(car.sPhys);
         const n = track.normalAt(car.sPhys);
@@ -61,14 +61,18 @@ function CarRenderer({ track, car, stageWidth, stageHeight, camera }: { track: T
             angleDeg,
             screen: { x: tx(wp.x), y: ty(wp.y) },
             scale: zoom,
+            wobble: car.slipWobble,
         };
-    }, [track, car.sPhys, car.lateral, camera, stageWidth, stageHeight]);
+    }, [track, car.sPhys, car.lateral, car.slipWobble, camera, stageWidth, stageHeight]);
 
     const w = car.carLength * scale;
     const h = car.carWidth * scale;
 
+    // Add wobble to rotation
+    const totalRotation = angleDeg + wobble;
+
     return (
-        <Group x={screen.x} y={screen.y} rotation={angleDeg}>
+        <Group x={screen.x} y={screen.y} rotation={totalRotation}>
             <Rect
                 x={-w / 2}
                 y={-h / 2}

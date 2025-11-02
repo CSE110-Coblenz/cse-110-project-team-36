@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { QuestionManager } from "../../game/managers/QuestionManager";
-import { NumberInputListener, EnterSubmitListener, DeleteListener } from "../../game/listeners/KeyboardListener";
+import { NumberInputListener, EnterSubmitListener, DeleteListener, SkipQuestionListener } from "../../game/listeners/KeyboardListener";
 
 type FeedbackState = 'none' | 'correct' | 'incorrect';
 
@@ -31,6 +31,14 @@ export function QuestionAnswer() {
     setCurrentQuestion(questionManager.getCurrentQuestion());
     setAnswer("");
   }, [answer, questionManager]);
+
+  const handleSkip = useCallback(() => {
+    questionManager.skipQuestion();
+    setCurrentQuestion(questionManager.getCurrentQuestion());
+    setAnswer("");
+    // Reset feedback when skipping
+    setFeedback('none');
+  }, [questionManager]);
 
   useEffect(() => {
     const handleNumberInput = (char: string) => {
@@ -70,6 +78,17 @@ export function QuestionAnswer() {
   }, [handleSubmit]);
 
   useEffect(() => {
+    const skipListener = new SkipQuestionListener(() => {
+      handleSkip();
+    });
+    skipListener.start();
+
+    return () => {
+      skipListener.stop();
+    };
+  }, [handleSkip]);
+
+  useEffect(() => {
     return () => {
       if (feedbackTimeoutRef.current) {
         clearTimeout(feedbackTimeoutRef.current);
@@ -102,7 +121,7 @@ export function QuestionAnswer() {
       <form
         style={{
           position: "absolute",
-          bottom: 20,
+          top: 20,
           left: "50%",
           transform: "translateX(-50%)",
           ...getFeedbackStyle(),
@@ -161,6 +180,31 @@ export function QuestionAnswer() {
             }}
           >
             Submit (Enter)
+          </button>
+          <button 
+            type="button"
+            onClick={handleSkip}
+            style={{
+              padding: "12px 24px",
+              fontSize: "1.1em",
+              fontWeight: 600,
+              borderRadius: "8px",
+              border: "2px solid rgba(239, 68, 68, 0.5)",
+              background: "rgba(239, 68, 68, 0.1)",
+              color: "rgba(239, 68, 68, 1)",
+              cursor: "pointer",
+              transition: "all 0.2s ease",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "translateY(-2px)";
+              e.currentTarget.style.background = "rgba(239, 68, 68, 0.2)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.background = "rgba(239, 68, 68, 0.1)";
+            }}
+          >
+            Skip (S)
           </button>
         </div>
       </form>
