@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { RacePage } from './pages/RacePage'
-//import { PlaceholderPage } from './pages/PlaceholderPage'
 import { MainMenuPage } from './pages/MainMenuPage'
 import { LoginPage } from './pages/LoginPage'
 import DifficultySelectionScreen from './pages/DifficultySelectionScreen'
@@ -68,7 +67,6 @@ export default function App() {
                     setSelectedTrack(track)
                     setScreen('race')
                     
-                    // Save preferences if logged in
                     if (currentUser) {
                         updateUserPreferences(currentUser, {
                             lastTopic: topic,
@@ -83,7 +81,7 @@ export default function App() {
 
     if (screen === 'race') {
         if (!selectedTopic || !selectedDifficulty || !selectedTrack) {
-            console.error("Race screen accessed without topic, difficulty, or track selected!")
+            // TODO: handle error case gracefully
             return (
                 <MainMenuPage
                     currentUser={currentUser}

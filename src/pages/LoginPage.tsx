@@ -27,7 +27,7 @@ export const LoginPage: React.FC<{
             return
         }
         setError(null)
-        
+
         const exists = userExists(username)
         setStep(exists ? 'login' : 'signup')
     }
