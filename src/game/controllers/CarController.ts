@@ -72,7 +72,7 @@ export class CarController {
      * @param track - The track to update the car on
      */
     private updateCar(car: Car, dt: number, track: Track): void {
-        car.updateLaps(track.length);
+        car.updateLaps();
         const rPrev = car.r; // r_{k-1}
         // a_decay(v) = -β for v > v_min; else 0
         const aDecay = car.vProg > this.vMin ? -this.beta : 0;

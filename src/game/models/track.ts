@@ -142,8 +142,7 @@ export class Track {
      * @returns The wrapped position
      */
     wrapS(s: number): number {
-        const L = this.totalLength;
-        return ((s % L) + L) % L;
+        return s % this.totalLength;
     }
 
     /**
@@ -153,7 +152,10 @@ export class Track {
      * @returns The position at the given track position
      */
     posAt(sRaw: number): Vec2 {
-        const s = this.wrapS(sRaw);
+        let s = this.wrapS(sRaw);
+        if (s < 0) {
+            s += this.totalLength;
+        }
         // binary search
         let lo = 0, hi = this.sTable.length - 1;
         while (lo <= hi) {

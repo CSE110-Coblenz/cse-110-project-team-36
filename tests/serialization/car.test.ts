@@ -15,7 +15,7 @@ describe('Car Serialization', () => {
             car.lateral = 5;
             car.lapCount = 2;
 
-            car.updateLaps(1000);
+            car.updateLaps();
 
             const serialized = car.toSerializedData();
 
@@ -126,7 +126,7 @@ describe('Car Serialization', () => {
             originalCar.lateral = -3;
             originalCar.lapCount = 5;
 
-            originalCar.updateLaps(1000);
+            originalCar.updateLaps();
 
             const serialized = originalCar.toSerializedData();
             const deserializedCar = Car.fromSerializedData(serialized);
@@ -197,7 +197,7 @@ describe('Car Serialization', () => {
             const car = Car.fromSerializedData(serializedData);
 
             car.sProg = 10; // Crossed to beginning
-            car.updateLaps(1000);
+            car.updateLaps();
 
             expect(car.lapCount).toBe(2);
         });

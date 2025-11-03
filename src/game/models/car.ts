@@ -57,16 +57,13 @@ export class Car {
 
     /**
      * Check for lap completion based on crossing the finish line (s=0)
-     * 
-     * @param trackLength - The length of the track
      */
-    updateLaps(trackLength: number) {
-        if (!this.crossedFinish && this.lastSProg > trackLength * 0.9 && this.sProg < trackLength * 0.1) {
+    updateLaps() {
+        if (!this.crossedFinish && this.lastSProg > this.sProg) {
             this.lapCount++;
-            this.crossedFinish = true;
-        }
-        if (this.sProg > trackLength * 0.5) {
-            this.crossedFinish = false;
+            if (this.lapCount >= 3) {
+                this.crossedFinish = true;
+            }
         }
         this.lastSProg = this.sProg;
     }

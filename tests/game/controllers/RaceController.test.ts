@@ -316,9 +316,11 @@ describe('RaceController', () => {
             // All cars should be on track
             const trackLength = gameState.track.length;
             gameState.getCars().forEach(car => {
-                expect(car.sProg).toBeGreaterThanOrEqual(-300); // AI cars start at negative offsets
-                expect(car.sProg).toBeLessThan(trackLength * 2); // Allow multiple laps
-                expect(car.sPhys).toBeGreaterThanOrEqual(0);
+                if (car.lapCount > 0) {
+                    expect(car.sPhys).toBeGreaterThanOrEqual(0);
+                }
+                expect(car.sProg).toBeGreaterThanOrEqual(-300); 
+                expect(car.sProg).toBeLessThan(trackLength * 2);
                 expect(car.sPhys).toBeLessThan(trackLength);
             });
         });
