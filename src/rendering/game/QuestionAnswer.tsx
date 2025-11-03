@@ -157,8 +157,27 @@ export function QuestionAnswer({ questionManager }: QuestionAnswerProps) {
                             display: "flex",
                             alignItems: "center",
                         }}
-                    >
-                        {answer || "?"}
+                    >   
+                        <span style={{ whiteSpace: "pre-wrap" }}>
+                        {answer}
+                        <span // added the blinking vertical bar to the answer form
+                            style={{
+                                display: "inline-block",
+                                width: "1px",
+                                height: "1.2em",
+                                marginLeft: "2px",
+                                backgroundColor: "white",
+                                animation: "blink 1s step-start infinite",
+                            }}>
+                            </span>
+                            </span>
+                            <style>
+                                {`
+                                @keyframes blink {
+                                50% { opacity: 0; }
+                                }
+                            `}
+                            </style>
                     </div>
                     <button
                         type="button"
