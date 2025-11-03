@@ -9,11 +9,12 @@ import { QuestionAnswer } from "../rendering/game/QuestionAnswer";
 import { events } from "../shared/events";
 import { Track } from "../game/models/track";
 import { QuestionStatsManager } from "../game/managers/QuestionStatsManager";
-import { Question, QuestionTopic, QuestionDifficulty } from "../game/models/question";
+import { Question, QuestionTopic, QuestionDifficulty, QuestionOutcome } from "../game/models/question";
 import { QuestionManager } from "../game/managers/QuestionManager";
 import { PauseOverlay } from "../rendering/game/PauseOverlay";
 import { updateUserStats } from "../services/localStorage";
 import { loadTrack } from "../utils/trackList";
+import { Hud } from "../rendering/game/Hud"; // HUD overlay
 
 interface RacePageProps {
     onExit: () => void;
@@ -42,6 +43,11 @@ export const RacePage: React.FC<RacePageProps> = ({ onExit, topics, difficulty, 
     const [statsManager, setStatsManager] = useState<QuestionStatsManager | null>(null);
     const [questionManager, setQuestionManager] = useState<QuestionManager | null>(null);
     const [paused, setPaused] = useState(false);
+    // === HUD state ===
+    const [elapsedMs, setElapsedMs] = useState(0); // pause-aware race time (ms)
+    const [accuracy, setAccuracy] = useState(0);   // 0..1 live accuracy
+    const [correctCount, setCorrectCount] = useState(0);
+    const [incorrectCount, setIncorrectCount] = useState(0);
 
     // Load track and initialize controllers/managers
     useEffect(() => {
@@ -100,6 +106,18 @@ export const RacePage: React.FC<RacePageProps> = ({ onExit, topics, difficulty, 
         const unsubscribeCompleted = events.on("QuestionCompleted", (payload) => {
             const question = payload.question as Question;
             statsManager.recordQuestion(question);
+            // recompute accuracy after each completed question
+            // getSummary() is private, so compute from raw stats
+            const stats = statsManager.getStats();
+            let correct = 0, incorrect = 0;
+            for (const s of stats) {
+                if (s.outcome === QuestionOutcome.CORRECT) correct++;
+                else if (s.outcome === QuestionOutcome.INCORRECT) incorrect++;
+            }
+            const denom = correct + incorrect;
+            setAccuracy(denom ? correct / denom : 0);
+            setCorrectCount(correct);
+            setIncorrectCount(incorrect);
         });
 
         // Pause events: toggle (mutates gs.paused) and reflect into React state
@@ -123,7 +141,14 @@ export const RacePage: React.FC<RacePageProps> = ({ onExit, topics, difficulty, 
         let mounted = true;
         clock.start(
             // Freeze simulation while paused; still render overlay
-            (dt) => { if (!gs.paused) raceController.step(dt); },
+            (dt) => {
+                if (!gs.paused) {
+                    raceController.step(dt);
+                    // Tick HUD timer only when not paused
+                    setElapsedMs((t) => t + dt * 1000);
+                }
+                // lap readout comes from player car. HUD gets value in render.
+            },
             () => { if (mounted) setFrame(f => f + 1); }
         );
 
@@ -227,6 +252,14 @@ export const RacePage: React.FC<RacePageProps> = ({ onExit, topics, difficulty, 
                     Pause
                 </button>
             </div>
+            {/* HUD overlay: Lap / Time / Accuracy */}
+            <Hud
+                lap={(gs.playerCar?.lapCount ?? 0) + 1}
+                elapsedMs={elapsedMs}
+                accuracy={accuracy}
+                correctCount={correctCount}
+                incorrectCount={incorrectCount}
+            />
 
 
             {/* Pause overlay with Resume / Settings / Exit */}
