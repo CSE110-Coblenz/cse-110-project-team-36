@@ -8,19 +8,19 @@ import { ANIMATION_TICK, PAGE_WIDTH, PAGE_HEIGHT } from "../const";
 import { QuestionAnswer } from "../rendering/game/QuestionAnswer";
 import { events } from "../shared/events";
 import { Track } from "../game/models/track";
-import type { TrackJSON } from "../game/models/track";
 import { QuestionStatsManager } from "../game/managers/QuestionStatsManager";
 import { Question, QuestionTopic, QuestionDifficulty } from "../game/models/question";
 import { QuestionManager } from "../game/managers/QuestionManager";
 import { PauseOverlay } from "../rendering/game/PauseOverlay";
-
-// TODO: manage track selection and loading
-import sampleTrack from "../assets/tracks/track1.json";
+import { updateUserStats } from "../services/localStorage";
+import { loadTrack } from "../utils/trackList";
 
 interface RacePageProps {
     onExit: () => void;
     topics: string;
     difficulty: string;
+    trackId: string;
+    currentUser: string | null;
 }
 
 // Helper function to convert Capital string to enum value
@@ -32,25 +32,47 @@ const difficultyStringToEnum = (difficulty: string): QuestionDifficulty => {
     return difficulty.toLowerCase() as QuestionDifficulty;
 };
 
-export const RacePage: React.FC<RacePageProps> = ({ onExit, topics, difficulty }) => {
-    const track = Track.fromJSON(sampleTrack as TrackJSON);
+export const RacePage: React.FC<RacePageProps> = ({ onExit, topics, difficulty, trackId, currentUser }) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const [size, setSize] = useState({ w: PAGE_WIDTH, h: PAGE_HEIGHT });
-    const [raceController] = useState(() => new RaceController(track));
-    const [gs] = useState(() => raceController.getGameState());
+    const [track, setTrack] = useState<Track | null>(null);
+    const [raceController, setRaceController] = useState<RaceController | null>(null);
+    const [gs, setGs] = useState<ReturnType<RaceController['getGameState']> | null>(null);
     const [, setFrame] = useState(0);
-    const [statsManager] = useState(() => new QuestionStatsManager());
-    const [questionManager] = useState(() => {
-        const topicEnum = topicStringToEnum(topics);
-        const difficultyEnum = difficultyStringToEnum(difficulty);
-        return new QuestionManager({ topic: topicEnum, difficulty: difficultyEnum });
-    });
-
-    // React state reflecting pause (mirrors gs.paused via events)
+    const [statsManager, setStatsManager] = useState<QuestionStatsManager | null>(null);
+    const [questionManager, setQuestionManager] = useState<QuestionManager | null>(null);
     const [paused, setPaused] = useState(false);
 
+    // Load track and initialize controllers/managers
     useEffect(() => {
-        if (!containerRef.current) return;
+        loadTrack(trackId)
+            .then(trackData => {
+                const loadedTrack = Track.fromJSON(trackData);
+                setTrack(loadedTrack);
+
+                // Initialize controllers and managers after track loads
+                const controller = new RaceController(loadedTrack);
+                const gameState = controller.getGameState();
+                const stats = new QuestionStatsManager();
+                const questions = new QuestionManager({
+                    topic: topicStringToEnum(topics),
+                    difficulty: difficultyStringToEnum(difficulty)
+                });
+
+                setRaceController(controller);
+                setGs(gameState);
+                setStatsManager(stats);
+                setQuestionManager(questions);
+            })
+            .catch(err => {
+                console.error('Failed to load track:', err);
+                // Could show error UI here
+            });
+    }, [trackId, topics, difficulty]);
+
+    // Set up game loop and event listeners once controllers are ready
+    useEffect(() => {
+        if (!containerRef.current || !raceController || !gs || !statsManager) return;
 
         const resize = new ResizeListener(containerRef.current, (w, h) => setSize({ w, h }));
         resize.start();
@@ -118,15 +140,44 @@ export const RacePage: React.FC<RacePageProps> = ({ onExit, topics, difficulty }
             unsubSet();
             window.removeEventListener("keydown", onKey);
         };
-    }, [raceController, gs, onExit, statsManager]);
+    }, [raceController, gs, statsManager]);
 
     // Pause overlay actions
     const handleResume = () => events.emit("TogglePause", {});
     const handleSettings = () => events.emit("SettingsRequested", {});
     const handleExitToMenu = () => {
+        // Save stats if user is logged in
+        if (currentUser && statsManager) {
+            const stats = statsManager.getStats();
+            updateUserStats(currentUser, Array.from(stats));
+        }
+        
         events.emit("PausedSet", { value: false });
         onExit();
     };
+
+    // Loading state
+    if (!track || !raceController || !gs || !questionManager) {
+        return (
+            <div
+                ref={containerRef}
+                style={{
+                    position: "relative",
+                    width: "100%",
+                    height: "100vh",
+                    background: "#0b1020",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#fff",
+                    fontSize: "1.5rem",
+                    fontWeight: 700,
+                }}
+            >
+                Loading track...
+            </div>
+        );
+    }
 
     return (
         <div
