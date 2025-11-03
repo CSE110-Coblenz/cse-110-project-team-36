@@ -64,97 +64,96 @@ describe('Car Model', () => {
     });
 
     describe('Lap Tracking', () => {
-        const trackLength = 1000;
 
-    it('should increment lapCount when crossing finish line (from >90% to <10%)', () => {
-      const car = Car.fromSerializedData({
-        sProg: 950,
-        vProg: 0,
-        r: 0,
-        sPhys: 0,
-        vPhys: 0,
-        lateral: 0,
-        color: '#test',
-        carLength: 40,
-        carWidth: 22,
-        lapCount: 0,
-        lastSProg: 950,
-        crossedFinish: false,
-      });
+        it('should increment lapCount when crossing finish line (from >90% to <10%)', () => {
+            const car = Car.fromSerializedData({
+                sProg: 950,
+                vProg: 0,
+                r: 0,
+                sPhys: 0,
+                vPhys: 0,
+                lateral: 0,
+                color: '#test',
+                carLength: 40,
+                carWidth: 22,
+                lapCount: 0,
+                lastSProg: 950,
+                crossedFinish: false,
+            });
 
-      car.sProg = 50;
-      car.updateLaps(trackLength);
+            car.sProg = 50;
+            car.updateLaps();
 
-      expect(car.lapCount).toBe(1);
-    });
+            expect(car.lapCount).toBe(1);
+        });
 
-    it('should not increment lapCount when crossing finish line if already crossed', () => {
-      const car = Car.fromSerializedData({
-        sProg: 950,
-        vProg: 0,
-        r: 0,
-        sPhys: 0,
-        vPhys: 0,
-        lateral: 0,
-        color: '#test',
-        carLength: 40,
-        carWidth: 22,
-        lapCount: 0,
-        lastSProg: 950,
-        crossedFinish: false,
-      });
+        it('should not increment lapCount when crossing finish line if already crossed', () => {
+            const car = Car.fromSerializedData({
+                sProg: 950,
+                vProg: 0,
+                r: 0,
+                sPhys: 0,
+                vPhys: 0,
+                lateral: 0,
+                color: '#test',
+                carLength: 40,
+                carWidth: 22,
+                lapCount: 0,
+                lastSProg: 950,
+                crossedFinish: false,
+            });
 
-      car.sProg = 50;
-      car.updateLaps(trackLength);
+            car.sProg = 50;
+            car.updateLaps();
 
-      car.sProg = 950;
-      car.updateLaps(trackLength);
+            car.sProg = 950;
+            car.updateLaps();
 
-      expect(car.lapCount).toBe(1);
-    });
+            expect(car.lapCount).toBe(1);
+        });
 
-    it('should reset crossedFinish flag after passing 50%', () => {
-      const car = Car.fromSerializedData({
-        sProg: 950,
-        vProg: 0,
-        r: 0,
-        sPhys: 0,
-        vPhys: 0,
-        lateral: 0,
-        color: '#test',
-        carLength: 40,
-        carWidth: 22,
-        lapCount: 0,
-        lastSProg: 950,
-        crossedFinish: false,
-      });
+        it('should reset crossedFinish flag after passing 50%', () => {
+            const car = Car.fromSerializedData({
+                sProg: 950,
+                vProg: 0,
+                r: 0,
+                sPhys: 0,
+                vPhys: 0,
+                lateral: 0,
+                color: '#test',
+                carLength: 40,
+                carWidth: 22,
+                lapCount: 0,
+                lastSProg: 950,
+                crossedFinish: false,
+            });
 
-      car.sProg = 50;
-      car.updateLaps(trackLength);
-      expect(car.lapCount).toBe(1);
-      
-      car.sProg = 600;
-      car.updateLaps(trackLength);
+            car.sProg = 50;
+            car.updateLaps();
+            expect(car.lapCount).toBe(1);
 
-      car.sProg = 950;
-      car.updateLaps(trackLength);
+            car.sProg = 600;
+            car.updateLaps();
 
-      car.sProg = 50;
-      car.updateLaps(trackLength);
+            car.sProg = 950;
+            car.updateLaps();
 
-      expect(car.lapCount).toBe(2);
-    });
+            car.sProg = 50;
+            car.updateLaps();
+
+            expect(car.lapCount).toBe(2);
+        });
 
         it('should update lastSProg correctly', () => {
             const car = new Car();
             car.sProg = 100;
 
-            car.updateLaps(trackLength);
+            car.updateLaps();
 
             expect(car.sProg).toBe(100);
 
             car.sProg = 150;
-            car.updateLaps(trackLength);
+            car.updateLaps();
             expect(car.sProg).toBe(150);
         });
 
@@ -164,7 +163,7 @@ describe('Car Model', () => {
             car.lapCount = 5;
 
             car.sProg = 200;
-            car.updateLaps(trackLength);
+            car.updateLaps();
 
             expect(car.lapCount).toBe(5);
         });
@@ -174,26 +173,26 @@ describe('Car Model', () => {
             car.lapCount = 0;
 
             car.sProg = 950;
-            car.updateLaps(trackLength);
+            car.updateLaps();
             car.sProg = 50;
-            car.updateLaps(trackLength);
+            car.updateLaps();
             expect(car.lapCount).toBe(1);
 
             car.sProg = 600;
-            car.updateLaps(trackLength);
+            car.updateLaps();
 
             car.sProg = 950;
-            car.updateLaps(trackLength);
+            car.updateLaps();
             car.sProg = 50;
-            car.updateLaps(trackLength);
+            car.updateLaps();
             expect(car.lapCount).toBe(2);
 
             car.sProg = 600;
-            car.updateLaps(trackLength);
+            car.updateLaps();
             car.sProg = 950;
-            car.updateLaps(trackLength);
+            car.updateLaps();
             car.sProg = 50;
-            car.updateLaps(trackLength);
+            car.updateLaps();
             expect(car.lapCount).toBe(3);
         });
     });
