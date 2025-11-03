@@ -14,6 +14,7 @@ import { QuestionManager } from "../game/managers/QuestionManager";
 import { PauseOverlay } from "../rendering/game/PauseOverlay";
 import { updateUserStats } from "../services/localStorage";
 import { loadTrack } from "../utils/trackList";
+import { PostRaceStats } from "../rendering/game/PostRaceStats";
 
 interface RacePageProps {
     onExit: () => void;
@@ -42,6 +43,8 @@ export const RacePage: React.FC<RacePageProps> = ({ onExit, topics, difficulty, 
     const [statsManager, setStatsManager] = useState<QuestionStatsManager | null>(null);
     const [questionManager, setQuestionManager] = useState<QuestionManager | null>(null);
     const [paused, setPaused] = useState(false);
+    const [raceFinished, setRaceFinished] = useState(false);
+    const [raceTime, setRaceTime] = useState(0);
 
     // Load track and initialize controllers/managers
     useEffect(() => {
@@ -123,8 +126,18 @@ export const RacePage: React.FC<RacePageProps> = ({ onExit, topics, difficulty, 
         let mounted = true;
         clock.start(
             // Freeze simulation while paused; still render overlay
-            (dt) => { if (!gs.paused) raceController.step(dt); },
-            () => { if (mounted) setFrame(f => f + 1); }
+            (dt) => { if (!gs.paused && !raceFinished) { raceController.step(dt);
+                setRaceTime(prev => prev + dt); 
+
+                if(gs.playerCar.lapCount >= 3) {
+                    setRaceFinished(true);
+                    gs.paused = true;
+                    events.emit("PausedSet", { value: true });
+                }
+             }
+             if (mounted) setFrame(f => f + 1); 
+            },
+            () => {}
         );
 
         return () => {
@@ -236,6 +249,15 @@ export const RacePage: React.FC<RacePageProps> = ({ onExit, topics, difficulty, 
                 onSettings={handleSettings}
                 onExit={handleExitToMenu}
             />
+
+            {/* Post-race stats screen */}
+            {raceFinished && statsManager && (
+                <PostRaceStats
+                    statsManager={statsManager}
+                    time={raceTime}
+                    onExit={handleExitToMenu}
+                />
+            )}
         </div>
     );
 };
