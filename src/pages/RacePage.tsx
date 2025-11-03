@@ -151,7 +151,7 @@ export const RacePage: React.FC<RacePageProps> = ({ onExit, topics, difficulty, 
             const stats = statsManager.getStats();
             updateUserStats(currentUser, Array.from(stats));
         }
-        
+
         events.emit("PausedSet", { value: false });
         onExit();
     };
@@ -192,10 +192,43 @@ export const RacePage: React.FC<RacePageProps> = ({ onExit, topics, difficulty, 
             <QuestionAnswer questionManager={questionManager} />
 
             <GameStage gs={gs} width={size.w} height={size.h} />
-            <div style={{ position: "absolute", left: 12, top: 12 }}>
-                {/* Direct exit button (redundant with Pause → Exit) */}
-                <button onClick={handleExitToMenu}>⟵ Pause (Main Menu + Settings)</button>
+            <div style={{ position: "absolute", left: 12, top: 12, zIndex: 9999 }}>
+                <button
+                    onClick={() => events.emit("TogglePause", {})}
+                    aria-pressed={paused ? "true" : "false"}
+                    title="Pause / Open Menu"
+                    style={{
+                        padding: "8px 14px",
+                        borderRadius: 12,
+                        border: "2px solid #fff",
+                        fontWeight: 800,
+                        fontSize: "0.9rem",
+                        color: "#000",
+                        cursor: "pointer",
+                        background: "linear-gradient(90deg,#ffef00 0%,#ff9a00 50%,#ff2a00 100%)",
+                        boxShadow: "0 4px 10px rgba(255,180,0,0.5), 0 0 12px rgba(255,100,0,0.6)",
+                        textShadow: "0 0 4px rgba(255,255,255,0.6)",
+                        transition: "all 0.15s ease",
+                        WebkitTapHighlightColor: "transparent",
+                    }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = "scale(1.05)";
+                        e.currentTarget.style.boxShadow =
+                            "0 6px 14px rgba(255,180,0,0.7), 0 0 16px rgba(254, 75, 10, 0.8)";
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = "scale(1)";
+                        e.currentTarget.style.boxShadow =
+                            "0 4px 10px rgba(255, 77, 0, 0.5), 0 0 12px rgba(255,100,0,0.6)";
+                    }}
+                    onMouseDown={(e) => (e.currentTarget.style.transform = "scale(0.95)")}
+                    onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
+                >
+                    Pause
+                </button>
             </div>
+
+
             {/* Pause overlay with Resume / Settings / Exit */}
             <PauseOverlay
                 visible={paused}

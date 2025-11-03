@@ -131,8 +131,13 @@ export class QuestionManager {
      * @returns True if correct, false otherwise
      */
     submitAnswer(answer: number): boolean {
-        const wasCorrect = answer === this.currentQuestion.correctAnswer;
-        
+        /**
+         * ensures to accept answers that are 
+         * close enough and correct. for example: 
+         * 7/4 = 1.7 , 1.75, etc
+         */
+        const wasCorrect = Math.abs(answer - this.currentQuestion.correctAnswer) < 0.05;
+
         if (wasCorrect) {
             this.currentQuestion.markCorrect(answer);
             events.emit("AnsweredCorrectly", {
