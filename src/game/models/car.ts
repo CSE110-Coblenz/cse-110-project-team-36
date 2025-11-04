@@ -1,3 +1,5 @@
+import type { Track } from "./track";
+
 /**
  * Car class
  * 
@@ -76,6 +78,22 @@ export class Car {
      */
     getTotalDistance(trackLength: number): number {
         return this.lapCount * trackLength + this.sProg;
+    }
+
+    /**
+     * Get the world position and rotation angle for this car
+     * 
+     * @param track - The track to compute position relative to
+     * @returns Object containing world position (x, y) and rotation angle in degrees
+     */
+    getWorldPosition(track: Track): { x: number; y: number; angleDeg: number } {
+        const p = track.posAt(this.sPhys);
+        const t = track.tangentAt(this.sPhys);
+        const n = track.normalAt(this.sPhys);
+        const wp = { x: p.x + n.x * this.lateral, y: p.y + n.y * this.lateral };
+        const ang = Math.atan2(t.y, t.x);
+        const angleDeg = (ang * 180) / Math.PI;
+        return { x: wp.x, y: wp.y, angleDeg };
     }
 
     // === SERIALIZATION METHODS ===

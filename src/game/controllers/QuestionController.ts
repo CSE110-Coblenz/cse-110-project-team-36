@@ -1,4 +1,5 @@
 import { QuestionManager } from "../managers/QuestionManager";
+import { events } from "../../shared/events";
 
 export type FeedbackState = "none" | "correct" | "incorrect";
 
@@ -21,12 +22,20 @@ export class QuestionController {
     }
 
     /**
+     * Emit state change event
+     */
+    private emitStateChange(): void {
+        events.emit("QuestionStateChanged", {});
+    }
+
+    /**
      * Add a character to the answer
      * 
      * @param char - Character to add
      */
     addChar(char: string): void {
         this.answer += char;
+        this.emitStateChange();
     }
 
     /**
@@ -34,6 +43,7 @@ export class QuestionController {
      */
     deleteChar(): void {
         this.answer = this.answer.slice(0, -1);
+        this.emitStateChange();
     }
 
     /**
@@ -58,10 +68,12 @@ export class QuestionController {
         this.feedbackTimeoutId = window.setTimeout(() => {
             this.feedback = "none";
             this.feedbackTimeoutId = null;
+            this.emitStateChange();
         }, 900);
 
         this.currentQuestion = this.questionManager.getCurrentQuestion();
         this.answer = "";
+        this.emitStateChange();
     }
 
     /**
@@ -77,6 +89,7 @@ export class QuestionController {
             clearTimeout(this.feedbackTimeoutId);
             this.feedbackTimeoutId = null;
         }
+        this.emitStateChange();
     }
 
     /**

@@ -387,6 +387,18 @@ export class RaceController {
     }
 
     /**
+     * Exit the race, optionally saving stats for a user
+     * 
+     * @param username - Optional username to save stats for
+     */
+    exitRace(username?: string | null): void {
+        if (username) {
+            this.saveStatsForUser(username);
+        }
+        this.stop();
+    }
+
+    /**
      * Serialize the current game state to a JSON string
      * 
      * @returns The serialized game state as JSON string

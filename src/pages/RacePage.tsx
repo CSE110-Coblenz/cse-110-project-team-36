@@ -5,9 +5,9 @@ import { PauseOverlay } from "../rendering/game/PauseOverlay";
 import { Hud } from "../rendering/game/Hud";
 import { RaceService } from "../services/RaceService";
 import { RaceController } from "../game/controllers/RaceController";
-import { QuestionTopic, QuestionDifficulty } from "../game/models/question";
 import { PAGE_WIDTH, PAGE_HEIGHT } from "../const";
 import { events } from "../shared/events";
+import { topicStringToEnum, difficultyStringToEnum } from "../utils/questionUtils";
 
 interface RacePageProps {
     onExit: () => void;
@@ -16,14 +16,6 @@ interface RacePageProps {
     trackId: string;
     currentUser: string | null;
 }
-
-const topicStringToEnum = (topic: string): QuestionTopic => {
-    return topic.toLowerCase() as QuestionTopic;
-};
-
-const difficultyStringToEnum = (difficulty: string): QuestionDifficulty => {
-    return difficulty.toLowerCase() as QuestionDifficulty;
-};
 
 export const RacePage: React.FC<RacePageProps> = ({ 
     onExit, 
@@ -113,10 +105,7 @@ export const RacePage: React.FC<RacePageProps> = ({
     const handleResume = () => raceController.resume();
     const handleSettings = () => events.emit("SettingsRequested", {});
     const handleExitToMenu = () => {
-        if (currentUser) {
-            raceController.saveStatsForUser(currentUser);
-        }
-        raceController.stop();
+        raceController.exitRace(currentUser);
         onExit();
     };
 

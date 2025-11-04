@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { QuestionController } from "../../game/controllers/QuestionController";
+import { events } from "../../shared/events";
 
 interface QuestionAnswerProps {
     questionController: QuestionController;
@@ -10,12 +11,12 @@ export function QuestionAnswer({ questionController }: QuestionAnswerProps) {
     const [, forceUpdate] = useState(0);
 
     useEffect(() => {
-        // Poll for updates from controller
-        const interval = setInterval(() => {
+        // Subscribe to state change events from controller
+        const unsubscribe = events.on("QuestionStateChanged", () => {
             forceUpdate((n) => n + 1);
-        }, 50); // Update every 50ms for responsive UI
+        });
 
-        return () => clearInterval(interval);
+        return unsubscribe;
     }, [questionController]);
 
     // Get state from controller

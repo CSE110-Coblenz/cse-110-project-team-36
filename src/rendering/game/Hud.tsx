@@ -1,3 +1,5 @@
+import { formatRaceTime } from "../../utils/formatting";
+
 /**
  * Minimal HUD overlay: Lap / Time / Accuracy
  * 
@@ -21,12 +23,7 @@ export function Hud({
     correctCount: number;
     incorrectCount: number;
 }) {
-    const mm = Math.floor(elapsedMs / 60000);
-    const ss = Math.floor((elapsedMs % 60000) / 1000);
-    const ms = Math.floor(elapsedMs % 1000);
-    const time = `${mm}:${ss.toString().padStart(2, "0")}.${ms
-        .toString()
-        .padStart(3, "0")}`;
+    const time = formatRaceTime(elapsedMs);
 
     return (
         <div

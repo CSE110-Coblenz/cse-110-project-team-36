@@ -3,6 +3,7 @@ import { Layer, Group, Rect } from 'react-konva';
 import type { Track } from '../../game/models/track';
 import type { Camera } from '../../game/types';
 import type { Car } from '../../game/models/car';
+import { worldToScreen } from './utils';
 
 /**
  * Car layer component
@@ -47,23 +48,15 @@ export function CarLayer({ track, cars, stageWidth, stageHeight, camera }: { tra
  */
 function CarRenderer({ track, car, stageWidth, stageHeight, camera }: { track: Track; car: Car; stageWidth: number; stageHeight: number; camera: Camera }) {
     const { angleDeg, screen, scale, wobble } = useMemo(() => {
-        const p = track.posAt(car.sPhys);
-        const t = track.tangentAt(car.sPhys);
-        const n = track.normalAt(car.sPhys);
-        const wp = { x: p.x + n.x * car.lateral, y: p.y + n.y * car.lateral };
-        const ang = Math.atan2(t.y, t.x);
-        const angleDeg = (ang * 180) / Math.PI;
-        const { pos, zoom } = camera;
-        const tx = (wx: number) => (wx - pos.x) * zoom + stageWidth / 2;
-        const ty = (wy: number) => (wy - pos.y) * zoom + stageHeight / 2;
+        const worldPos = car.getWorldPosition(track);
+        const screenPos = worldToScreen({ x: worldPos.x, y: worldPos.y }, camera, stageWidth, stageHeight);
         return {
-            pos: wp,
-            angleDeg,
-            screen: { x: tx(wp.x), y: ty(wp.y) },
-            scale: zoom,
+            angleDeg: worldPos.angleDeg,
+            screen: screenPos,
+            scale: camera.zoom,
             wobble: car.slipWobble,
         };
-    }, [track, car.sPhys, car.lateral, car.slipWobble, camera, stageWidth, stageHeight]);
+    }, [track, car, camera, stageWidth, stageHeight]);
 
     const w = car.carLength * scale;
     const h = car.carWidth * scale;
