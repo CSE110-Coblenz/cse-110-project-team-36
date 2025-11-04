@@ -9,14 +9,26 @@ describe('ListenerController', () => {
     let onResize: jest.Mock;
     let onPauseToggle: jest.Mock;
     let onSpaceReward: jest.Mock;
+    let questionCallbacks: {
+        onNumberInput: jest.Mock;
+        onDelete: jest.Mock;
+        onEnterSubmit: jest.Mock;
+        onSkip: jest.Mock;
+    };
 
     beforeEach(() => {
         containerElement = document.createElement('div');
         document.body.appendChild(containerElement);
-        
+
         onResize = jest.fn();
         onPauseToggle = jest.fn();
         onSpaceReward = jest.fn();
+        questionCallbacks = {
+            onNumberInput: jest.fn(),
+            onDelete: jest.fn(),
+            onEnterSubmit: jest.fn(),
+            onSkip: jest.fn(),
+        };
     });
 
     afterEach(() => {
@@ -29,7 +41,8 @@ describe('ListenerController', () => {
                 containerElement,
                 onResize,
                 onPauseToggle,
-                onSpaceReward
+                onSpaceReward,
+                questionCallbacks
             );
 
             expect(controller).toBeDefined();
@@ -44,7 +57,8 @@ describe('ListenerController', () => {
                 containerElement,
                 onResize,
                 onPauseToggle,
-                onSpaceReward
+                onSpaceReward,
+                questionCallbacks
             );
 
             controller.start();
@@ -57,7 +71,8 @@ describe('ListenerController', () => {
                 containerElement,
                 onResize,
                 onPauseToggle,
-                onSpaceReward
+                onSpaceReward,
+                questionCallbacks
             );
 
             controller.start();
@@ -72,7 +87,8 @@ describe('ListenerController', () => {
                 containerElement,
                 onResize,
                 onPauseToggle,
-                onSpaceReward
+                onSpaceReward,
+                questionCallbacks
             );
 
             controller.start();
@@ -86,12 +102,13 @@ describe('ListenerController', () => {
                 containerElement,
                 onResize,
                 onPauseToggle,
-                onSpaceReward
+                onSpaceReward,
+                questionCallbacks
             );
 
             controller.start();
             controller.stop();
-            
+
             expect(() => {
                 controller.stop();
             }).not.toThrow();
@@ -102,7 +119,8 @@ describe('ListenerController', () => {
                 containerElement,
                 onResize,
                 onPauseToggle,
-                onSpaceReward
+                onSpaceReward,
+                questionCallbacks
             );
 
             controller.start();
@@ -119,7 +137,8 @@ describe('ListenerController', () => {
                 containerElement,
                 onResize,
                 onPauseToggle,
-                onSpaceReward
+                onSpaceReward,
+                questionCallbacks
             );
 
             controller.start();
@@ -136,7 +155,8 @@ describe('ListenerController', () => {
                 containerElement,
                 onResize,
                 onPauseToggle,
-                onSpaceReward
+                onSpaceReward,
+                questionCallbacks
             );
 
             controller.start();
@@ -153,7 +173,8 @@ describe('ListenerController', () => {
                 containerElement,
                 onResize,
                 onPauseToggle,
-                onSpaceReward
+                onSpaceReward,
+                questionCallbacks
             );
 
             controller.start();
@@ -173,7 +194,8 @@ describe('ListenerController', () => {
                 containerElement,
                 onResize,
                 onPauseToggle,
-                onSpaceReward
+                onSpaceReward,
+                questionCallbacks
             );
 
             controller.start();
@@ -190,7 +212,8 @@ describe('ListenerController', () => {
                 containerElement,
                 onResize,
                 onPauseToggle,
-                onSpaceReward
+                onSpaceReward,
+                questionCallbacks
             );
 
             controller.start();
@@ -208,18 +231,19 @@ describe('ListenerController', () => {
                 containerElement,
                 onResize,
                 onPauseToggle,
-                onSpaceReward
+                onSpaceReward,
+                questionCallbacks
             );
 
             controller.start();
             controller.pause();
-            
+
             const spaceEvent1 = new KeyboardEvent('keydown', { key: ' ' });
             window.dispatchEvent(spaceEvent1);
             expect(onSpaceReward).not.toHaveBeenCalled();
 
             controller.resume();
-            
+
             const spaceEvent2 = new KeyboardEvent('keydown', { key: ' ' });
             window.dispatchEvent(spaceEvent2);
             expect(onSpaceReward).toHaveBeenCalledTimes(1);
@@ -234,7 +258,8 @@ describe('ListenerController', () => {
                 containerElement,
                 onResize,
                 onPauseToggle,
-                onSpaceReward
+                onSpaceReward,
+                questionCallbacks
             );
 
             expect(() => {
@@ -247,7 +272,8 @@ describe('ListenerController', () => {
                 containerElement,
                 onResize,
                 onPauseToggle,
-                onSpaceReward
+                onSpaceReward,
+                questionCallbacks
             );
 
             expect(() => {
@@ -260,7 +286,8 @@ describe('ListenerController', () => {
                 containerElement,
                 onResize,
                 onPauseToggle,
-                onSpaceReward
+                onSpaceReward,
+                questionCallbacks
             );
 
             controller.start();
@@ -280,7 +307,8 @@ describe('ListenerController', () => {
                 containerElement,
                 onResize,
                 onPauseToggle,
-                onSpaceReward
+                onSpaceReward,
+                questionCallbacks
             );
 
             controller.start();

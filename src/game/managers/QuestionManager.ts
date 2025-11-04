@@ -42,7 +42,6 @@ export class QuestionManager {
             difficulty
         );
 
-        console.log(`New Question: ${this.currentQuestion.questionText}`);
         return this.currentQuestion.questionText;
     }
 

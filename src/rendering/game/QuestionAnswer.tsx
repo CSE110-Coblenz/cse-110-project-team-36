@@ -1,86 +1,37 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
-import { QuestionManager } from "../../game/managers/QuestionManager";
-import {
-    NumberInputListener,
-    EnterSubmitListener,
-    DeleteListener,
-    SkipQuestionListener,
-} from "../../game/listeners/KeyboardListener";
-
-type FeedbackState = "none" | "correct" | "incorrect";
+import React, { useState, useEffect } from "react";
+import { QuestionController } from "../../game/controllers/QuestionController";
 
 interface QuestionAnswerProps {
-    questionManager: QuestionManager;
+    questionController: QuestionController;
 }
 
-export function QuestionAnswer({ questionManager }: QuestionAnswerProps) {
-    const [answer, setAnswer] = useState("");
-    const [feedback, setFeedback] = useState<FeedbackState>("none");
-    const feedbackTimeoutRef = useRef<number>(0);
-    const [currentQuestion, setCurrentQuestion] = useState(
-        () => questionManager.getCurrentQuestion() || ""
-    );
-
-    const handleSubmit = useCallback(() => {
-        if (!questionManager) return;
-        if (answer.trim() === "" || answer === "-" || answer === "." || answer === "-.") return;
-
-        const numAnswer = Number(answer);
-        const wasCorrect = questionManager.submitAnswer(numAnswer);
-
-        setFeedback(wasCorrect ? "correct" : "incorrect");
-
-        if (feedbackTimeoutRef.current) {
-            clearTimeout(feedbackTimeoutRef.current);
-        }
-        feedbackTimeoutRef.current = window.setTimeout(() => {
-            setFeedback("none");
-        }, 900);
-
-        setCurrentQuestion(questionManager.getCurrentQuestion());
-        setAnswer("");
-    }, [answer, questionManager]);
-
-    const handleSkip = useCallback(() => {
-        questionManager.skipQuestion();
-        setCurrentQuestion(questionManager.getCurrentQuestion());
-        setAnswer("");
-        setFeedback("none");
-    }, [questionManager]);
+export function QuestionAnswer({ questionController }: QuestionAnswerProps) {
+    // Force re-render to sync with controller state
+    const [, forceUpdate] = useState(0);
 
     useEffect(() => {
-        const numberListener = new NumberInputListener((char: string) =>
-            setAnswer((prev) => prev + char)
-        );
-        numberListener.start();
-        return () => numberListener.stop();
-    }, []);
+        // Poll for updates from controller
+        const interval = setInterval(() => {
+            forceUpdate((n) => n + 1);
+        }, 50); // Update every 50ms for responsive UI
 
-    useEffect(() => {
-        const deleteListener = new DeleteListener(() =>
-            setAnswer((prev) => prev.slice(0, -1))
-        );
-        deleteListener.start();
-        return () => deleteListener.stop();
-    }, []);
+        return () => clearInterval(interval);
+    }, [questionController]);
 
-    useEffect(() => {
-        const enterListener = new EnterSubmitListener(() => handleSubmit());
-        enterListener.start();
-        return () => enterListener.stop();
-    }, [handleSubmit]);
+    // Get state from controller
+    const answer = questionController.getAnswer();
+    const feedback = questionController.getFeedback();
+    const currentQuestion = questionController.getCurrentQuestion();
 
-    useEffect(() => {
-        const skipListener = new SkipQuestionListener(() => handleSkip());
-        skipListener.start();
-        return () => skipListener.stop();
-    }, [handleSkip]);
+    // Handlers are now simple - they just call controller methods
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        questionController.submitAnswer();
+    };
 
-    useEffect(() => {
-        return () => {
-            if (feedbackTimeoutRef.current) clearTimeout(feedbackTimeoutRef.current);
-        };
-    }, []);
+    const handleSkip = () => {
+        questionController.skipQuestion();
+    };
 
     const btnBase: React.CSSProperties = {
         padding: "10px 18px",
@@ -140,10 +91,7 @@ export function QuestionAnswer({ questionManager }: QuestionAnswerProps) {
                 aria-label="Math question input"
                 className={feedbackAnimClass}
                 style={{ ...cardBase, ...(feedback === "correct" ? halo("green") : feedback === "incorrect" ? halo("red") : halo("none")) }}
-                onSubmit={(e) => {
-                    e.preventDefault();
-                    handleSubmit();
-                }}
+                onSubmit={handleSubmit}
             >
                 {/* Title */}
                 <div

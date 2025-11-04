@@ -104,7 +104,7 @@ export const RacePage: React.FC<RacePageProps> = ({
     }
 
     const gs = raceController.getGameState();
-    const questionManager = raceController.getQuestionManager();
+    const questionController = raceController.getQuestionController();
     const elapsedMs = raceController.getElapsedMs();
     const accuracy = raceController.getAccuracy();
     const correctCount = raceController.getCorrectCount();
@@ -130,7 +130,7 @@ export const RacePage: React.FC<RacePageProps> = ({
                 background: "#0b1020",
             }}
         >
-            <QuestionAnswer questionManager={questionManager} />
+            <QuestionAnswer questionController={questionController} />
             <GameStage gs={gs} width={size.w} height={size.h} />
             
             <div style={{ position: "absolute", left: 12, top: 12, zIndex: 9999 }}>

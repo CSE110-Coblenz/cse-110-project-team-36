@@ -9,6 +9,7 @@ import { Question, QuestionOutcome } from "../models/question";
 import { events } from "../../shared/events";
 import { GameClock } from "../clock";
 import { ListenerController } from "./ListenerController";
+import { QuestionController } from "./QuestionController";
 import { ANIMATION_TICK } from "../../const";
 import { updateUserStats } from "../../services/localStorage";
 import { 
@@ -32,6 +33,7 @@ export class RaceController {
     private carController: CarController;
     private questionManager: QuestionManager;
     private statsManager: QuestionStatsManager;
+    private questionController: QuestionController;
     private elapsedMs: number = 0;
     private eventUnsubscribers: Array<() => void> = [];
     private isRunning: boolean = false;
@@ -56,6 +58,7 @@ export class RaceController {
 
         this.questionManager = new QuestionManager(questionConfig);
         this.statsManager = new QuestionStatsManager();
+        this.questionController = new QuestionController(this.questionManager);
 
         this.setupQuestionEventListeners();
         this.clock = new GameClock(ANIMATION_TICK);
@@ -148,6 +151,15 @@ export class RaceController {
      */
     getQuestionManager(): QuestionManager {
         return this.questionManager;
+    }
+
+    /**
+     * Get the question controller
+     * 
+     * @returns The question controller
+     */
+    getQuestionController(): QuestionController {
+        return this.questionController;
     }
 
     /**
@@ -252,7 +264,13 @@ export class RaceController {
             containerElement,
             onResize,
             () => this.togglePause(),
-            () => this.queueReward(this.gameState.playerCar, 150)
+            () => this.queueReward(this.gameState.playerCar, 150),
+            {
+                onNumberInput: (char) => this.questionController.addChar(char),
+                onDelete: () => this.questionController.deleteChar(),
+                onEnterSubmit: () => this.questionController.submitAnswer(),
+                onSkip: () => this.questionController.skipQuestion()
+            }
         );
         this.listenerController.start();
         
@@ -281,6 +299,9 @@ export class RaceController {
             this.listenerController.stop();
             this.listenerController = null;
         }
+        
+        // Dispose question controller
+        this.questionController.dispose();
         
         this.cleanupEventListeners();
         this.isRunning = false;

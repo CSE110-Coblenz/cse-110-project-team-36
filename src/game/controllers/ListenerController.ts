@@ -1,5 +1,11 @@
 import { ResizeListener } from "../listeners/ResizeListener";
-import { SpaceRewardListener } from "../listeners/KeyboardListener";
+import {
+    SpaceRewardListener,
+    NumberInputListener,
+    DeleteListener,
+    EnterSubmitListener,
+    SkipQuestionListener,
+} from "../listeners/KeyboardListener";
 
 /**
  * Listener controller class
@@ -18,12 +24,22 @@ export class ListenerController {
 
     // Pause-aware game input listeners
     private spaceRewardListener: SpaceRewardListener | null = null;
+    private numberInputListener: NumberInputListener | null = null;
+    private deleteListener: DeleteListener | null = null;
+    private enterSubmitListener: EnterSubmitListener | null = null;
+    private skipQuestionListener: SkipQuestionListener | null = null;
 
     constructor(
         private containerElement: HTMLElement,
         private onResize: (w: number, h: number) => void,
         private onPauseToggle: () => void,
-        private onSpaceReward: () => void
+        private onSpaceReward: () => void,
+        private questionCallbacks: {
+            onNumberInput: (char: string) => void;
+            onDelete: () => void;
+            onEnterSubmit: () => void;
+            onSkip: () => void;
+        }
     ) {}
 
     /**
@@ -58,6 +74,35 @@ export class ListenerController {
         });
         this.spaceRewardListener.start();
 
+        // Setup question input listeners (pause-aware)
+        this.numberInputListener = new NumberInputListener((char: string) => {
+            if (!this.gameInputsPaused) {
+                this.questionCallbacks.onNumberInput(char);
+            }
+        });
+        this.numberInputListener.start();
+
+        this.deleteListener = new DeleteListener(() => {
+            if (!this.gameInputsPaused) {
+                this.questionCallbacks.onDelete();
+            }
+        });
+        this.deleteListener.start();
+
+        this.enterSubmitListener = new EnterSubmitListener(() => {
+            if (!this.gameInputsPaused) {
+                this.questionCallbacks.onEnterSubmit();
+            }
+        });
+        this.enterSubmitListener.start();
+
+        this.skipQuestionListener = new SkipQuestionListener(() => {
+            if (!this.gameInputsPaused) {
+                this.questionCallbacks.onSkip();
+            }
+        });
+        this.skipQuestionListener.start();
+
         this.isRunning = true;
     }
 
@@ -85,6 +130,24 @@ export class ListenerController {
         if (this.spaceRewardListener) {
             this.spaceRewardListener.stop();
             this.spaceRewardListener = null;
+        }
+
+        // Stop question input listeners
+        if (this.numberInputListener) {
+            this.numberInputListener.stop();
+            this.numberInputListener = null;
+        }
+        if (this.deleteListener) {
+            this.deleteListener.stop();
+            this.deleteListener = null;
+        }
+        if (this.enterSubmitListener) {
+            this.enterSubmitListener.stop();
+            this.enterSubmitListener = null;
+        }
+        if (this.skipQuestionListener) {
+            this.skipQuestionListener.stop();
+            this.skipQuestionListener = null;
         }
 
         this.isRunning = false;

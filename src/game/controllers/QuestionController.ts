@@ -1,0 +1,118 @@
+import { QuestionManager } from "../managers/QuestionManager";
+
+export type FeedbackState = "none" | "correct" | "incorrect";
+
+/**
+ * Question controller class
+ * 
+ * Manages question-related state and logic:
+ * - Answer input state
+ * - Feedback state and timing
+ * - Question submission and validation
+ */
+export class QuestionController {
+    private answer: string = "";
+    private feedback: FeedbackState = "none";
+    private feedbackTimeoutId: number | null = null;
+    private currentQuestion: string;
+
+    constructor(private questionManager: QuestionManager) {
+        this.currentQuestion = questionManager.getCurrentQuestion();
+    }
+
+    /**
+     * Add a character to the answer
+     * 
+     * @param char - Character to add
+     */
+    addChar(char: string): void {
+        this.answer += char;
+    }
+
+    /**
+     * Delete the last character from the answer
+     */
+    deleteChar(): void {
+        this.answer = this.answer.slice(0, -1);
+    }
+
+    /**
+     * Submit the current answer
+     */
+    submitAnswer(): void {
+        if (!this.questionManager) return;
+        
+        if (this.answer.trim() === "" || this.answer === "-" || this.answer === "." || this.answer === "-.") {
+            return;
+        }
+
+        const numAnswer = Number(this.answer);
+        const wasCorrect = this.questionManager.submitAnswer(numAnswer);
+
+        this.feedback = wasCorrect ? "correct" : "incorrect";
+
+        if (this.feedbackTimeoutId !== null) {
+            clearTimeout(this.feedbackTimeoutId);
+        }
+
+        this.feedbackTimeoutId = window.setTimeout(() => {
+            this.feedback = "none";
+            this.feedbackTimeoutId = null;
+        }, 900);
+
+        this.currentQuestion = this.questionManager.getCurrentQuestion();
+        this.answer = "";
+    }
+
+    /**
+     * Skip the current question
+     */
+    skipQuestion(): void {
+        this.questionManager.skipQuestion();
+        this.currentQuestion = this.questionManager.getCurrentQuestion();
+        this.answer = "";
+        this.feedback = "none";
+        
+        if (this.feedbackTimeoutId !== null) {
+            clearTimeout(this.feedbackTimeoutId);
+            this.feedbackTimeoutId = null;
+        }
+    }
+
+    /**
+     * Get the current answer string
+     * 
+     * @returns Current answer
+     */
+    getAnswer(): string {
+        return this.answer;
+    }
+
+    /**
+     * Get the current feedback state
+     * 
+     * @returns Current feedback state
+     */
+    getFeedback(): FeedbackState {
+        return this.feedback;
+    }
+
+    /**
+     * Get the current question text
+     * 
+     * @returns Current question text
+     */
+    getCurrentQuestion(): string {
+        return this.currentQuestion;
+    }
+
+    /**
+     * Cleanup resources (call when controller is no longer needed)
+     */
+    dispose(): void {
+        if (this.feedbackTimeoutId !== null) {
+            clearTimeout(this.feedbackTimeoutId);
+            this.feedbackTimeoutId = null;
+        }
+    }
+}
