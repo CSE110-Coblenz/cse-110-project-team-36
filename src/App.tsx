@@ -1,9 +1,12 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { RacePage } from './pages/RacePage'
 import { MainMenuPage } from './pages/MainMenuPage'
 import { LoginPage } from './pages/LoginPage'
 import DifficultySelectionScreen from './pages/DifficultySelectionScreen'
 import { getCurrentUser, saveCurrentUser, logout as logoutUser, getUser, updateUserPreferences } from './services/localStorage'
+import { RaceService } from './services/RaceService'
+import { RaceController } from './game/controllers/RaceController'
+import { topicStringToEnum, difficultyStringToEnum } from './utils/questionUtils'
 
 type Screen = 'menu' | 'race' | 'login' | 'difficulty'
 
@@ -33,6 +36,8 @@ export default function App() {
     const [selectedTopic, setSelectedTopic] = useState<string>(initialUserState.topic)
     const [selectedDifficulty, setSelectedDifficulty] = useState<string>(initialUserState.difficulty)
     const [selectedTrack, setSelectedTrack] = useState<string>(initialUserState.track)
+    const [raceController, setRaceController] = useState<RaceController | null>(null)
+    const [isLoadingRace, setIsLoadingRace] = useState(false)
 
     const handleLogin = (username: string) => {
         saveCurrentUser(username)
@@ -45,6 +50,51 @@ export default function App() {
         setCurrentUser(null)
         setScreen('menu')
     }
+
+    // Initialize race controller when entering race screen
+    useEffect(() => {
+        if (screen === 'race' && selectedTopic && selectedDifficulty && selectedTrack) {
+            // Setting loading state before async operation is a valid pattern
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setIsLoadingRace(true)
+            let controller: RaceController | null = null
+
+            RaceService.initializeRace(selectedTrack, {
+                topic: topicStringToEnum(selectedTopic),
+                difficulty: difficultyStringToEnum(selectedDifficulty)
+            })
+            .then(c => {
+                controller = c
+                setRaceController(c)
+                setIsLoadingRace(false)
+            })
+            .catch(err => {
+                console.error('Failed to load track:', err)
+                setIsLoadingRace(false)
+                // Fall back to menu on error
+                setScreen('menu')
+            })
+
+            return () => {
+                if (controller) {
+                    controller.destroy()
+                }
+                setRaceController(null)
+                setIsLoadingRace(false)
+            }
+        }
+    }, [screen, selectedTopic, selectedDifficulty, selectedTrack])
+
+    // Clean up controller when leaving race screen
+    useEffect(() => {
+        if (screen !== 'race' && raceController) {
+            raceController.destroy()
+            // Cleanup setState calls are necessary for proper state management
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setRaceController(null)
+            setIsLoadingRace(false)
+        }
+    }, [screen, raceController])
 
     if (screen === 'menu') {
         return (
@@ -91,12 +141,31 @@ export default function App() {
                 />
             )
         }
+
+        if (isLoadingRace || !raceController) {
+            return (
+                <div
+                    style={{
+                        position: "relative",
+                        width: "100%",
+                        height: "100vh",
+                        background: "#0b1020",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "#fff",
+                        fontSize: "1.5rem",
+                        fontWeight: 700,
+                    }}
+                >
+                    Loading track...
+                </div>
+            )
+        }
         
         return (
             <RacePage
-                topics={selectedTopic}
-                difficulty={selectedDifficulty}
-                trackId={selectedTrack}
+                raceController={raceController}
                 currentUser={currentUser}
                 onExit={() => setScreen('menu')}
             />

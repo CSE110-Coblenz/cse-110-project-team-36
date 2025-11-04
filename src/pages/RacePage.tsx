@@ -3,64 +3,29 @@ import { GameStage } from "../rendering/game/GameStage";
 import { QuestionAnswer } from "../rendering/game/QuestionAnswer";
 import { PauseOverlay } from "../rendering/game/PauseOverlay";
 import { Hud } from "../rendering/game/Hud";
-import { RaceService } from "../services/RaceService";
 import { RaceController } from "../game/controllers/RaceController";
 import { PAGE_WIDTH, PAGE_HEIGHT } from "../const";
 import { events } from "../shared/events";
-import { topicStringToEnum, difficultyStringToEnum } from "../utils/questionUtils";
 
 interface RacePageProps {
-    onExit: () => void;
-    topics: string;
-    difficulty: string;
-    trackId: string;
+    raceController: RaceController;
     currentUser: string | null;
+    onExit: () => void;
 }
 
 export const RacePage: React.FC<RacePageProps> = ({ 
-    onExit, 
-    topics, 
-    difficulty, 
-    trackId, 
-    currentUser 
+    raceController,
+    currentUser,
+    onExit
 }) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const [size, setSize] = useState({ w: PAGE_WIDTH, h: PAGE_HEIGHT });
-    const [raceController, setRaceController] = useState<RaceController | null>(null);
-    const [paused, setPaused] = useState(false);
     const [, setFrame] = useState(0);
 
-    useEffect(() => {
-        let controller: RaceController | null = null;
-
-        RaceService.initializeRace(trackId, {
-            topic: topicStringToEnum(topics),
-            difficulty: difficultyStringToEnum(difficulty)
-        })
-        .then(c => {
-            controller = c;
-            setRaceController(c);
-        })
-        .catch(err => {
-            console.error('Failed to load track:', err);
-        });
-
-        return () => {
-            if (controller) {
-                controller.stop();
-            }
-        };
-    }, [trackId, topics, difficulty]);
+    const paused = raceController.getGameState().paused;  
 
     useEffect(() => {
-        const unsub = events.on("PausedSet", ({ value }) => {
-            setPaused(!!value);
-        });
-        return unsub;
-    }, []);
-
-    useEffect(() => {
-        if (!containerRef.current || !raceController) return;
+        if (!containerRef.current) return;
 
         raceController.start(
             containerRef.current,
@@ -72,28 +37,6 @@ export const RacePage: React.FC<RacePageProps> = ({
             raceController.stop();
         };
     }, [raceController]);
-
-    if (!raceController) {
-        return (
-            <div
-                ref={containerRef}
-                style={{
-                    position: "relative",
-                    width: "100%",
-                    height: "100vh",
-                    background: "#0b1020",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    color: "#fff",
-                    fontSize: "1.5rem",
-                    fontWeight: 700,
-                }}
-            >
-                Loading track...
-            </div>
-        );
-    }
 
     const gs = raceController.getGameState();
     const questionController = raceController.getQuestionController();
