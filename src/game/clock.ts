@@ -10,6 +10,7 @@ export class GameClock {
     private last = performance.now();   // timestamp of last frame
     private acc = 0;                    // accumulated time in ms
     private readonly dtMs: number;      // fixed timestep in ms
+    private animationFrameId: number | null = null;  // track animation frame for cleanup
 
     constructor(stepsPerSecond = 60) {
         this.dtMs = 1000 / stepsPerSecond;
@@ -20,6 +21,9 @@ export class GameClock {
      * @param render Called every frame with alpha in [0, 1]
     */
     start(step: (dtSec: number) => void, render: (alpha: number) => void) {
+        // Stop any existing loop first
+        this.stop();
+        
         const loop = () => {
             const now = performance.now();
             let frame = now - this.last;
@@ -32,8 +36,16 @@ export class GameClock {
                 this.acc -= this.dtMs;
             }
             render(this.acc / this.dtMs);
-            requestAnimationFrame(loop);
+            this.animationFrameId = requestAnimationFrame(loop);
         };
-        requestAnimationFrame(loop);
+        this.animationFrameId = requestAnimationFrame(loop);
+    }
+    
+    /** Stop the game loop */
+    stop(): void {
+        if (this.animationFrameId !== null) {
+            cancelAnimationFrame(this.animationFrameId);
+            this.animationFrameId = null;
+        }
     }
 }

@@ -3,9 +3,14 @@
  */
 
 import { QuestionManager } from '../../../src/game/managers/QuestionManager';
+import { QuestionTopic, QuestionDifficulty } from '../../../src/game/models/question';
 import { events } from '../../../src/shared/events';
 
 describe('QuestionManager', () => {
+    const defaultQuestionConfig = {
+        topic: QuestionTopic.MIXED,
+        difficulty: QuestionDifficulty.MEDIUM
+    };
     beforeEach(() => {
         jest.spyOn(console, 'log').mockImplementation(() => { });
     });
@@ -16,7 +21,7 @@ describe('QuestionManager', () => {
 
     describe('Question Generation', () => {
         it('should generate initial question in constructor', () => {
-            const manager = new QuestionManager();
+            const manager = new QuestionManager(defaultQuestionConfig);
 
             const question = manager.getCurrentQuestion();
             expect(question).toBeDefined();
@@ -25,14 +30,14 @@ describe('QuestionManager', () => {
         });
 
         it('should create valid math expression', () => {
-            const manager = new QuestionManager();
+            const manager = new QuestionManager(defaultQuestionConfig);
             const question = manager.getCurrentQuestion();
 
             expect(question).toMatch(/^\d+\s[+\-*/]\s\d+$/);
         });
 
         it('should include all four operations', () => {
-            const manager = new QuestionManager();
+            const manager = new QuestionManager(defaultQuestionConfig);
             const operations = new Set<string>();
 
             for (let i = 0; i < 100; i++) {
@@ -51,7 +56,7 @@ describe('QuestionManager', () => {
         });
 
         it('should generate operands between 1-10', () => {
-            const manager = new QuestionManager();
+            const manager = new QuestionManager(defaultQuestionConfig);
 
             for (let i = 0; i < 100; i++) {
                 manager.generateQuestion();
@@ -70,7 +75,7 @@ describe('QuestionManager', () => {
         });
 
         it('should round division result to 2 decimals', () => {
-            const manager = new QuestionManager();
+            const manager = new QuestionManager(defaultQuestionConfig);
             let divisionQuestion: string | null = null;
 
             for (let i = 0; i < 200; i++) {
@@ -102,7 +107,7 @@ describe('QuestionManager', () => {
         });
 
         it('should generate different questions on subsequent calls', () => {
-            const manager = new QuestionManager();
+            const manager = new QuestionManager(defaultQuestionConfig);
             const questions = new Set<string>();
 
             for (let i = 0; i < 50; i++) {
@@ -116,7 +121,7 @@ describe('QuestionManager', () => {
 
     describe('Answer Validation', () => {
         it('should return true for correct answer', () => {
-            const manager = new QuestionManager();
+            const manager = new QuestionManager(defaultQuestionConfig);
 
             const question = '5 + 3';
             const correctAnswer = 8;
@@ -134,7 +139,7 @@ describe('QuestionManager', () => {
         });
 
         it('should return false for incorrect answer', () => {
-            const manager = new QuestionManager();
+            const manager = new QuestionManager(defaultQuestionConfig);
             const question = manager.getCurrentQuestion();
 
             const match = question.match(/^(\d+)\s[+\-*/]\s(\d+)$/);
@@ -174,7 +179,7 @@ describe('QuestionManager', () => {
         });
 
         it('should generate new question after submission', () => {
-            const manager = new QuestionManager();
+            const manager = new QuestionManager(defaultQuestionConfig);
             const originalQuestion = manager.getCurrentQuestion();
 
             manager.submitAnswer(999);
@@ -184,7 +189,7 @@ describe('QuestionManager', () => {
         });
 
         it('should handle multiple consecutive submissions', () => {
-            const manager = new QuestionManager();
+            const manager = new QuestionManager(defaultQuestionConfig);
             const questions = new Set<string>();
 
             for (let i = 0; i < 20; i++) {
@@ -205,7 +210,7 @@ describe('QuestionManager', () => {
             ];
 
             operations.forEach(({ q, a }) => {
-                const manager = new QuestionManager();
+                const manager = new QuestionManager(defaultQuestionConfig);
 
                 let attempts = 0;
                 while (manager.getCurrentQuestion() !== q && attempts < 10000) {
@@ -223,7 +228,7 @@ describe('QuestionManager', () => {
 
     describe('Event Emission', () => {
         it('should emit AnsweredCorrectly event with correct answer', () => {
-            const manager = new QuestionManager();
+            const manager = new QuestionManager(defaultQuestionConfig);
             const emitSpy = jest.spyOn(events, 'emit');
 
             const question = manager.getCurrentQuestion();
@@ -264,7 +269,7 @@ describe('QuestionManager', () => {
         });
 
         it('should emit AnsweredIncorrectly event with incorrect answer', () => {
-            const manager = new QuestionManager();
+            const manager = new QuestionManager(defaultQuestionConfig);
             const emitSpy = jest.spyOn(events, 'emit');
             const wrongAnswer = 999;
 
@@ -279,7 +284,7 @@ describe('QuestionManager', () => {
         });
 
         it('should include question and answer in event payload', () => {
-            const manager = new QuestionManager();
+            const manager = new QuestionManager(defaultQuestionConfig);
             const emitSpy = jest.spyOn(events, 'emit');
             const wrongAnswer = 123;
 
@@ -300,7 +305,7 @@ describe('QuestionManager', () => {
 
     describe('Getter', () => {
         it('should return current question string', () => {
-            const manager = new QuestionManager();
+            const manager = new QuestionManager(defaultQuestionConfig);
 
             const question = manager.getCurrentQuestion();
 
@@ -309,7 +314,7 @@ describe('QuestionManager', () => {
         });
 
         it('should return same question until submission or generation', () => {
-            const manager = new QuestionManager();
+            const manager = new QuestionManager(defaultQuestionConfig);
             const question1 = manager.getCurrentQuestion();
 
             const question2 = manager.getCurrentQuestion();
@@ -319,7 +324,7 @@ describe('QuestionManager', () => {
         });
 
         it('should return updated question after generation', () => {
-            const manager = new QuestionManager();
+            const manager = new QuestionManager(defaultQuestionConfig);
             const question1 = manager.getCurrentQuestion();
 
             manager.generateQuestion();
@@ -331,7 +336,7 @@ describe('QuestionManager', () => {
 
     describe('Edge Cases', () => {
         it('should handle decimal results correctly', () => {
-            const manager = new QuestionManager();
+            const manager = new QuestionManager(defaultQuestionConfig);
 
             for (let i = 0; i < 500; i++) {
                 manager.generateQuestion();
@@ -355,7 +360,7 @@ describe('QuestionManager', () => {
         });
 
         it('should generate questions with all valid operands', () => {
-            const manager = new QuestionManager();
+            const manager = new QuestionManager(defaultQuestionConfig);
             const seenNumbers = new Set<number>();
 
             for (let i = 0; i < 500; i++) {

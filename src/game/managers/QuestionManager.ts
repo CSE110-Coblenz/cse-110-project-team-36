@@ -2,8 +2,8 @@ import { events } from "../../shared/events";
 import { Question, QuestionTopic, QuestionDifficulty } from "../models/question";
 
 export interface QuestionConfig {
-    topic?: QuestionTopic;
-    difficulty?: QuestionDifficulty;
+    topic: QuestionTopic;
+    difficulty: QuestionDifficulty;
 }
 
 /**
@@ -18,7 +18,7 @@ const DIFFICULTY_RANGES = {
 export class QuestionManager {
     private currentQuestion!: Question;
 
-    constructor(private config: QuestionConfig = {}) {
+    constructor(private config: QuestionConfig) {
         this.generateQuestion();
     }
 
@@ -29,9 +29,9 @@ export class QuestionManager {
      * @returns The generated question text
      */
     generateQuestion(config?: QuestionConfig): string {
-        const effectiveConfig = { ...this.config, ...config };
-        const topic = effectiveConfig.topic ?? this.getRandomTopic();
-        const difficulty = effectiveConfig.difficulty ?? QuestionDifficulty.MEDIUM;
+        const effectiveConfig: QuestionConfig = config ? { ...this.config, ...config } : this.config;
+        const topic = effectiveConfig.topic;
+        const difficulty = effectiveConfig.difficulty;
 
         const { a, b, operation, topic: actualTopic } = this.generateQuestionParams(topic, difficulty);
         
@@ -56,7 +56,7 @@ export class QuestionManager {
         const b = Math.floor(Math.random() * (max - min + 1)) + min;
         let operation: string, actualTopic: QuestionTopic;
 
-        if (topic === QuestionTopic.MIXED || topic === undefined) {
+        if (topic === QuestionTopic.MIXED) {
             // Random operation for mixed mode
             const operations = ["+", "-", "*", "/"];
             operation = operations[Math.floor(Math.random() * operations.length)];
@@ -111,18 +111,7 @@ export class QuestionManager {
         }
     }
 
-    /**
-     * Get random topic
-     */
-    private getRandomTopic(): QuestionTopic {
-        const topics = [
-            QuestionTopic.ADDITION,
-            QuestionTopic.SUBTRACTION,
-            QuestionTopic.MULTIPLICATION,
-            QuestionTopic.DIVISION,
-        ];
-        return topics[Math.floor(Math.random() * topics.length)];
-    }
+
 
     /**
      * Submit an answer
