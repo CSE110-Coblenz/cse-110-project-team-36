@@ -8,8 +8,7 @@ import { QuestionStatsManager } from "../managers/QuestionStatsManager";
 import { Question, QuestionOutcome } from "../models/question";
 import { events } from "../../shared/events";
 import { GameClock } from "../clock";
-import { ResizeListener } from "../listeners/ResizeListener";
-import { SpaceRewardListener } from "../listeners/KeyboardListener";
+import { ListenerController } from "./ListenerController";
 import { ANIMATION_TICK } from "../../const";
 import { updateUserStats } from "../../services/localStorage";
 import { 
@@ -37,9 +36,7 @@ export class RaceController {
     private eventUnsubscribers: Array<() => void> = [];
     private isRunning: boolean = false;
     private clock: GameClock;
-    private resizeListener: ResizeListener | null = null;
-    private spaceRewardListener: SpaceRewardListener | null = null;
-    private pauseKeyListener: ((e: KeyboardEvent) => void) | null = null;
+    private listenerController: ListenerController | null = null;
 
     /**
      * Constructor
@@ -250,23 +247,16 @@ export class RaceController {
             throw new Error("RaceController is already started. Call stop() before starting again.");
         }
         
-        this.resizeListener = new ResizeListener(containerElement, onResize);
-        this.resizeListener.start();
+        // Create and start listener controller
+        this.listenerController = new ListenerController(
+            containerElement,
+            onResize,
+            () => this.togglePause(),
+            () => this.queueReward(this.gameState.playerCar, 150)
+        );
+        this.listenerController.start();
         
-        this.spaceRewardListener = new SpaceRewardListener(() => {
-            this.queueReward(this.gameState.playerCar, 150);
-        });
-        this.spaceRewardListener.start();
-        
-        this.pauseKeyListener = (e: KeyboardEvent) => {
-            const k = e.key.toLowerCase();
-            if (k === "escape" || k === "p") {
-                e.preventDefault();
-                this.togglePause();
-            }
-        };
-        window.addEventListener("keydown", this.pauseKeyListener);
-        
+        // Start game clock
         this.clock.start(
             (dt) => this.step(dt),
             onFrame
@@ -283,21 +273,13 @@ export class RaceController {
             return;
         }
         
+        // Stop game clock
         this.clock.stop();
         
-        if (this.resizeListener) {
-            this.resizeListener.stop();
-            this.resizeListener = null;
-        }
-        
-        if (this.spaceRewardListener) {
-            this.spaceRewardListener.stop();
-            this.spaceRewardListener = null;
-        }
-        
-        if (this.pauseKeyListener) {
-            window.removeEventListener("keydown", this.pauseKeyListener);
-            this.pauseKeyListener = null;
+        // Stop all listeners
+        if (this.listenerController) {
+            this.listenerController.stop();
+            this.listenerController = null;
         }
         
         this.cleanupEventListeners();
@@ -323,6 +305,16 @@ export class RaceController {
             throw new Error("Cannot toggle pause: RaceController is not started. Call start() first.");
         }
         this.gameState.paused = !this.gameState.paused;
+        
+        // Update listener controller pause state
+        if (this.listenerController) {
+            if (this.gameState.paused) {
+                this.listenerController.pause();
+            } else {
+                this.listenerController.resume();
+            }
+        }
+        
         events.emit("PausedSet", { value: this.gameState.paused });
     }
     
