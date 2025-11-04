@@ -38,8 +38,6 @@ describe('ListenerController', () => {
     describe('Instantiation', () => {
         it('should create a ListenerController', () => {
             const controller = new ListenerController(
-                containerElement,
-                onResize,
                 onPauseToggle,
                 onSpaceReward,
                 questionCallbacks
@@ -54,44 +52,38 @@ describe('ListenerController', () => {
     describe('Start/Stop Lifecycle', () => {
         it('should start all listeners', () => {
             const controller = new ListenerController(
-                containerElement,
-                onResize,
                 onPauseToggle,
                 onSpaceReward,
                 questionCallbacks
             );
 
-            controller.start();
+            controller.start(containerElement, onResize);
 
             expect(controller.isStarted()).toBe(true);
         });
 
         it('should throw error when starting twice', () => {
             const controller = new ListenerController(
-                containerElement,
-                onResize,
                 onPauseToggle,
                 onSpaceReward,
                 questionCallbacks
             );
 
-            controller.start();
+            controller.start(containerElement, onResize);
 
             expect(() => {
-                controller.start();
+                controller.start(containerElement, onResize);
             }).toThrow('ListenerController is already started');
         });
 
         it('should stop all listeners', () => {
             const controller = new ListenerController(
-                containerElement,
-                onResize,
                 onPauseToggle,
                 onSpaceReward,
                 questionCallbacks
             );
 
-            controller.start();
+            controller.start(containerElement, onResize);
             controller.stop();
 
             expect(controller.isStarted()).toBe(false);
@@ -99,14 +91,12 @@ describe('ListenerController', () => {
 
         it('should be safe to call stop() multiple times', () => {
             const controller = new ListenerController(
-                containerElement,
-                onResize,
                 onPauseToggle,
                 onSpaceReward,
                 questionCallbacks
             );
 
-            controller.start();
+            controller.start(containerElement, onResize);
             controller.stop();
 
             expect(() => {
@@ -116,16 +106,14 @@ describe('ListenerController', () => {
 
         it('should allow restarting after stop()', () => {
             const controller = new ListenerController(
-                containerElement,
-                onResize,
                 onPauseToggle,
                 onSpaceReward,
                 questionCallbacks
             );
 
-            controller.start();
+            controller.start(containerElement, onResize);
             controller.stop();
-            controller.start();
+            controller.start(containerElement, onResize);
 
             expect(controller.isStarted()).toBe(true);
         });
@@ -134,14 +122,12 @@ describe('ListenerController', () => {
     describe('Pause Key Listener (Always Active)', () => {
         it('should trigger pause toggle on Escape key', () => {
             const controller = new ListenerController(
-                containerElement,
-                onResize,
                 onPauseToggle,
                 onSpaceReward,
                 questionCallbacks
             );
 
-            controller.start();
+            controller.start(containerElement, onResize);
 
             const escapeEvent = new KeyboardEvent('keydown', { key: 'Escape' });
             window.dispatchEvent(escapeEvent);
@@ -152,14 +138,12 @@ describe('ListenerController', () => {
 
         it('should trigger pause toggle on P key', () => {
             const controller = new ListenerController(
-                containerElement,
-                onResize,
                 onPauseToggle,
                 onSpaceReward,
                 questionCallbacks
             );
 
-            controller.start();
+            controller.start(containerElement, onResize);
 
             const pEvent = new KeyboardEvent('keydown', { key: 'p' });
             window.dispatchEvent(pEvent);
@@ -170,14 +154,12 @@ describe('ListenerController', () => {
 
         it('should work even when game inputs are paused', () => {
             const controller = new ListenerController(
-                containerElement,
-                onResize,
                 onPauseToggle,
                 onSpaceReward,
                 questionCallbacks
             );
 
-            controller.start();
+            controller.start(containerElement, onResize);
             controller.pause();
 
             const escapeEvent = new KeyboardEvent('keydown', { key: 'Escape' });
@@ -191,14 +173,12 @@ describe('ListenerController', () => {
     describe('Space Reward Listener (Pause-Aware)', () => {
         it('should trigger space reward when not paused', () => {
             const controller = new ListenerController(
-                containerElement,
-                onResize,
                 onPauseToggle,
                 onSpaceReward,
                 questionCallbacks
             );
 
-            controller.start();
+            controller.start(containerElement, onResize);
 
             const spaceEvent = new KeyboardEvent('keydown', { key: ' ' });
             window.dispatchEvent(spaceEvent);
@@ -209,14 +189,12 @@ describe('ListenerController', () => {
 
         it('should not trigger space reward when paused', () => {
             const controller = new ListenerController(
-                containerElement,
-                onResize,
                 onPauseToggle,
                 onSpaceReward,
                 questionCallbacks
             );
 
-            controller.start();
+            controller.start(containerElement, onResize);
             controller.pause();
 
             const spaceEvent = new KeyboardEvent('keydown', { key: ' ' });
@@ -228,14 +206,12 @@ describe('ListenerController', () => {
 
         it('should resume space reward after resume()', () => {
             const controller = new ListenerController(
-                containerElement,
-                onResize,
                 onPauseToggle,
                 onSpaceReward,
                 questionCallbacks
             );
 
-            controller.start();
+            controller.start(containerElement, onResize);
             controller.pause();
 
             const spaceEvent1 = new KeyboardEvent('keydown', { key: ' ' });
@@ -255,8 +231,6 @@ describe('ListenerController', () => {
     describe('Pause/Resume', () => {
         it('should throw error when pausing before start()', () => {
             const controller = new ListenerController(
-                containerElement,
-                onResize,
                 onPauseToggle,
                 onSpaceReward,
                 questionCallbacks
@@ -269,8 +243,6 @@ describe('ListenerController', () => {
 
         it('should throw error when resuming before start()', () => {
             const controller = new ListenerController(
-                containerElement,
-                onResize,
                 onPauseToggle,
                 onSpaceReward,
                 questionCallbacks
@@ -283,14 +255,12 @@ describe('ListenerController', () => {
 
         it('should set paused state correctly', () => {
             const controller = new ListenerController(
-                containerElement,
-                onResize,
                 onPauseToggle,
                 onSpaceReward,
                 questionCallbacks
             );
 
-            controller.start();
+            controller.start(containerElement, onResize);
             expect(controller.isPaused()).toBe(false);
 
             controller.pause();
@@ -304,18 +274,57 @@ describe('ListenerController', () => {
 
         it('should reset paused state when stopped', () => {
             const controller = new ListenerController(
-                containerElement,
-                onResize,
                 onPauseToggle,
                 onSpaceReward,
                 questionCallbacks
             );
 
-            controller.start();
+            controller.start(containerElement, onResize);
             controller.pause();
             controller.stop();
 
             expect(controller.isPaused()).toBe(false);
+        });
+    });
+
+    describe('Destroy', () => {
+        it('should destroy controller when not running', () => {
+            const controller = new ListenerController(
+                onPauseToggle,
+                onSpaceReward,
+                questionCallbacks
+            );
+
+            expect(() => {
+                controller.destroy();
+            }).not.toThrow();
+        });
+
+        it('should destroy controller and stop if running', () => {
+            const controller = new ListenerController(
+                onPauseToggle,
+                onSpaceReward,
+                questionCallbacks
+            );
+
+            controller.start(containerElement, onResize);
+            expect(controller.isStarted()).toBe(true);
+
+            controller.destroy();
+            expect(controller.isStarted()).toBe(false);
+        });
+
+        it('should be safe to call destroy() multiple times', () => {
+            const controller = new ListenerController(
+                onPauseToggle,
+                onSpaceReward,
+                questionCallbacks
+            );
+
+            expect(() => {
+                controller.destroy();
+                controller.destroy();
+            }).not.toThrow();
         });
     });
 });

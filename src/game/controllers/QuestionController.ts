@@ -120,9 +120,11 @@ export class QuestionController {
     }
 
     /**
-     * Cleanup resources (call when controller is no longer needed)
+     * Destroy the controller and clean up all resources
+     * 
+     * This should be called when the controller is no longer needed (e.g., when exiting the game).
      */
-    dispose(): void {
+    destroy(): void {
         if (this.feedbackTimeoutId !== null) {
             clearTimeout(this.feedbackTimeoutId);
             this.feedbackTimeoutId = null;

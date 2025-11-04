@@ -19,7 +19,7 @@ describe('QuestionController', () => {
     });
 
     afterEach(() => {
-        controller.dispose();
+        controller.destroy();
     });
 
     describe('Initialization', () => {
@@ -212,16 +212,16 @@ describe('QuestionController', () => {
     });
 
     describe('Cleanup', () => {
-        it('should dispose and clear timeouts', (done) => {
+        it('should destroy and clear timeouts', (done) => {
             const answer = questionManager.getCurrentQuestionModel()?.correctAnswer || 0;
             controller.addChar(answer.toString());
             controller.submitAnswer();
 
             expect(controller.getFeedback()).toBe('correct');
 
-            controller.dispose();
+            controller.destroy();
 
-            // Feedback should remain as is after disposal (timeout cleared)
+            // Feedback should remain as is after destruction (timeout cleared)
             setTimeout(() => {
                 // Feedback should still be 'correct' since timeout was cleared
                 expect(controller.getFeedback()).toBe('correct');
@@ -229,10 +229,10 @@ describe('QuestionController', () => {
             }, 950);
         });
 
-        it('should be safe to call dispose multiple times', () => {
+        it('should be safe to call destroy multiple times', () => {
             expect(() => {
-                controller.dispose();
-                controller.dispose();
+                controller.destroy();
+                controller.destroy();
             }).not.toThrow();
         });
     });

@@ -18,20 +18,15 @@ export class ListenerController {
     private isRunning: boolean = false;
     private gameInputsPaused: boolean = false;
 
-    // Always-active listeners
-    private pauseKeyListener: ((e: KeyboardEvent) => void) | null = null;
-    private resizeListener: ResizeListener | null = null;
-
-    // Pause-aware game input listeners
-    private spaceRewardListener: SpaceRewardListener | null = null;
-    private numberInputListener: NumberInputListener | null = null;
-    private deleteListener: DeleteListener | null = null;
-    private enterSubmitListener: EnterSubmitListener | null = null;
-    private skipQuestionListener: SkipQuestionListener | null = null;
+    private pauseKeyListener: (e: KeyboardEvent) => void;
+    private resizeListener: ResizeListener;
+    private spaceRewardListener: SpaceRewardListener;
+    private numberInputListener: NumberInputListener;
+    private deleteListener: DeleteListener;
+    private enterSubmitListener: EnterSubmitListener;
+    private skipQuestionListener: SkipQuestionListener;
 
     constructor(
-        private containerElement: HTMLElement,
-        private onResize: (w: number, h: number) => void,
         private onPauseToggle: () => void,
         private onSpaceReward: () => void,
         private questionCallbacks: {
@@ -40,19 +35,7 @@ export class ListenerController {
             onEnterSubmit: () => void;
             onSkip: () => void;
         }
-    ) {}
-
-    /**
-     * Start all listeners
-     * 
-     * @throws Error if already started
-     */
-    start(): void {
-        if (this.isRunning) {
-            throw new Error("ListenerController is already started. Call stop() before starting again.");
-        }
-
-        // Setup pause keyboard handler (always active)
+    ) {
         this.pauseKeyListener = (e: KeyboardEvent) => {
             const k = e.key.toLowerCase();
             if (k === "escape" || k === "p") {
@@ -60,96 +43,83 @@ export class ListenerController {
                 this.onPauseToggle();
             }
         };
-        window.addEventListener("keydown", this.pauseKeyListener);
 
-        // Setup resize listener (always active)
-        this.resizeListener = new ResizeListener(this.containerElement, this.onResize);
-        this.resizeListener.start();
-
-        // Setup space key reward (pause-aware)
         this.spaceRewardListener = new SpaceRewardListener(() => {
             if (!this.gameInputsPaused) {
                 this.onSpaceReward();
             }
         });
-        this.spaceRewardListener.start();
 
-        // Setup question input listeners (pause-aware)
         this.numberInputListener = new NumberInputListener((char: string) => {
             if (!this.gameInputsPaused) {
                 this.questionCallbacks.onNumberInput(char);
             }
         });
-        this.numberInputListener.start();
 
         this.deleteListener = new DeleteListener(() => {
             if (!this.gameInputsPaused) {
                 this.questionCallbacks.onDelete();
             }
         });
-        this.deleteListener.start();
 
         this.enterSubmitListener = new EnterSubmitListener(() => {
             if (!this.gameInputsPaused) {
                 this.questionCallbacks.onEnterSubmit();
             }
         });
-        this.enterSubmitListener.start();
 
         this.skipQuestionListener = new SkipQuestionListener(() => {
             if (!this.gameInputsPaused) {
                 this.questionCallbacks.onSkip();
             }
         });
+
+        this.resizeListener = new ResizeListener(document.body, () => {});
+    }
+
+    /**
+     * Start all listeners
+     * 
+     * @param containerElement - The container element for resize listener
+     * @param onResize - Callback for resize events
+     * @throws Error if already started
+     */
+    start(containerElement: HTMLElement, onResize: (w: number, h: number) => void): void {
+        if (this.isRunning) {
+            throw new Error("ListenerController is already started. Call stop() before starting again.");
+        }
+
+        this.resizeListener.stop();
+        this.resizeListener = new ResizeListener(containerElement, onResize);
+        this.resizeListener.start();
+
+        window.addEventListener("keydown", this.pauseKeyListener);
+
+        this.spaceRewardListener.start();
+        this.numberInputListener.start();
+        this.deleteListener.start();
+        this.enterSubmitListener.start();
         this.skipQuestionListener.start();
 
         this.isRunning = true;
     }
 
     /**
-     * Stop all listeners
+     * Stop all listeners (deactivates but doesn't destroy them)
      */
     stop(): void {
         if (!this.isRunning) {
             return;
         }
 
-        // Stop pause key listener
-        if (this.pauseKeyListener) {
-            window.removeEventListener("keydown", this.pauseKeyListener);
-            this.pauseKeyListener = null;
-        }
+        window.removeEventListener("keydown", this.pauseKeyListener);
 
-        // Stop resize listener
-        if (this.resizeListener) {
-            this.resizeListener.stop();
-            this.resizeListener = null;
-        }
-
-        // Stop space reward listener
-        if (this.spaceRewardListener) {
-            this.spaceRewardListener.stop();
-            this.spaceRewardListener = null;
-        }
-
-        // Stop question input listeners
-        if (this.numberInputListener) {
-            this.numberInputListener.stop();
-            this.numberInputListener = null;
-        }
-        if (this.deleteListener) {
-            this.deleteListener.stop();
-            this.deleteListener = null;
-        }
-        if (this.enterSubmitListener) {
-            this.enterSubmitListener.stop();
-            this.enterSubmitListener = null;
-        }
-        if (this.skipQuestionListener) {
-            this.skipQuestionListener.stop();
-            this.skipQuestionListener = null;
-        }
-
+        this.resizeListener.stop();
+        this.spaceRewardListener.stop();
+        this.numberInputListener.stop();
+        this.deleteListener.stop();
+        this.enterSubmitListener.stop();
+        this.skipQuestionListener.stop();
         this.isRunning = false;
         this.gameInputsPaused = false;
     }
@@ -190,5 +160,18 @@ export class ListenerController {
      */
     isPaused(): boolean {
         return this.gameInputsPaused;
+    }
+
+    /**
+     * Destroy the controller and clean up all resources
+     * 
+     * This should be called when the controller is no longer needed (e.g., when exiting the game).
+     * It stops the controller if running. References will be garbage collected when the controller
+     * is no longer referenced.
+     */
+    destroy(): void {
+        if (this.isRunning) {
+            this.stop();
+        }
     }
 }

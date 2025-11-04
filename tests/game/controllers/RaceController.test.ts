@@ -443,6 +443,45 @@ describe('RaceController', () => {
 
             expect(controller.isStarted()).toBe(false);
         });
+
+        it('should destroy controller when not running', () => {
+            const controller = new RaceController(track, defaultQuestionConfig);
+
+            expect(() => {
+                controller.destroy();
+            }).not.toThrow();
+        });
+
+        it('should destroy controller and stop if running', () => {
+            const controller = new RaceController(track, defaultQuestionConfig);
+            const onResize = jest.fn();
+            const onFrame = jest.fn();
+
+            controller.start(containerElement, onResize, onFrame);
+            expect(controller.isStarted()).toBe(true);
+
+            controller.destroy();
+            expect(controller.isStarted()).toBe(false);
+        });
+
+        it('should be safe to call destroy() multiple times', () => {
+            const controller = new RaceController(track, defaultQuestionConfig);
+
+            expect(() => {
+                controller.destroy();
+                controller.destroy();
+            }).not.toThrow();
+        });
+
+        it('should clean up question controller on destroy', () => {
+            const controller = new RaceController(track, defaultQuestionConfig);
+            const questionController = controller.getQuestionController();
+            const destroySpy = jest.spyOn(questionController, 'destroy');
+
+            controller.destroy();
+
+            expect(destroySpy).toHaveBeenCalled();
+        });
     });
 });
 

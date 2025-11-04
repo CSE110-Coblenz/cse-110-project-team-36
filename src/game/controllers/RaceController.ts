@@ -38,7 +38,7 @@ export class RaceController {
     private eventUnsubscribers: Array<() => void> = [];
     private isRunning: boolean = false;
     private clock: GameClock;
-    private listenerController: ListenerController | null = null;
+    private listenerController: ListenerController;
 
     /**
      * Constructor
@@ -59,6 +59,18 @@ export class RaceController {
         this.questionManager = new QuestionManager(questionConfig);
         this.statsManager = new QuestionStatsManager();
         this.questionController = new QuestionController(this.questionManager);
+
+        // Create listener controller with all callbacks
+        this.listenerController = new ListenerController(
+            () => this.togglePause(),
+            () => this.queueReward(this.gameState.playerCar, 150),
+            {
+                onNumberInput: (char) => this.questionController.addChar(char),
+                onDelete: () => this.questionController.deleteChar(),
+                onEnterSubmit: () => this.questionController.submitAnswer(),
+                onSkip: () => this.questionController.skipQuestion()
+            }
+        );
 
         this.setupQuestionEventListeners();
         this.clock = new GameClock(ANIMATION_TICK);
@@ -259,20 +271,8 @@ export class RaceController {
             throw new Error("RaceController is already started. Call stop() before starting again.");
         }
         
-        // Create and start listener controller
-        this.listenerController = new ListenerController(
-            containerElement,
-            onResize,
-            () => this.togglePause(),
-            () => this.queueReward(this.gameState.playerCar, 150),
-            {
-                onNumberInput: (char) => this.questionController.addChar(char),
-                onDelete: () => this.questionController.deleteChar(),
-                onEnterSubmit: () => this.questionController.submitAnswer(),
-                onSkip: () => this.questionController.skipQuestion()
-            }
-        );
-        this.listenerController.start();
+        // Start listener controller (pass containerElement and onResize)
+        this.listenerController.start(containerElement, onResize);
         
         // Start game clock
         this.clock.start(
@@ -295,13 +295,7 @@ export class RaceController {
         this.clock.stop();
         
         // Stop all listeners
-        if (this.listenerController) {
-            this.listenerController.stop();
-            this.listenerController = null;
-        }
-        
-        // Dispose question controller
-        this.questionController.dispose();
+        this.listenerController.stop();
         
         this.cleanupEventListeners();
         this.isRunning = false;
@@ -328,12 +322,10 @@ export class RaceController {
         this.gameState.paused = !this.gameState.paused;
         
         // Update listener controller pause state
-        if (this.listenerController) {
-            if (this.gameState.paused) {
-                this.listenerController.pause();
-            } else {
-                this.listenerController.resume();
-            }
+        if (this.gameState.paused) {
+            this.listenerController.pause();
+        } else {
+            this.listenerController.resume();
         }
         
         events.emit("PausedSet", { value: this.gameState.paused });
@@ -396,6 +388,21 @@ export class RaceController {
             this.saveStatsForUser(username);
         }
         this.stop();
+    }
+
+    /**
+     * Destroy the controller and clean up all resources
+     * 
+     * This should be called when the controller is no longer needed (e.g., when exiting the game).
+     * It stops the controller if running, disposes of all resources, and cleans up event listeners.
+     */
+    destroy(): void {
+        if (this.isRunning) {
+            this.stop();
+        }
+        this.questionController.destroy();
+        this.cleanupEventListeners();
+        this.listenerController.destroy();
     }
 
     /**
