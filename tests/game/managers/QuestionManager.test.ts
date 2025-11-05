@@ -117,6 +117,31 @@ describe('QuestionManager', () => {
 
             expect(questions.size).toBeGreaterThan(5);
         });
+
+        it('should never generate the same question twice in a row', () => {
+            let previousQuestion: string | null = null;
+
+            // Test with multiple configurations to ensure it works across different settings
+            const configs = [
+                defaultQuestionConfig,
+                { topic: QuestionTopic.ADDITION, difficulty: QuestionDifficulty.EASY },
+                { topic: QuestionTopic.MULTIPLICATION, difficulty: QuestionDifficulty.HARD },
+            ];
+
+            for (const config of configs) {
+                // Create a new manager for each config to test the logic
+                const testManager = new QuestionManager(config);
+                previousQuestion = testManager.getCurrentQuestion();
+
+                // Generate many questions and verify none match the previous one
+                for (let i = 0; i < 100; i++) {
+                    testManager.generateQuestion();
+                    const currentQuestion = testManager.getCurrentQuestion();
+                    expect(currentQuestion).not.toBe(previousQuestion);
+                    previousQuestion = currentQuestion;
+                }
+            }
+        });
     });
 
     describe('Answer Validation', () => {
