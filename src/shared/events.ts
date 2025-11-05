@@ -40,6 +40,7 @@ export type EventMap = {
     TogglePause: Record<string, never>;
     PausedSet: { value: boolean };
     SettingsRequested: Record<string, never>;
+    QuestionStateChanged: Record<string, never>;
 };
 
 export const events = new EventBus<EventMap>();

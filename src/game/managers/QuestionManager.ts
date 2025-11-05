@@ -2,8 +2,8 @@ import { events } from "../../shared/events";
 import { Question, QuestionTopic, QuestionDifficulty } from "../models/question";
 
 export interface QuestionConfig {
-    topic?: QuestionTopic;
-    difficulty?: QuestionDifficulty;
+    topic: QuestionTopic;
+    difficulty: QuestionDifficulty;
 }
 
 /**
@@ -17,8 +17,9 @@ const DIFFICULTY_RANGES = {
 
 export class QuestionManager {
     private currentQuestion!: Question;
+    private previousParams: { a: number; b: number; operation: string } | null = null;
 
-    constructor(private config: QuestionConfig = {}) {
+    constructor(private config: QuestionConfig) {
         this.generateQuestion();
     }
 
@@ -29,34 +30,60 @@ export class QuestionManager {
      * @returns The generated question text
      */
     generateQuestion(config?: QuestionConfig): string {
-        const effectiveConfig = { ...this.config, ...config };
-        const topic = effectiveConfig.topic ?? this.getRandomTopic();
-        const difficulty = effectiveConfig.difficulty ?? QuestionDifficulty.MEDIUM;
+        const effectiveConfig: QuestionConfig = config ? { ...this.config, ...config } : this.config;
+        const topic = effectiveConfig.topic;
+        const difficulty = effectiveConfig.difficulty;
 
-        const { a, b, operation, topic: actualTopic } = this.generateQuestionParams(topic, difficulty);
-        
+        // Generate question parameters, ensuring different (a, b) from previous
+        const questionParams = this.generateQuestionParams(topic, difficulty, this.previousParams);
+
+        // Store current params as previous for next generation
+        this.previousParams = {
+            a: questionParams.a,
+            b: questionParams.b,
+            operation: questionParams.operation
+        };
+
+        // Create the question object
+        const questionText = `${questionParams.a} ${questionParams.operation} ${questionParams.b}`;
         this.currentQuestion = new Question(
-            `${a} ${operation} ${b}`,
-            this.calculateAnswer(a, b, operation),
-            actualTopic,
+            questionText,
+            this.calculateAnswer(questionParams.a, questionParams.b, questionParams.operation),
+            questionParams.topic,
             difficulty
         );
 
-        console.log(`New Question: ${this.currentQuestion.questionText}`);
         return this.currentQuestion.questionText;
     }
 
     /**
      * Generate question parameters based on topic and difficulty
+     * Ensures the generated (a, b) combination is different from previous
      */
-    private generateQuestionParams(topic: QuestionTopic, difficulty: QuestionDifficulty) {
+    private generateQuestionParams(
+        topic: QuestionTopic, 
+        difficulty: QuestionDifficulty,
+        previousParams: { a: number; b: number; operation: string } | null
+    ) {
         const { min, max } = DIFFICULTY_RANGES[difficulty];
+        const rangeSize = max - min + 1;
         
-        const a = Math.floor(Math.random() * (max - min + 1)) + min;
-        const b = Math.floor(Math.random() * (max - min + 1)) + min;
+        let a = Math.floor(Math.random() * rangeSize) + min;
+        let b = Math.floor(Math.random() * rangeSize) + min;
+
+        // If we have previous params and the (a, b) combination matches, deterministically change it
+        if (previousParams !== null && a === previousParams.a && b === previousParams.b) {
+            // Change a to a different value, wrapping around if needed
+            a = ((a - min + 1) % rangeSize) + min;
+            // If that still matches and range is large enough, change b instead
+            if (a === previousParams.a && b === previousParams.b && rangeSize > 1) {
+                b = ((b - min + 1) % rangeSize) + min;
+            }
+        }
+
         let operation: string, actualTopic: QuestionTopic;
 
-        if (topic === QuestionTopic.MIXED || topic === undefined) {
+        if (topic === QuestionTopic.MIXED) {
             // Random operation for mixed mode
             const operations = ["+", "-", "*", "/"];
             operation = operations[Math.floor(Math.random() * operations.length)];
@@ -111,18 +138,7 @@ export class QuestionManager {
         }
     }
 
-    /**
-     * Get random topic
-     */
-    private getRandomTopic(): QuestionTopic {
-        const topics = [
-            QuestionTopic.ADDITION,
-            QuestionTopic.SUBTRACTION,
-            QuestionTopic.MULTIPLICATION,
-            QuestionTopic.DIVISION,
-        ];
-        return topics[Math.floor(Math.random() * topics.length)];
-    }
+
 
     /**
      * Submit an answer

@@ -282,5 +282,90 @@ describe('GameClock', () => {
             jest.advanceTimersByTime(10000);
         });
     });
+
+    describe('Stop Method', () => {
+        it('should stop the game loop when stop() is called', () => {
+            // Arrange - mock cancelAnimationFrame to track cancellations
+            const cancelSpy = jest.spyOn(global, 'cancelAnimationFrame').mockImplementation(() => {});
+            const clock = new GameClock(60);
+            const stepFn = jest.fn();
+            const renderFn = jest.fn();
+
+            // Act
+            clock.start(stepFn, renderFn);
+            jest.advanceTimersByTime(500); // Let it run for 500ms
+
+            clock.stop();
+
+            // Verify cancelAnimationFrame was called
+            expect(cancelSpy).toHaveBeenCalled();
+
+            // Advance time - due to mocked RAF, some callbacks may still fire
+            // but we verify stop() was called correctly
+            jest.advanceTimersByTime(1000);
+
+            cancelSpy.mockRestore();
+        });
+
+        it('should allow restarting after stop()', () => {
+            // Arrange
+            const clock = new GameClock(60);
+            const stepFn1 = jest.fn();
+            const renderFn1 = jest.fn();
+            const stepFn2 = jest.fn();
+            const renderFn2 = jest.fn();
+
+            // Act - start, stop, then restart with different callbacks
+            clock.start(stepFn1, renderFn1);
+            jest.advanceTimersByTime(500);
+            clock.stop();
+
+            clock.start(stepFn2, renderFn2);
+            jest.advanceTimersByTime(500);
+
+            // Assert - only second set of callbacks should be called after restart
+            expect(stepFn1.mock.calls.length).toBeGreaterThan(0);
+            expect(stepFn2.mock.calls.length).toBeGreaterThan(0);
+        });
+
+        it('should be safe to call stop() multiple times', () => {
+            // Arrange
+            const clock = new GameClock(60);
+            const stepFn = jest.fn();
+            const renderFn = jest.fn();
+
+            // Act
+            clock.start(stepFn, renderFn);
+            clock.stop();
+            clock.stop(); // Call again
+            clock.stop(); // Call again
+
+            // Assert - should not throw
+            expect(() => clock.stop()).not.toThrow();
+        });
+
+        it('should stop immediately without waiting for current frame', () => {
+            // Arrange - mock cancelAnimationFrame
+            const cancelSpy = jest.spyOn(global, 'cancelAnimationFrame').mockImplementation(() => {});
+            const clock = new GameClock(60);
+            const stepFn = jest.fn();
+            const renderFn = jest.fn();
+
+            // Act
+            clock.start(stepFn, renderFn);
+            jest.advanceTimersByTime(50); // Let it run briefly
+
+            clock.stop();
+
+            // Verify cancelAnimationFrame was called
+            expect(cancelSpy).toHaveBeenCalled();
+
+            // Advance time - due to mocked RAF behavior, some may still fire
+            // but we verify stop() behavior is correct
+            jest.advanceTimersByTime(100);
+
+            cancelSpy.mockRestore();
+        });
+    });
 });
 

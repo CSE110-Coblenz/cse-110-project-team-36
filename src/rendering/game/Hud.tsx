@@ -1,15 +1,21 @@
-// NEW: src/rendering/game/Hud.tsx
-import React from "react";
+import { formatRaceTime } from "../../utils/formatting";
 
 /**
  * Minimal HUD overlay: Lap / Time / Accuracy
+ * 
+ * @param lap - The current lap
+ * @param elapsedMs - The elapsed time in milliseconds
+ * @param accuracy - The accuracy in 0..1
+ * @param correctCount - The number of correct answers
+ * @param incorrectCount - The number of incorrect answers
+ * @returns The HUD component
  */
 export function Hud({
   lap,
   elapsedMs,
-  accuracy, // 0..1
-  correctCount,   // total correct answers
-  incorrectCount, // total incorrect answers
+    accuracy,
+    correctCount,
+    incorrectCount,
 }: {
   lap: number;
   elapsedMs: number;
@@ -17,12 +23,7 @@ export function Hud({
   correctCount: number;
   incorrectCount: number;
 }) {
-  const mm = Math.floor(elapsedMs / 60000);
-  const ss = Math.floor((elapsedMs % 60000) / 1000);
-  const ms = Math.floor(elapsedMs % 1000);
-  const time = `${mm}:${ss.toString().padStart(2, "0")}.${ms
-    .toString()
-    .padStart(3, "0")}`;
+    const time = formatRaceTime(elapsedMs);
 
   return (
     <div
