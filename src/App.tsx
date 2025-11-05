@@ -63,17 +63,17 @@ export default function App() {
                 topic: topicStringToEnum(selectedTopic),
                 difficulty: difficultyStringToEnum(selectedDifficulty)
             })
-            .then(c => {
-                controller = c
-                setRaceController(c)
-                setIsLoadingRace(false)
-            })
-            .catch(err => {
-                console.error('Failed to load track:', err)
-                setIsLoadingRace(false)
-                // Fall back to menu on error
-                setScreen('menu')
-            })
+                .then(c => {
+                    controller = c
+                    setRaceController(c)
+                    setIsLoadingRace(false)
+                })
+                .catch(err => {
+                    console.error('Failed to load track:', err)
+                    setIsLoadingRace(false)
+                    // Fall back to menu on error
+                    setScreen('menu')
+                })
 
             return () => {
                 if (controller) {
@@ -84,17 +84,6 @@ export default function App() {
             }
         }
     }, [screen, selectedTopic, selectedDifficulty, selectedTrack])
-
-    // Clean up controller when leaving race screen
-    useEffect(() => {
-        if (screen !== 'race' && raceController) {
-            raceController.destroy()
-            // Cleanup setState calls are necessary for proper state management
-            // eslint-disable-next-line react-hooks/set-state-in-effect
-            setRaceController(null)
-            setIsLoadingRace(false)
-        }
-    }, [screen, raceController])
 
     if (screen === 'menu') {
         return (
@@ -116,7 +105,7 @@ export default function App() {
                     setSelectedDifficulty(difficulty)
                     setSelectedTrack(track)
                     setScreen('race')
-                    
+
                     if (currentUser) {
                         updateUserPreferences(currentUser, {
                             lastTopic: topic,
@@ -162,7 +151,7 @@ export default function App() {
                 </div>
             )
         }
-        
+
         return (
             <RacePage
                 raceController={raceController}

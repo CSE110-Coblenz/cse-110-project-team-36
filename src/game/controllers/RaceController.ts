@@ -296,8 +296,6 @@ export class RaceController {
         
         // Stop all listeners
         this.listenerController.stop();
-        
-        this.cleanupEventListeners();
         this.isRunning = false;
     }
     

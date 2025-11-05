@@ -64,8 +64,8 @@ export class Car {
         if (!this.crossedFinish && this.lastSProg > this.sProg) {
             this.lapCount++;
             if (this.lapCount >= 3) {
-                this.crossedFinish = true;
-            }
+            this.crossedFinish = true;
+        }
         }
         this.lastSProg = this.sProg;
     }

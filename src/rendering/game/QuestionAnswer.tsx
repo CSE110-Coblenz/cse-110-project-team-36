@@ -32,7 +32,7 @@ export function QuestionAnswer({ questionController }: QuestionAnswerProps) {
 
     const handleSkip = () => {
         questionController.skipQuestion();
-    };
+        };
 
     const btnBase: React.CSSProperties = {
         padding: "10px 18px",
@@ -57,7 +57,7 @@ export function QuestionAnswer({ questionController }: QuestionAnswerProps) {
         color: "#fff",
         boxShadow: "0 4px 8px rgba(0,0,0,0.6)",
         border: "2px solid #fff",
-    };
+                };
 
     const cardBase: React.CSSProperties = {
         position: "absolute",
@@ -109,14 +109,14 @@ export function QuestionAnswer({ questionController }: QuestionAnswerProps) {
 
                 {/* Question */}
                 <div
-                    style={{
+                style={{
                         fontSize: "1.3rem",
                         fontWeight: 800,
                         marginBottom: "0.75rem",
                         color: feedback === "none" ? "#ffd6a8" : "#fff",
                         textShadow: "0 0 4px #000",
-                    }}
-                >
+                }}
+            >
                     {feedback === "correct" && "✅ "}
                     {feedback === "incorrect" && "❌ "}
                     <span>Question: </span>
