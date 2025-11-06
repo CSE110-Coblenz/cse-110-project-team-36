@@ -68,3 +68,19 @@ export class SkipQuestionListener {
     start() { window.addEventListener("keydown", this.onKey); }
     stop() { window.removeEventListener("keydown", this.onKey); }
 }
+
+export class LaneChangeListener {
+    private onKey = (e: KeyboardEvent) => {
+        const key = e.key.toLowerCase();
+        if (key === "a" || key === "arrowleft") {
+            e.preventDefault();
+            this.onLaneChange(1);
+        } else if (key === "d" || key === "arrowright") {
+            e.preventDefault();
+            this.onLaneChange(-1);
+        }
+    };
+    constructor(private onLaneChange: (direction: -1 | 1) => void) { }
+    start() { window.addEventListener("keydown", this.onKey); }
+    stop() { window.removeEventListener("keydown", this.onKey); }
+}

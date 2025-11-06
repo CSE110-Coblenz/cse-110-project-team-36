@@ -2,7 +2,8 @@ export type Vec2 = { x: number; y: number };
 
 export type TrackJSON = {
     version: 1;
-    width?: number;                 // visual hint for road width
+    numLanes: number;               // number of lanes (required)
+    laneWidth: number;              // width of each lane (required)
     points: Vec2[];                 // coarse polygon; loop auto-closed
     smoothIterations?: number;      // Chaikin rounds (default 3)
     sampleSpacing?: number;         // desired spacing along the arc (default 1.0)
@@ -56,19 +57,37 @@ function vPerp(a: Vec2): Vec2 { return { x: -a.y, y: a.x }; }
  * This class represents a track in the game.
  */
 export class Track {
-    readonly width: number;         // Suggested road width (world units)
+    private _laneWidth: number;       // Width of each lane (world units)
+    readonly numLanes: number;      // Number of lanes
     private samples: Vec2[] = [];   // Dense, closed centerline samples; last === first
     private sTable: number[] = [];  // Cumulative arc-length table (same length as samples)
+    private kappaTable: number[] = []; // curvature per sample (approximate)
 
     private totalLength = 0;        // Total length of the track
 
     /**
+     * Get total track width (computed from laneWidth * numLanes)
+     */
+    get width(): number {
+        return this._laneWidth * this.numLanes;
+    }
+
+    /**
+     * Get the width of each lane
+     */
+    get laneWidth(): number {
+        return this._laneWidth;
+    }
+
+    /**
      * Constructor
      * 
-     * @param width - The width of the track
+     * @param laneWidth - The width of each lane
+     * @param numLanes - The number of lanes
      */
-    private constructor(width: number) {
-        this.width = width;
+    private constructor(laneWidth: number, numLanes: number) {
+        this._laneWidth = laneWidth;
+        this.numLanes = numLanes;
     }
 
     /**
@@ -81,7 +100,13 @@ export class Track {
         if (!j.points || j.points.length < 3) {
             throw new Error('TrackJSON.points must have at least 3 points');
         }
-        const t = new Track(j.width ?? 16);
+        if (j.numLanes === undefined || j.numLanes < 1) {
+            throw new Error('TrackJSON.numLanes is required and must be at least 1');
+        }
+        if (j.laneWidth === undefined || j.laneWidth <= 0) {
+            throw new Error('TrackJSON.laneWidth is required and must be positive');
+        }
+        const t = new Track(j.laneWidth, j.numLanes);
 
         // 1) Smooth the polygon (low-math corner cutting)
         const smoothed = chaikinClosed(j.points, j.smoothIterations ?? 3);
@@ -110,7 +135,6 @@ export class Track {
         const steps = Math.max(8, Math.round(L / Math.max(1e-6, spacing)));
         for (let k = 0; k < steps; k++) {
             const s = (k / steps) * L;
-            // locate segment
             let i = 1;
             while (i < cum.length && cum[i] < s) i++;
             const s0 = cum[i - 1], s1 = cum[i];
@@ -119,13 +143,12 @@ export class Track {
             samples.push({ x: p0.x * (1 - t) + p1.x * t, y: p0.y * (1 - t) + p1.y * t });
             sTable.push(s);
         }
-        // Close the loop exactly
         samples.push(samples[0]);
         sTable.push(L);
-
         this.samples = samples;
         this.sTable = sTable;
         this.totalLength = L;
+        this.kappaTable = Track.buildKappaTable(this);
     }
 
     /**
@@ -201,6 +224,43 @@ export class Track {
      */
     getSamples(): readonly Vec2[] { return this.samples; }
 
+    /**
+     * Get the lateral offset from centerline for a given lane index
+     * 
+     * @param laneIndex - The lane index (0 = leftmost, numLanes-1 = rightmost)
+     * @returns The lateral offset from centerline in world units
+     */
+    getLaneOffset(laneIndex: number): number {
+        // Calculate from rightmost edge: rightEdge = width/2
+        // Lane centers are spaced laneWidth apart, starting from rightmost edge
+        // Rightmost lane (numLanes-1): width/2 - 0.5*laneWidth
+        // Leftmost lane (0): width/2 - (numLanes - 0.5)*laneWidth
+        const trackWidth = this.width; // numLanes * laneWidth
+        return (trackWidth / 2) - (laneIndex + 0.5) * this._laneWidth;
+    }
+
+    /**
+     * Curvature lookup with linear interpolation.
+     */
+    curvatureAt(sRaw: number): number {
+        let s = this.wrapS(sRaw);
+        if (s < 0) {
+            s += this.totalLength;
+        }
+        let lo = 0, hi = this.sTable.length - 1;
+        while (lo <= hi) {
+            const mid = (lo + hi) >> 1;
+            if (this.sTable[mid] < s) lo = mid + 1;
+            else hi = mid - 1;
+        }
+        const i = Math.max(1, lo);
+        const s0 = this.sTable[i - 1], s1 = this.sTable[i];
+        const t = (s - s0) / Math.max(1e-6, s1 - s0);
+        const k0 = this.kappaTable[i - 1];
+        const k1 = this.kappaTable[i];
+        return k0 * (1 - t) + k1 * t;
+    }
+
     // === SERIALIZATION METHODS ===
 
     /**
@@ -210,7 +270,8 @@ export class Track {
      */
     toSerializedData() {
         return {
-            width: this.width,
+            laneWidth: this._laneWidth,
+            numLanes: this.numLanes,
             samples: this.samples.map(s => ({ x: s.x, y: s.y })),
             sTable: [...this.sTable],
             totalLength: this.totalLength,
@@ -223,11 +284,34 @@ export class Track {
      * @param data - The serialized track data
      * @returns A new Track instance
      */
-    static fromSerializedData(data: { width: number; samples: Vec2[]; sTable: number[]; totalLength: number }): Track {
-        const track = new Track(data.width);
+    static fromSerializedData(data: { laneWidth: number; numLanes: number; samples: Vec2[]; sTable: number[]; totalLength: number }): Track {
+        const track = new Track(data.laneWidth, data.numLanes);
         track.samples = [...data.samples];
         track.sTable = [...data.sTable];
         track.totalLength = data.totalLength;
+        track.kappaTable = Track.buildKappaTable(track);
         return track;
+    }
+
+    private static buildKappaTable(track: Track) {
+        const headings: number[] = [];
+        for (let i = 0; i < track.samples.length - 1; i++) {
+            const a = track.samples[i];
+            const b = track.samples[i + 1];
+            const dx = b.x - a.x;
+            const dy = b.y - a.y;
+            headings.push(Math.atan2(dy, dx));
+        }
+        headings.push(headings[0]);
+        const ds = (track.sTable.length > 1) ? (track.sTable[1] - track.sTable[0]) : 1.0;
+        const kappa: number[] = new Array(track.samples.length).fill(0);
+        for (let i = 0; i < headings.length - 1; i++) {
+            let dTheta = headings[i + 1] - headings[i];
+            if (dTheta > Math.PI) dTheta -= 2 * Math.PI;
+            if (dTheta < -Math.PI) dTheta += 2 * Math.PI;
+            kappa[i] = dTheta / Math.max(1e-6, ds);
+        }
+        kappa[kappa.length - 1] = kappa[0];
+        return kappa;
     }
 }
