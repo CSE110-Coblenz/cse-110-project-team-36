@@ -21,14 +21,13 @@ export class CarController {
     private pendingRewards = new Map<Car, number>();
 
     private vMin: number = 5;               // v_min
-    private vMax: number = 50;              // v_max
+    private vMax: number = 500;             // v_max
     private aBase: number = 0;              // a_base
     private tauA: number = 0.5;             // τ_a (reward smoothing time constant, seconds)
     private beta: number = 30;              // β in a_decay(v) = -β·1_{v>v_min}
     private kv: number = 5;                 // k_v in a_t = k_v (v_des - v_phys)
     private kp: number = 2;                 // k_p in v_des = clip(v_min + k_p e_s, ...)
     private vBonus: number = 10;            // v_bonus
-    private deltaSMax: number = 1;          // Δs_max
     private mu: number = 0.8;               // μ (effective friction coefficient)
     private kappaEps: number = 1e-3;        // ε (curvature floor to avoid div by 0)
     private vKappaScale: number = 10;       // γ_κ (scale knob; spec addendum)
@@ -83,7 +82,7 @@ export class CarController {
         // v_prog clipped to [v_min, v_max]
         const vProgClipped = Math.max(this.vMin, Math.min(this.vMax, car.vProg)); 
         // Δs = min(v_prog_clipped * dt, Δs_max)
-        const deltaS = Math.min(vProgClipped * dt, this.deltaSMax); 
+        const deltaS = vProgClipped * dt; 
         // s_{k+1} = wrap(s_k + Δs)
         car.sProg = track.wrapS(car.sProg + deltaS); 
         // rho = exp(-dt / τ_a)
@@ -192,7 +191,6 @@ export class CarController {
             kv: this.kv,
             kp: this.kp,
             vBonus: this.vBonus,
-            deltaSMax: this.deltaSMax,
             mu: this.mu,
             kappaEps: this.kappaEps,
             vKappaScale: this.vKappaScale,
