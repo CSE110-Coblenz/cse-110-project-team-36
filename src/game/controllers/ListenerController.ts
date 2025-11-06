@@ -5,6 +5,7 @@ import {
     DeleteListener,
     EnterSubmitListener,
     SkipQuestionListener,
+    LaneChangeListener,
 } from "../listeners/KeyboardListener";
 
 /**
@@ -25,6 +26,7 @@ export class ListenerController {
     private deleteListener: DeleteListener;
     private enterSubmitListener: EnterSubmitListener;
     private skipQuestionListener: SkipQuestionListener;
+    private laneChangeListener: LaneChangeListener;
 
     constructor(
         private onPauseToggle: () => void,
@@ -34,6 +36,10 @@ export class ListenerController {
             onDelete: () => void;
             onEnterSubmit: () => void;
             onSkip: () => void;
+        },
+        private laneChangeCallbacks: {
+            onLaneChangeLeft: () => void;
+            onLaneChangeRight: () => void;
         }
     ) {
         this.pauseKeyListener = (e: KeyboardEvent) => {
@@ -74,6 +80,16 @@ export class ListenerController {
             }
         });
 
+        this.laneChangeListener = new LaneChangeListener((direction: -1 | 1) => {
+            if (!this.gameInputsPaused) {
+                if (direction === -1) {
+                    this.laneChangeCallbacks.onLaneChangeLeft();
+                } else {
+                    this.laneChangeCallbacks.onLaneChangeRight();
+                }
+            }
+        });
+
         this.resizeListener = new ResizeListener(document.body, () => {});
     }
 
@@ -100,6 +116,7 @@ export class ListenerController {
         this.deleteListener.start();
         this.enterSubmitListener.start();
         this.skipQuestionListener.start();
+        this.laneChangeListener.start();
 
         this.isRunning = true;
     }
@@ -120,6 +137,7 @@ export class ListenerController {
         this.deleteListener.stop();
         this.enterSubmitListener.stop();
         this.skipQuestionListener.stop();
+        this.laneChangeListener.stop();
         this.isRunning = false;
         this.gameInputsPaused = false;
     }

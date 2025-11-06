@@ -8,7 +8,8 @@ describe('Track Serialization', () => {
     const createTestTrack = (): Track => {
         const trackJSON: TrackJSON = {
             version: 1,
-            width: 20,
+            numLanes: 4,
+            laneWidth: 5,
             points: [
                 { x: 0, y: 0 },
                 { x: 100, y: 0 },
@@ -27,17 +28,20 @@ describe('Track Serialization', () => {
 
             const serialized = track.toSerializedData();
 
-            expect(serialized).toHaveProperty('width');
+            expect(serialized).toHaveProperty('laneWidth');
+            expect(serialized).toHaveProperty('numLanes');
             expect(serialized).toHaveProperty('samples');
             expect(serialized).toHaveProperty('sTable');
             expect(serialized).toHaveProperty('totalLength');
 
-            expect(typeof serialized.width).toBe('number');
+            expect(typeof serialized.laneWidth).toBe('number');
+            expect(typeof serialized.numLanes).toBe('number');
             expect(Array.isArray(serialized.samples)).toBe(true);
             expect(Array.isArray(serialized.sTable)).toBe(true);
             expect(typeof serialized.totalLength).toBe('number');
 
-            expect(serialized.width).toBe(20);
+            expect(serialized.laneWidth).toBe(5);
+            expect(serialized.numLanes).toBe(4);
             expect(serialized.samples.length).toBeGreaterThan(0);
             expect(serialized.sTable).toHaveLength(serialized.samples.length);
             expect(serialized.totalLength).toBeGreaterThan(0);
@@ -68,15 +72,16 @@ describe('Track Serialization', () => {
 
         it('should handle different track configurations', () => {
             const configs = [
-                { width: 10, smoothIterations: 0, sampleSpacing: 5 },
-                { width: 50, smoothIterations: 3, sampleSpacing: 1 },
-                { width: 100, smoothIterations: 5, sampleSpacing: 20 }
+                { numLanes: 4, laneWidth: 2.5, smoothIterations: 0, sampleSpacing: 5 },
+                { numLanes: 4, laneWidth: 12.5, smoothIterations: 3, sampleSpacing: 1 },
+                { numLanes: 4, laneWidth: 25, smoothIterations: 5, sampleSpacing: 20 }
             ];
 
             configs.forEach(config => {
                 const trackJSON: TrackJSON = {
                     version: 1,
-                    width: config.width,
+                    numLanes: config.numLanes,
+                    laneWidth: config.laneWidth,
                     points: [
                         { x: 0, y: 0 },
                         { x: 50, y: 0 },
@@ -90,7 +95,8 @@ describe('Track Serialization', () => {
 
                 const serialized = track.toSerializedData();
 
-                expect(serialized.width).toBe(config.width);
+                expect(serialized.laneWidth).toBe(config.laneWidth);
+                expect(serialized.numLanes).toBe(config.numLanes);
                 expect(serialized.samples.length).toBeGreaterThan(3);
                 expect(serialized.totalLength).toBeGreaterThan(0);
             });
@@ -128,7 +134,8 @@ describe('Track Serialization', () => {
 
         it('should handle minimal track data', () => {
             const minimalData = {
-                width: 15,
+                laneWidth: 3.75,
+                numLanes: 4,
                 samples: [
                     { x: 0, y: 0 },
                     { x: 10, y: 0 },
@@ -142,7 +149,7 @@ describe('Track Serialization', () => {
 
             const track = Track.fromSerializedData(minimalData);
 
-            expect(track.width).toBe(15);
+            expect(track.numLanes).toBe(4);
             expect(track).toHaveLength(40);
             expect(track.getSamples()).toHaveLength(5);
         });
@@ -156,7 +163,8 @@ describe('Track Serialization', () => {
             const deserializedTrack = Track.fromSerializedData(serialized);
             const reSerialized = deserializedTrack.toSerializedData();
 
-            expect(reSerialized.width).toBe(serialized.width);
+            expect(reSerialized.laneWidth).toBe(serialized.laneWidth);
+            expect(reSerialized.numLanes).toBe(serialized.numLanes);
             expect(reSerialized.totalLength).toBeCloseTo(serialized.totalLength, 10);
             expect(reSerialized.samples).toHaveLength(serialized.samples.length);
             expect(reSerialized.sTable).toHaveLength(serialized.sTable.length);
@@ -174,7 +182,8 @@ describe('Track Serialization', () => {
         it('should handle complex track shapes', () => {
             const complexTrackJSON: TrackJSON = {
                 version: 1,
-                width: 25,
+                numLanes: 4,
+                laneWidth: 6.25,
                 points: [
                     { x: 0, y: 0 },
                     { x: 100, y: 0 },

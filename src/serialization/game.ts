@@ -16,13 +16,20 @@ export interface SerializedCar {
     color: string;
     carLength: number;
     carWidth: number;
+    laneIndex: number;
+    targetLaneIndex: number | null;
+    laneChangeStartTime: number | null;
+    pendingLaneChanges: number;
+    laneChangeStartOffset: number | null;
+    laneChangeStartVelocity: number | null;
     lapCount: number;
     lastSProg: number;
     crossedFinish: boolean;
 }
 
 export interface SerializedTrack {
-    width: number;
+    laneWidth: number;
+    numLanes: number;
     samples: { x: number; y: number }[];
     sTable: number[];
     totalLength: number;

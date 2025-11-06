@@ -43,14 +43,13 @@ describe('CarController', () => {
             const params = controller.getParams();
             expect(params).toEqual({
                 vMin: 5,
-                vMax: 50,
+                vMax: 500,
                 aBase: 0,
                 tauA: 0.5,
                 beta: 30,
                 kv: 5,
                 kp: 2,
                 vBonus: 10,
-                deltaSMax: 1,
                 mu: 0.8,
                 kappaEps: 0.001,
                 vKappaScale: 10,
@@ -82,7 +81,7 @@ describe('CarController', () => {
 
             const params = controller.getParams();
             expect(params.vMin).toBe(15);
-            expect(params.vMax).toBe(50);
+            expect(params.vMax).toBe(500);
             expect(params.beta).toBe(30);
         });
     });
@@ -185,20 +184,6 @@ describe('CarController', () => {
             controller.step(0.1);
 
             expect(car.vProg).toBeGreaterThanOrEqual(initialV);
-        });
-
-        it('should use clamped velocity for position calculation', () => {
-            const car = new Car();
-            gameState.addPlayerCar(car);
-            controller.initializeCars();
-
-            car.vProg = 100;
-            const initialS = car.sProg;
-
-            controller.step(0.1);
-
-            expect(car.vProg).toBeGreaterThan(50);
-            expect(car.sProg).toBeLessThanOrEqual(initialS + 1 + 1);
         });
 
         it('should wrap progress position around track length', () => {

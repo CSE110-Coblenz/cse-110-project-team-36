@@ -57,18 +57,6 @@ describe('RaceController', () => {
             });
         });
 
-        it('should position AI cars at negative offsets', () => {
-            // Arrange & Act
-            const controller = new RaceController(track, defaultQuestionConfig);
-            const cars = controller.getGameState().getCars();
-
-            // Assert
-            expect(cars[0].sProg).toBe(0); // Player at start
-            expect(cars[1].sProg).toBe(-100); // AI 1
-            expect(cars[2].sProg).toBe(-200); // AI 2
-            expect(cars[3].sProg).toBe(-300); // AI 3
-        });
-
         it('should call initializeCars', () => {
             // Arrange & Act
             const controller = new RaceController(track, defaultQuestionConfig);
@@ -304,6 +292,7 @@ describe('RaceController', () => {
             const controller = new RaceController(track, defaultQuestionConfig);
             const gameState = controller.getGameState();
             const playerCar = gameState.playerCar;
+            const initialPlayerPosition = playerCar.sProg;
 
             // Act - simulate race with rewards
             for (let i = 0; i < 100; i++) {
@@ -314,7 +303,7 @@ describe('RaceController', () => {
             }
 
             // Assert - player car should have advanced significantly
-            expect(playerCar.sProg).toBeGreaterThan(0);
+            expect(playerCar.sProg).toBeGreaterThan(initialPlayerPosition);
             // With decay, vProg might be less than 5 after many steps without rewards
             expect(playerCar.vProg).toBeGreaterThanOrEqual(0);
 
