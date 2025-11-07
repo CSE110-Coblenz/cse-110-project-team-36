@@ -3,7 +3,7 @@ import { AnswerStreak } from "../models/AnswerStreak";
 
 export class StreakController {
   private streak: AnswerStreak;
-  private timer?: number;
+  private timer?: ReturnType<typeof setInterval>;
   constructor() {
     this.streak = new AnswerStreak();
 
