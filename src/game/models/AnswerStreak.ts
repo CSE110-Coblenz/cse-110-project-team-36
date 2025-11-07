@@ -1,5 +1,3 @@
-import { events } from "../../shared/events";
-
 type StreakState = "idle" | "building" | "active" | "cooldown";
 
 export class AnswerStreak {
@@ -7,6 +5,7 @@ export class AnswerStreak {
   gauge: number = 0; // 0 → 100 fill level
   time: number = 10; // Remaining streak time (if active)
   decayRate: number = 5; // How fast gauge drains per second
+  isStreakActivated: boolean = false;
 
   onCorrectAnswer() {
     if (this.gauge >= 10) {
@@ -22,25 +21,18 @@ export class AnswerStreak {
 
   activateStreak() {
     this.state = "active";
-    events.emit("StreakActivated", { value: true, progress: this.gauge });
     this.time = 10;
-    const timer = setInterval(() => {
-      console.log(this.time);
-      this.time--;
-      this.gauge -= this.decayRate;
-
-      if (this.time < 0) {
-        clearInterval(timer); // stop the timer
-        this.deactivateStreak();
-        console.log("Time’s up!");
-      }
-    }, 1000); // runs every 1000 ms = 1 second
+    this.isStreakActivated = true;
   }
 
   deactivateStreak() {
-    events.emit("StreakActivated", { value: false, progress: this.gauge });
     this.state = "idle";
     this.time = 0;
     this.gauge = 0;
+    this.isStreakActivated = false;
+  }
+
+  decay() {
+    this.gauge -= this.decayRate;
   }
 }

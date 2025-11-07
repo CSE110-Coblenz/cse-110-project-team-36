@@ -10,469 +10,508 @@ import { events } from "../../shared/events";
 import { GameClock } from "../clock";
 import { ListenerController } from "./ListenerController";
 import { QuestionController } from "./QuestionController";
+import { StreakController } from "./StreakController";
 import { ANIMATION_TICK } from "../../const";
 import { updateUserStats } from "../../services/localStorage";
-import { 
-    serializeGameState, 
-    deserializeGameState, 
-    saveGameToLocalStorage, 
-    loadGameFromLocalStorage,
-    hasSavedGame,
-    deleteSavedGame,
-    listSaveSlots
+import {
+  serializeGameState,
+  deserializeGameState,
+  saveGameToLocalStorage,
+  loadGameFromLocalStorage,
+  hasSavedGame,
+  deleteSavedGame,
+  listSaveSlots,
 } from "../../serialization/game";
 
 /**
  * Race controller class
- * 
+ *
  * This class is responsible for updating the game state and the car controller.
  * It also manages question generation, statistics tracking, and race metrics.
  */
 export class RaceController {
-    private gameState: GameState;
-    private carController: CarController;
-    private questionManager: QuestionManager;
-    private statsManager: QuestionStatsManager;
-    private questionController: QuestionController;
-    private elapsedMs: number = 0;
-    private eventUnsubscribers: Array<() => void> = [];
-    private isRunning: boolean = false;
-    private clock: GameClock;
-    private listenerController: ListenerController;
+  private gameState: GameState;
+  private carController: CarController;
+  private questionManager: QuestionManager;
+  private statsManager: QuestionStatsManager;
+  private questionController: QuestionController;
+  private elapsedMs: number = 0;
+  private eventUnsubscribers: Array<() => void> = [];
+  private isRunning: boolean = false;
+  private clock: GameClock;
+  private listenerController: ListenerController;
+  private streakController: StreakController;
 
-    /**
-     * Constructor
-     * 
-     * @param track - The track to initialize the race controller on
-     * @param questionConfig - Configuration for question generation
-     */
-    constructor(track: Track, questionConfig: QuestionConfig) {
-        const camera = { pos: { x: 0, y: 0 }, zoom: 1 };
-        this.gameState = new GameState(camera, track);
-        this.gameState.addPlayerCar(new Car(0, '#22c55e'));
-        this.gameState.addCar(new Car(-100, '#ef4444'));
-        this.gameState.addCar(new Car(-200, '#ef4444'));
-        this.gameState.addCar(new Car(-300, '#ef4444'));
-        this.carController = new CarController(this.gameState);
-        this.carController.initializeCars();
+  /**
+   * Constructor
+   *
+   * @param track - The track to initialize the race controller on
+   * @param questionConfig - Configuration for question generation
+   */
+  constructor(track: Track, questionConfig: QuestionConfig) {
+    const camera = { pos: { x: 0, y: 0 }, zoom: 1 };
+    this.gameState = new GameState(camera, track);
+    this.gameState.addPlayerCar(new Car(0, "#22c55e"));
+    this.gameState.addCar(new Car(-100, "#ef4444"));
+    this.gameState.addCar(new Car(-200, "#ef4444"));
+    this.gameState.addCar(new Car(-300, "#ef4444"));
+    this.carController = new CarController(this.gameState);
+    this.carController.initializeCars();
 
-        this.questionManager = new QuestionManager(questionConfig);
-        this.statsManager = new QuestionStatsManager();
-        this.questionController = new QuestionController(this.questionManager);
+    this.questionManager = new QuestionManager(questionConfig);
+    this.statsManager = new QuestionStatsManager();
+    this.questionController = new QuestionController(this.questionManager);
 
-        // Create listener controller with all callbacks
-        this.listenerController = new ListenerController(
-            () => this.togglePause(),
-            () => this.queueReward(this.gameState.playerCar, 150),
-            {
-                onNumberInput: (char) => this.questionController.addChar(char),
-                onDelete: () => this.questionController.deleteChar(),
-                onEnterSubmit: () => this.questionController.submitAnswer(),
-                onSkip: () => this.questionController.skipQuestion()
-            }
-        );
+    // Create listener controller with all callbacks
+    this.listenerController = new ListenerController(
+      () => this.togglePause(),
+      () => this.queueReward(this.gameState.playerCar, 150),
+      {
+        onNumberInput: (char) => this.questionController.addChar(char),
+        onDelete: () => this.questionController.deleteChar(),
+        onEnterSubmit: () => this.questionController.submitAnswer(),
+        onSkip: () => this.questionController.skipQuestion(),
+      }
+    );
 
-        this.setupQuestionEventListeners();
-        this.clock = new GameClock(ANIMATION_TICK);
+    this.setupQuestionEventListeners();
+    this.clock = new GameClock(ANIMATION_TICK);
+
+    this.streakController = new StreakController();
+  }
+
+  /**
+   * Setup event listeners for question outcomes
+   */
+  private setupQuestionEventListeners(): void {
+    const unsubCorrect = events.on("AnsweredCorrectly", () => {
+      const playerCar = this.gameState.playerCar;
+      this.queueReward(playerCar, 150);
+    });
+
+    const unsubIncorrect = events.on("AnsweredIncorrectly", () => {
+      const playerCar = this.gameState.playerCar;
+      this.applyPenalty(playerCar, 0.8);
+    });
+
+    const unsubSkipped = events.on("QuestionSkipped", () => {
+      const playerCar = this.gameState.playerCar;
+      this.applyPenalty(playerCar, 0.6);
+    });
+
+    const unsubCompleted = events.on("QuestionCompleted", (payload) => {
+      const question = payload.question as Question;
+      this.statsManager.recordQuestion(question);
+    });
+
+    this.eventUnsubscribers = [
+      unsubCorrect,
+      unsubIncorrect,
+      unsubSkipped,
+      unsubCompleted,
+    ];
+  }
+
+  /**
+   * Clean up event listeners
+   */
+  private cleanupEventListeners(): void {
+    for (const unsub of this.eventUnsubscribers) {
+      unsub();
+    }
+    this.eventUnsubscribers = [];
+  }
+
+  /**
+   * Create a RaceController from a saved game state
+   *
+   * @param gameState - The saved game state
+   * @param questionConfig - Configuration for question generation
+   * @returns A new RaceController with the loaded state
+   */
+  static fromGameState(
+    gameState: GameState,
+    questionConfig: QuestionConfig
+  ): RaceController {
+    // Create a dummy track for the constructor, then replace with loaded state
+    const dummyTrack = Track.fromJSON({
+      version: 1,
+      points: [
+        { x: 0, y: 0 },
+        { x: 1, y: 0 },
+        { x: 0, y: 1 },
+      ],
+    });
+    const controller = new RaceController(dummyTrack, questionConfig);
+
+    // Replace with the loaded game state
+    controller.gameState = gameState;
+    controller.carController = new CarController(gameState);
+    controller.carController.initializeCars();
+
+    return controller;
+  }
+
+  /**
+   * Step the race controller
+   *
+   * @param dt - The time step in seconds
+   */
+  step(dt: number) {
+    if (!this.gameState.paused) {
+      this.carController.step(dt);
+      this.elapsedMs += dt * 1000;
+    }
+    const pos = this.gameState.track.posAt(this.gameState.playerCar.sPhys);
+    this.gameState.updateCamera({ pos, zoom: this.gameState.camera.zoom });
+  }
+
+  /**
+   * Get the game state
+   *
+   * @returns The game state
+   */
+  getGameState() {
+    return this.gameState;
+  }
+
+  /**
+   * Get the question manager
+   *
+   * @returns The question manager
+   */
+  getQuestionManager(): QuestionManager {
+    return this.questionManager;
+  }
+
+  /**
+   * Get the question controller
+   *
+   * @returns The question controller
+   */
+  getQuestionController(): QuestionController {
+    return this.questionController;
+  }
+
+  getStreakController(): StreakController {
+    return this.streakController;
+  }
+
+  /**
+   * Get the stats manager
+   *
+   * @returns The stats manager
+   */
+  getStatsManager(): QuestionStatsManager {
+    return this.statsManager;
+  }
+
+  /**
+   * Get elapsed race time in milliseconds (pause-aware)
+   *
+   * @returns Elapsed time in milliseconds
+   */
+  getElapsedMs(): number {
+    return this.elapsedMs;
+  }
+
+  /**
+   * Get current accuracy (0-1)
+   *
+   * @returns Accuracy as a value between 0 and 1
+   */
+  getAccuracy(): number {
+    const stats = this.statsManager.getStats();
+    let correct = 0,
+      incorrect = 0;
+    for (const s of stats) {
+      if (s.outcome === QuestionOutcome.CORRECT) correct++;
+      else if (s.outcome === QuestionOutcome.INCORRECT) incorrect++;
+    }
+    const denom = correct + incorrect;
+    return denom > 0 ? correct / denom : 0;
+  }
+
+  /**
+   * Get correct answer count
+   *
+   * @returns Number of correct answers
+   */
+  getCorrectCount(): number {
+    const stats = this.statsManager.getStats();
+    return stats.filter((s) => s.outcome === QuestionOutcome.CORRECT).length;
+  }
+
+  /**
+   * Get incorrect answer count
+   *
+   * @returns Number of incorrect answers
+   */
+  getIncorrectCount(): number {
+    const stats = this.statsManager.getStats();
+    return stats.filter((s) => s.outcome === QuestionOutcome.INCORRECT).length;
+  }
+
+  /**
+   * Queue a reward for a car
+   *
+   * @param car - The car to queue the reward for
+   * @param magnitude - The magnitude of the reward
+   */
+  queueReward(car: Car, magnitude: number) {
+    this.carController.queueReward(car, magnitude);
+  }
+
+  /**
+   * Queue a reward for a car by index
+   *
+   * @param index - The index of the car to queue the reward for
+   * @param magnitude - The magnitude of the reward
+   */
+  queueRewardByIndex(index: number, magnitude: number) {
+    this.carController.queueRewardByIndex(index, magnitude);
+  }
+
+  /**
+   * Apply penalty to a car
+   *
+   * @param car - The car to apply penalty to
+   * @param magnitude - The penalty magnitude (0-1)
+   */
+  applyPenalty(car: Car, magnitude: number) {
+    this.carController.applyPenalty(car, magnitude);
+  }
+
+  /**
+   * Start the race (starts game loop and input listeners)
+   *
+   * @param containerElement - The container element for resize tracking
+   * @param onResize - Callback when container is resized
+   * @param onFrame - Callback for each frame (for React re-renders)
+   * @throws Error if the race is already started
+   */
+  start(
+    containerElement: HTMLElement,
+    onResize: (w: number, h: number) => void,
+    onFrame: () => void
+  ): void {
+    if (this.isRunning) {
+      throw new Error(
+        "RaceController is already started. Call stop() before starting again."
+      );
     }
 
-    /**
-     * Setup event listeners for question outcomes
-     */
-    private setupQuestionEventListeners(): void {
-        const unsubCorrect = events.on("AnsweredCorrectly", () => {
-            const playerCar = this.gameState.playerCar;
-            this.queueReward(playerCar, 150);
-        });
+    // Start listener controller (pass containerElement and onResize)
+    this.listenerController.start(containerElement, onResize);
 
-        const unsubIncorrect = events.on("AnsweredIncorrectly", () => {
-            const playerCar = this.gameState.playerCar;
-            this.applyPenalty(playerCar, 0.8);
-        });
+    // Start game clock
+    this.clock.start((dt) => this.step(dt), onFrame);
 
-        const unsubSkipped = events.on("QuestionSkipped", () => {
-            const playerCar = this.gameState.playerCar;
-            this.applyPenalty(playerCar, 0.6);
-        });
+    this.isRunning = true;
+  }
 
-        const unsubCompleted = events.on("QuestionCompleted", (payload) => {
-            const question = payload.question as Question;
-            this.statsManager.recordQuestion(question);
-        });
-
-        this.eventUnsubscribers = [unsubCorrect, unsubIncorrect, unsubSkipped, unsubCompleted];
+  /**
+   * Stop the race
+   */
+  stop(): void {
+    if (!this.isRunning) {
+      return;
     }
 
-    /**
-     * Clean up event listeners
-     */
-    private cleanupEventListeners(): void {
-        for (const unsub of this.eventUnsubscribers) {
-            unsub();
-        }
-        this.eventUnsubscribers = [];
+    // Stop game clock
+    this.clock.stop();
+
+    // Stop all listeners
+    this.listenerController.stop();
+    this.isRunning = false;
+  }
+
+  /**
+   * Check if the race is currently running
+   *
+   * @returns True if the race is started, false otherwise
+   */
+  isStarted(): boolean {
+    return this.isRunning;
+  }
+
+  /**
+   * Toggle pause state
+   *
+   * @throws Error if the race is not started
+   */
+  togglePause(): void {
+    if (!this.isRunning) {
+      throw new Error(
+        "Cannot toggle pause: RaceController is not started. Call start() first."
+      );
+    }
+    this.gameState.paused = !this.gameState.paused;
+
+    // Update listener controller pause state
+    if (this.gameState.paused) {
+      this.listenerController.pause();
+    } else {
+      this.listenerController.resume();
     }
 
-    /**
-     * Create a RaceController from a saved game state
-     * 
-     * @param gameState - The saved game state
-     * @param questionConfig - Configuration for question generation
-     * @returns A new RaceController with the loaded state
-     */
-    static fromGameState(gameState: GameState, questionConfig: QuestionConfig): RaceController {
-        // Create a dummy track for the constructor, then replace with loaded state
-        const dummyTrack = Track.fromJSON({ version: 1, points: [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 0, y: 1 }] });
-        const controller = new RaceController(dummyTrack, questionConfig);
-        
-        // Replace with the loaded game state
-        controller.gameState = gameState;
-        controller.carController = new CarController(gameState);
-        controller.carController.initializeCars();
-        
-        return controller;
-    }
+    events.emit("PausedSet", { value: this.gameState.paused });
+  }
 
-    /**
-     * Step the race controller
-     * 
-     * @param dt - The time step in seconds
-     */
-    step(dt: number) {
-        if (!this.gameState.paused) {
-            this.carController.step(dt);
-            this.elapsedMs += dt * 1000;
-        }
-        const pos = this.gameState.track.posAt(this.gameState.playerCar.sPhys);
-        this.gameState.updateCamera({ pos, zoom: this.gameState.camera.zoom });
+  /**
+   * Pause the race
+   *
+   * @throws Error if the race is not started
+   */
+  pause(): void {
+    if (!this.isRunning) {
+      throw new Error(
+        "Cannot pause: RaceController is not started. Call start() first."
+      );
     }
+    if (!this.gameState.paused) {
+      this.togglePause();
+    }
+  }
 
-    /**
-     * Get the game state
-     * 
-     * @returns The game state
-     */
-    getGameState() {
-        return this.gameState;
+  /**
+   * Resume the race
+   *
+   * @throws Error if the race is not started
+   */
+  resume(): void {
+    if (!this.isRunning) {
+      throw new Error(
+        "Cannot resume: RaceController is not started. Call start() first."
+      );
     }
+    if (this.gameState.paused) {
+      this.togglePause();
+    }
+  }
 
-    /**
-     * Get the question manager
-     * 
-     * @returns The question manager
-     */
-    getQuestionManager(): QuestionManager {
-        return this.questionManager;
-    }
+  /**
+   * Get pause state
+   *
+   * @returns True if paused, false otherwise
+   */
+  isPaused(): boolean {
+    return this.gameState.paused;
+  }
 
-    /**
-     * Get the question controller
-     * 
-     * @returns The question controller
-     */
-    getQuestionController(): QuestionController {
-        return this.questionController;
-    }
+  /**
+   * Save stats for current user
+   *
+   * @param username - The username to save stats for
+   */
+  saveStatsForUser(username: string): void {
+    const stats = this.statsManager.getStats();
+    updateUserStats(username, Array.from(stats));
+  }
 
-    /**
-     * Get the stats manager
-     * 
-     * @returns The stats manager
-     */
-    getStatsManager(): QuestionStatsManager {
-        return this.statsManager;
+  /**
+   * Exit the race, optionally saving stats for a user
+   *
+   * @param username - Optional username to save stats for
+   */
+  exitRace(username?: string | null): void {
+    if (username) {
+      this.saveStatsForUser(username);
     }
+    this.stop();
+  }
 
-    /**
-     * Get elapsed race time in milliseconds (pause-aware)
-     * 
-     * @returns Elapsed time in milliseconds
-     */
-    getElapsedMs(): number {
-        return this.elapsedMs;
+  /**
+   * Destroy the controller and clean up all resources
+   *
+   * This should be called when the controller is no longer needed (e.g., when exiting the game).
+   * It stops the controller if running, disposes of all resources, and cleans up event listeners.
+   */
+  destroy(): void {
+    if (this.isRunning) {
+      this.stop();
     }
+    this.questionController.destroy();
+    this.cleanupEventListeners();
+    this.listenerController.destroy();
+  }
 
-    /**
-     * Get current accuracy (0-1)
-     * 
-     * @returns Accuracy as a value between 0 and 1
-     */
-    getAccuracy(): number {
-        const stats = this.statsManager.getStats();
-        let correct = 0, incorrect = 0;
-        for (const s of stats) {
-            if (s.outcome === QuestionOutcome.CORRECT) correct++;
-            else if (s.outcome === QuestionOutcome.INCORRECT) incorrect++;
-        }
-        const denom = correct + incorrect;
-        return denom > 0 ? correct / denom : 0;
-    }
+  /**
+   * Serialize the current game state to a JSON string
+   *
+   * @returns The serialized game state as JSON string
+   */
+  saveToString(): string {
+    return serializeGameState(this.gameState);
+  }
 
-    /**
-     * Get correct answer count
-     * 
-     * @returns Number of correct answers
-     */
-    getCorrectCount(): number {
-        const stats = this.statsManager.getStats();
-        return stats.filter(s => s.outcome === QuestionOutcome.CORRECT).length;
-    }
+  /**
+   * Load game state from a JSON string
+   *
+   * @param jsonString - The serialized game state
+   * @param questionConfig - Configuration for question generation
+   * @returns A new RaceController with the loaded state
+   */
+  static loadFromString(
+    jsonString: string,
+    questionConfig: QuestionConfig
+  ): RaceController {
+    const gameState = deserializeGameState(jsonString);
+    return RaceController.fromGameState(gameState, questionConfig);
+  }
 
-    /**
-     * Get incorrect answer count
-     * 
-     * @returns Number of incorrect answers
-     */
-    getIncorrectCount(): number {
-        const stats = this.statsManager.getStats();
-        return stats.filter(s => s.outcome === QuestionOutcome.INCORRECT).length;
-    }
+  /**
+   * Save the current game state to localStorage
+   *
+   * @param slotName - The name of the save slot (default: 'default')
+   */
+  saveToLocalStorage(slotName: string = "default"): void {
+    saveGameToLocalStorage(this.gameState, slotName);
+  }
 
-    /**
-     * Queue a reward for a car
-     * 
-     * @param car - The car to queue the reward for
-     * @param magnitude - The magnitude of the reward
-     */
-    queueReward(car: Car, magnitude: number) {
-        this.carController.queueReward(car, magnitude);
+  /**
+   * Load game state from localStorage
+   *
+   * @param questionConfig - Configuration for question generation
+   * @param slotName - The name of the save slot (default: 'default')
+   * @returns A new RaceController with the loaded state, or null if no save exists
+   */
+  static loadFromLocalStorage(
+    questionConfig: QuestionConfig,
+    slotName: string = "default"
+  ): RaceController | null {
+    const gameState = loadGameFromLocalStorage(slotName);
+    if (!gameState) {
+      return null;
     }
+    return RaceController.fromGameState(gameState, questionConfig);
+  }
 
-    /**
-     * Queue a reward for a car by index
-     * 
-     * @param index - The index of the car to queue the reward for
-     * @param magnitude - The magnitude of the reward
-     */
-    queueRewardByIndex(index: number, magnitude: number) {
-        this.carController.queueRewardByIndex(index, magnitude);
-    }
+  /**
+   * Check if a save exists in localStorage
+   *
+   * @param slotName - The name of the save slot (default: 'default')
+   * @returns True if a save exists, false otherwise
+   */
+  static hasSavedGame(slotName: string = "default"): boolean {
+    return hasSavedGame(slotName);
+  }
 
-    /**
-     * Apply penalty to a car
-     * 
-     * @param car - The car to apply penalty to
-     * @param magnitude - The penalty magnitude (0-1)
-     */
-    applyPenalty(car: Car, magnitude: number) {
-        this.carController.applyPenalty(car, magnitude);
-    }
+  /**
+   * Delete a save from localStorage
+   *
+   * @param slotName - The name of the save slot (default: 'default')
+   */
+  static deleteSavedGame(slotName: string = "default"): void {
+    deleteSavedGame(slotName);
+  }
 
-    /**
-     * Start the race (starts game loop and input listeners)
-     * 
-     * @param containerElement - The container element for resize tracking
-     * @param onResize - Callback when container is resized
-     * @param onFrame - Callback for each frame (for React re-renders)
-     * @throws Error if the race is already started
-     */
-    start(containerElement: HTMLElement, onResize: (w: number, h: number) => void, onFrame: () => void): void {
-        if (this.isRunning) {
-            throw new Error("RaceController is already started. Call stop() before starting again.");
-        }
-        
-        // Start listener controller (pass containerElement and onResize)
-        this.listenerController.start(containerElement, onResize);
-        
-        // Start game clock
-        this.clock.start(
-            (dt) => this.step(dt),
-            onFrame
-        );
-        
-        this.isRunning = true;
-    }
-    
-    /**
-     * Stop the race
-     */
-    stop(): void {
-        if (!this.isRunning) {
-            return;
-        }
-        
-        // Stop game clock
-        this.clock.stop();
-        
-        // Stop all listeners
-        this.listenerController.stop();
-        this.isRunning = false;
-    }
-    
-    /**
-     * Check if the race is currently running
-     * 
-     * @returns True if the race is started, false otherwise
-     */
-    isStarted(): boolean {
-        return this.isRunning;
-    }
-
-    /**
-     * Toggle pause state
-     * 
-     * @throws Error if the race is not started
-     */
-    togglePause(): void {
-        if (!this.isRunning) {
-            throw new Error("Cannot toggle pause: RaceController is not started. Call start() first.");
-        }
-        this.gameState.paused = !this.gameState.paused;
-        
-        // Update listener controller pause state
-        if (this.gameState.paused) {
-            this.listenerController.pause();
-        } else {
-            this.listenerController.resume();
-        }
-        
-        events.emit("PausedSet", { value: this.gameState.paused });
-    }
-    
-    /**
-     * Pause the race
-     * 
-     * @throws Error if the race is not started
-     */
-    pause(): void {
-        if (!this.isRunning) {
-            throw new Error("Cannot pause: RaceController is not started. Call start() first.");
-        }
-        if (!this.gameState.paused) {
-            this.togglePause();
-        }
-    }
-    
-    /**
-     * Resume the race
-     * 
-     * @throws Error if the race is not started
-     */
-    resume(): void {
-        if (!this.isRunning) {
-            throw new Error("Cannot resume: RaceController is not started. Call start() first.");
-        }
-        if (this.gameState.paused) {
-            this.togglePause();
-        }
-    }
-    
-    /**
-     * Get pause state
-     * 
-     * @returns True if paused, false otherwise
-     */
-    isPaused(): boolean {
-        return this.gameState.paused;
-    }
-    
-    /**
-     * Save stats for current user
-     * 
-     * @param username - The username to save stats for
-     */
-    saveStatsForUser(username: string): void {
-        const stats = this.statsManager.getStats();
-        updateUserStats(username, Array.from(stats));
-    }
-
-    /**
-     * Exit the race, optionally saving stats for a user
-     * 
-     * @param username - Optional username to save stats for
-     */
-    exitRace(username?: string | null): void {
-        if (username) {
-            this.saveStatsForUser(username);
-        }
-        this.stop();
-    }
-
-    /**
-     * Destroy the controller and clean up all resources
-     * 
-     * This should be called when the controller is no longer needed (e.g., when exiting the game).
-     * It stops the controller if running, disposes of all resources, and cleans up event listeners.
-     */
-    destroy(): void {
-        if (this.isRunning) {
-            this.stop();
-        }
-        this.questionController.destroy();
-        this.cleanupEventListeners();
-        this.listenerController.destroy();
-    }
-
-    /**
-     * Serialize the current game state to a JSON string
-     * 
-     * @returns The serialized game state as JSON string
-     */
-    saveToString(): string {
-        return serializeGameState(this.gameState);
-    }
-
-    /**
-     * Load game state from a JSON string
-     * 
-     * @param jsonString - The serialized game state
-     * @param questionConfig - Configuration for question generation
-     * @returns A new RaceController with the loaded state
-     */
-    static loadFromString(jsonString: string, questionConfig: QuestionConfig): RaceController {
-        const gameState = deserializeGameState(jsonString);
-        return RaceController.fromGameState(gameState, questionConfig);
-    }
-
-    /**
-     * Save the current game state to localStorage
-     * 
-     * @param slotName - The name of the save slot (default: 'default')
-     */
-    saveToLocalStorage(slotName: string = 'default'): void {
-        saveGameToLocalStorage(this.gameState, slotName);
-    }
-
-    /**
-     * Load game state from localStorage
-     * 
-     * @param questionConfig - Configuration for question generation
-     * @param slotName - The name of the save slot (default: 'default')
-     * @returns A new RaceController with the loaded state, or null if no save exists
-     */
-    static loadFromLocalStorage(questionConfig: QuestionConfig, slotName: string = 'default'): RaceController | null {
-        const gameState = loadGameFromLocalStorage(slotName);
-        if (!gameState) {
-            return null;
-        }
-        return RaceController.fromGameState(gameState, questionConfig);
-    }
-
-    /**
-     * Check if a save exists in localStorage
-     * 
-     * @param slotName - The name of the save slot (default: 'default')
-     * @returns True if a save exists, false otherwise
-     */
-    static hasSavedGame(slotName: string = 'default'): boolean {
-        return hasSavedGame(slotName);
-    }
-
-    /**
-     * Delete a save from localStorage
-     * 
-     * @param slotName - The name of the save slot (default: 'default')
-     */
-    static deleteSavedGame(slotName: string = 'default'): void {
-        deleteSavedGame(slotName);
-    }
-
-    /**
-     * List all available save slots
-     * 
-     * @returns Array of save slot names
-     */
-    static listSaveSlots(): string[] {
-        return listSaveSlots();
-    }
+  /**
+   * List all available save slots
+   *
+   * @returns Array of save slot names
+   */
+  static listSaveSlots(): string[] {
+    return listSaveSlots();
+  }
 }

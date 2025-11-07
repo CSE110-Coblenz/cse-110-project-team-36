@@ -1,28 +1,29 @@
 import { useEffect, useState } from "react";
 import { Rect, Group, Text } from "react-konva";
-import { events } from "../shared/events";
+import { StreakController } from "../game/controllers/StreakController";
 
-export function StreakBar() {
+interface StreakBarProps {
+  streakController: StreakController;
+}
+
+export const StreakBar: React.FC<StreakBarProps> = ({ streakController }) => {
   const [progress, setProgress] = useState(0);
   const [active, setActive] = useState(false);
 
   useEffect(() => {
-    const onStreakActivated = ({
-      value,
-      progress,
-    }: {
-      value: boolean;
-      progress: number;
-    }) => {
-      console.log("Streak active:", value, "progress:", progress);
-      setActive(value);
-      setProgress(progress);
+    let animationFrame: number;
+
+    const update = () => {
+      setProgress(streakController.getGauge() / 100);
+      setActive(streakController.getState() === "active");
+      animationFrame = requestAnimationFrame(update);
     };
-    events.on("StreakActivated", onStreakActivated);
-    return () => {
-      events.off("StreakActivated", onStreakActivated);
-    };
-  }, []);
+
+    update(); // start loop
+
+    return () => cancelAnimationFrame(animationFrame);
+  }, [streakController]);
+
   return (
     <>
       {active && (
@@ -45,4 +46,4 @@ export function StreakBar() {
       )}
     </>
   );
-}
+};

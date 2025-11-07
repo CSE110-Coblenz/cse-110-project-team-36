@@ -41,6 +41,7 @@ export const RacePage: React.FC<RacePageProps> = ({
 
   const gs = raceController.getGameState();
   const questionController = raceController.getQuestionController();
+  const streakController = raceController.getStreakController();
   const elapsedMs = raceController.getElapsedMs();
   const accuracy = raceController.getAccuracy();
   const correctCount = raceController.getCorrectCount();
@@ -118,7 +119,7 @@ export const RacePage: React.FC<RacePageProps> = ({
         onSettings={handleSettings}
         onExit={handleExitToMenu}
       />
-      <StreakBar></StreakBar>
+      <StreakBar streakController={streakController}></StreakBar>
     </div>
   );
 };
