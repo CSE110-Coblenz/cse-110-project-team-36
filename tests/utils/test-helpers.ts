@@ -13,7 +13,8 @@ import { Camera } from '../../src/game/types';
 export function createSimpleTestTrack(width: number = 20): Track {
     const trackJSON: TrackJSON = {
         version: 1,
-        width,
+        numLanes: 4,
+        laneWidth: width / 4,
         points: [
             { x: 0, y: 0 },
             { x: 100, y: 0 },
@@ -32,7 +33,8 @@ export function createSimpleTestTrack(width: number = 20): Track {
 export function createComplexTestTrack(): Track {
     const trackJSON: TrackJSON = {
         version: 1,
-        width: 25,
+        numLanes: 4,
+        laneWidth: 6.25,
         points: [
             { x: 0, y: 0 },
             { x: 100, y: 0 },
@@ -177,7 +179,7 @@ export function validateSerializedCar(serialized: any) {
  * Validates that a serialized track has all required properties
  */
 export function validateSerializedTrack(serialized: any) {
-    const requiredProps = ['width', 'samples', 'sTable', 'totalLength'];
+    const requiredProps = ['laneWidth', 'numLanes', 'samples', 'sTable', 'totalLength'];
 
     requiredProps.forEach(prop => {
         expect(serialized).toHaveProperty(prop);
