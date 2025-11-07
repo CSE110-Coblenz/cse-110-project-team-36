@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Rect, Group, Text, Layer } from "react-konva";
-import { StreakController } from "../game/controllers/StreakController";
+import { StreakController } from "../../game/controllers/StreakController";
 
 interface StreakBarProps {
   streakController: StreakController;
