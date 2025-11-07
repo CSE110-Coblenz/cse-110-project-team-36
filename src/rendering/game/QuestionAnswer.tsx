@@ -1,14 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { QuestionController } from "../../game/controllers/QuestionController";
-// import { StreakBar } from "./streakBar";
+import { StreakController } from "../../game/controllers/StreakController";
+import { StreakBar } from "./streakBar";
 import { events } from "../../shared/events";
 
 interface QuestionAnswerProps {
   questionController: QuestionController;
-  // streakBar: streakBar;
+  streakController: StreakController;
 }
 
-export function QuestionAnswer({ questionController }: QuestionAnswerProps) {
+export function QuestionAnswer({
+  questionController,
+  streakController,
+}: QuestionAnswerProps) {
   // Force re-render to sync with controller state
   const [, forceUpdate] = useState(0);
 
@@ -102,7 +106,19 @@ export function QuestionAnswer({ questionController }: QuestionAnswerProps) {
       : "";
 
   return (
-    <div>
+    <div style={{ position: "relative" }}>
+      {/* 🔥 Streak Bar above the question */}
+      <div
+        style={{
+          position: "absolute",
+          top: 35,
+          left: "57%",
+          transform: "translateX(-50%)",
+          zIndex: 20,
+        }}
+      >
+        <StreakBar streakController={streakController} />
+      </div>
       <form
         aria-label="Math question input"
         className={feedbackAnimClass}

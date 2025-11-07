@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Rect, Group, Text, Layer } from "react-konva";
 import { StreakController } from "../../game/controllers/StreakController";
 
 interface StreakBarProps {
@@ -7,43 +6,57 @@ interface StreakBarProps {
 }
 
 export const StreakBar: React.FC<StreakBarProps> = ({ streakController }) => {
-  const [progress, setProgress] = useState(0);
-  const [active, setActive] = useState(true);
+  const [gauge, setGauge] = useState(0);
+  const [state, setState] = useState("idle");
 
   useEffect(() => {
-    let animationFrame: number;
-
-    const update = () => {
-      setProgress(streakController.getGauge() / 100);
-      setActive(streakController.getStreakActivated());
-      animationFrame = requestAnimationFrame(update);
-    };
-
-    update(); // start loop
-
-    return () => cancelAnimationFrame(animationFrame);
+    const id = setInterval(() => {
+      setGauge(streakController.getGauge());
+      setState(streakController.getState());
+    }, 100);
+    return () => clearInterval(id);
   }, [streakController]);
 
-  if (!active) return null;
-
+  // visible bar style
   return (
-    <Layer>
-      <Group x={20} y={20}>
-        <Rect width={200} height={20} fill="#333" cornerRadius={10} />
-        <Rect
-          width={200 * progress}
-          height={20}
-          fill="#FFD700"
-          cornerRadius={10}
-        />
-        <Text
-          x={0}
-          y={-20}
-          text={`🔥 Streak! ${Math.round(progress * 100)}%`}
-          fontSize={16}
-          fill="#FFD700"
-        />
-      </Group>
-    </Layer>
+    <div
+      style={{
+        width: 200,
+        height: 24,
+        borderRadius: 12,
+        border: "2px solid white",
+        overflow: "hidden",
+        background: "rgba(255,255,255,0.1)",
+        position: "relative",
+      }}
+    >
+      <div
+        style={{
+          width: `${gauge}%`,
+          height: "100%",
+          background:
+            state === "active"
+              ? "linear-gradient(90deg, #ffef00, #ff9a00, #ff2a00)"
+              : "linear-gradient(90deg, #888, #555)",
+          transition: "width 0.2s ease",
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          textAlign: "center",
+          lineHeight: "24px",
+          fontWeight: 700,
+          fontSize: "0.85rem",
+          color: "white",
+        }}
+      >
+        🔥 {state.toUpperCase()}
+      </div>
+    </div>
   );
 };

@@ -1,18 +1,20 @@
-type StreakState = "idle" | "building" | "active" | "cooldown";
+type StreakState = "no streak :(" | "building streak" | "active" | "cooldown";
 
 export class AnswerStreak {
-  state: StreakState = "idle"; // Current state of streak
+  state: StreakState = "no streak :("; // Current state of streak
   gauge: number = 0; // 0 → 100 fill level
-  time: number = 10; // Remaining streak time (if active)
+  time: number = 20; // Remaining streak time (if active)
   decayRate: number = 5; // How fast gauge drains per second
   isStreakActivated: boolean = false;
 
   onCorrectAnswer() {
-    if (this.gauge >= 10) {
+    this.gauge = Math.min(100, this.gauge + 10);
+    if (this.gauge >= 100) {
       this.activateStreak();
     }
-    this.gauge += 10;
-    this.state = "building";
+    if (this.state != "active") {
+      this.state = "building streak";
+    }
   }
 
   onWrongAnswer() {
@@ -21,18 +23,24 @@ export class AnswerStreak {
 
   activateStreak() {
     this.state = "active";
-    this.time = 10;
+    this.time = 30;
     this.isStreakActivated = true;
   }
 
   deactivateStreak() {
-    this.state = "idle";
+    this.state = "no streak :(";
     this.time = 0;
     this.gauge = 0;
     this.isStreakActivated = false;
   }
 
   decay() {
-    this.gauge -= this.decayRate;
+    if (this.gauge > 0) {
+      this.gauge -= this.decayRate;
+    }
+    if (this.gauge < 50) {
+      this.state = "cooldown";
+      this.isStreakActivated = false;
+    }
   }
 }

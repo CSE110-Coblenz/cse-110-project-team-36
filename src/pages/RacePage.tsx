@@ -6,8 +6,6 @@ import { Hud } from "../rendering/game/Hud";
 import { RaceController } from "../game/controllers/RaceController";
 import { PAGE_WIDTH, PAGE_HEIGHT } from "../const";
 import { events } from "../shared/events";
-import { StreakBar } from "../rendering/game/streakBar";
-// import { Stage } from "react-konva";
 interface RacePageProps {
   raceController: RaceController;
   currentUser: string | null;
@@ -64,7 +62,10 @@ export const RacePage: React.FC<RacePageProps> = ({
         background: "#0b1020",
       }}
     >
-      <QuestionAnswer questionController={questionController} />
+      <QuestionAnswer
+        questionController={questionController}
+        streakController={streakController}
+      />
       <GameStage gs={gs} width={size.w} height={size.h} />
 
       <div style={{ position: "absolute", left: 12, top: 12, zIndex: 9999 }}>
@@ -119,7 +120,6 @@ export const RacePage: React.FC<RacePageProps> = ({
         onSettings={handleSettings}
         onExit={handleExitToMenu}
       />
-      <StreakBar streakController={streakController} />
     </div>
   );
 };

@@ -12,13 +12,13 @@ export class StreakController {
   }
 
   private emitStreakActivated() {
-    events.emit("StreakActivated", {}); // Event for score multiplier.
+    events.emit("StreakActivated", { value: this.getStreakActivated() }); // Event for score multiplier. Enabled/ Disabled
   }
 
   private handleCorrect() {
     this.streak.onCorrectAnswer();
 
-    if (this.streak.state === "active" && !this.timer) {
+    if (this.getState() === "active" && !this.timer) {
       this.startTimer();
     }
     this.emitStreakActivated();
@@ -26,6 +26,7 @@ export class StreakController {
 
   private handleIncorrect() {
     this.stopTimer();
+    this.emitStreakActivated();
     this.streak.onWrongAnswer();
   }
 
@@ -36,9 +37,14 @@ export class StreakController {
       this.streak.decay(); // reduce gauge
       this.streak.time--; // reduce countdown
 
-      if (this.streak.time <= 0) {
+      if (this.getState() === "cooldown") {
+        this.emitStreakActivated(); // Deactivates Streak on cooldown
+      }
+
+      if (this.streak.time <= 0 || this.getGauge() <= 0) {
         this.stopTimer();
         this.streak.deactivateStreak(); // reset state & gauge
+        this.emitStreakActivated(); // Deactivates streak on no time left / no progress
       }
     }, 1000);
   }
