@@ -7,7 +7,7 @@ import { RaceController } from "../game/controllers/RaceController";
 import { PAGE_WIDTH, PAGE_HEIGHT } from "../const";
 import { events } from "../shared/events";
 import { StreakBar } from "../components/streakBar";
-
+import { Stage } from "react-konva";
 interface RacePageProps {
   raceController: RaceController;
   currentUser: string | null;
@@ -119,7 +119,19 @@ export const RacePage: React.FC<RacePageProps> = ({
         onSettings={handleSettings}
         onExit={handleExitToMenu}
       />
-      <StreakBar streakController={streakController}></StreakBar>
+      <Stage
+        width={size.w}
+        height={size.h}
+        style={{
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          pointerEvents: "none",
+        }}
+      >
+        <StreakBar streakController={streakController} />
+      </Stage>
     </div>
   );
 };

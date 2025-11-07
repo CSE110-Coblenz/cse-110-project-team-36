@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Rect, Group, Text } from "react-konva";
+import { Rect, Group, Text, Layer } from "react-konva";
 import { StreakController } from "../game/controllers/StreakController";
 
 interface StreakBarProps {
@@ -8,14 +8,14 @@ interface StreakBarProps {
 
 export const StreakBar: React.FC<StreakBarProps> = ({ streakController }) => {
   const [progress, setProgress] = useState(0);
-  const [active, setActive] = useState(false);
+  const [active, setActive] = useState(true);
 
   useEffect(() => {
     let animationFrame: number;
 
     const update = () => {
       setProgress(streakController.getGauge() / 100);
-      setActive(streakController.getState() === "active");
+      setActive(streakController.getStreakActivated());
       animationFrame = requestAnimationFrame(update);
     };
 
@@ -24,26 +24,26 @@ export const StreakBar: React.FC<StreakBarProps> = ({ streakController }) => {
     return () => cancelAnimationFrame(animationFrame);
   }, [streakController]);
 
+  if (!active) return null;
+
   return (
-    <>
-      {active && (
-        <Group x={20} y={20}>
-          <Rect width={200} height={20} fill="#333" cornerRadius={10} />
-          <Rect
-            width={200 * progress}
-            height={20}
-            fill="#FFD700"
-            cornerRadius={10}
-          />
-          <Text
-            x={0}
-            y={-20}
-            text={`🔥 Streak! ${Math.round(progress * 100)}%`}
-            fontSize={16}
-            fill="#FFD700"
-          />
-        </Group>
-      )}
-    </>
+    <Layer>
+      <Group x={20} y={20}>
+        <Rect width={200} height={20} fill="#333" cornerRadius={10} />
+        <Rect
+          width={200 * progress}
+          height={20}
+          fill="#FFD700"
+          cornerRadius={10}
+        />
+        <Text
+          x={0}
+          y={-20}
+          text={`🔥 Streak! ${Math.round(progress * 100)}%`}
+          fontSize={16}
+          fill="#FFD700"
+        />
+      </Group>
+    </Layer>
   );
 };
