@@ -77,14 +77,15 @@ describe('GameState Serialization', () => {
 
         it('should include all camera properties', () => {
             const gameState = createTestGameState();
-            gameState.updateCamera({ pos: { x: 123, y: 456 }, zoom: 2.5 });
+            gameState.updateCamera({ pos: { x: 123, y: 456 }, zoom: 2.5, rotation: 0 });
 
             const jsonString = serializeGameState(gameState);
             const parsed = JSON.parse(jsonString);
 
             expect(parsed.camera).toEqual({
                 pos: { x: 123, y: 456 },
-                zoom: 2.5
+                zoom: 2.5,
+                rotation: 0
             });
         });
 
@@ -202,7 +203,7 @@ describe('GameState Serialization', () => {
         it('should maintain complete data integrity', () => {
             const originalGameState = createTestGameState();
 
-            originalGameState.updateCamera({ pos: { x: 200, y: 300 }, zoom: 0.8 });
+            originalGameState.updateCamera({ pos: { x: 200, y: 300 }, zoom: 0.8, rotation: 0 });
 
             originalGameState.playerCar.r += 50;
 
@@ -230,11 +231,12 @@ describe('GameState Serialization', () => {
             const originalReward = deserializedPlayerCar.r;
             deserializedPlayerCar.r += 25;
 
-            deserializedGameState.updateCamera({ pos: { x: 100, y: 100 }, zoom: 2.0 });
+            deserializedGameState.updateCamera({ pos: { x: 100, y: 100 }, zoom: 2.0, rotation: 0 });
 
             expect(deserializedPlayerCar.r).toBe(originalReward + 25);
             expect(deserializedGameState.camera.pos.x).toBe(100);
             expect(deserializedGameState.camera.zoom).toBe(2.0);
+            expect(deserializedGameState.camera.rotation).toBe(0);
         });
 
         it('should work with RaceController reward system', () => {
