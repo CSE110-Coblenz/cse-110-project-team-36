@@ -34,6 +34,8 @@ export class Car {
     private lastSProg: number = 0;
     private crossedFinish: boolean = false;
 
+    
+
     /**
      * Constructor
      * 
@@ -215,4 +217,7 @@ export class Car {
         car.crossedFinish = data.crossedFinish;
         return car;
     }
+
+
+
 }
