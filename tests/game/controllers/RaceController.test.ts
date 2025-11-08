@@ -329,11 +329,16 @@ describe('RaceController', () => {
             for (let i = 0; i < 200; i++) {
                 controller.step(0.1);
 
-                // Check camera follows player
+                // Check camera follows player position
                 if (i % 20 === 0) {
                     const expectedPos = gameState.track.posAt(playerCar.sPhys);
                     expect(gameState.camera.pos.x).toBeCloseTo(expectedPos.x, 0.5);
                     expect(gameState.camera.pos.y).toBeCloseTo(expectedPos.y, 0.5);
+                    
+                    // Check camera rotation tracks player car rotation (track tangent, excluding wobble)
+                    const tangent = gameState.track.tangentAt(playerCar.sPhys);
+                    const expectedRotation = Math.atan2(tangent.y, tangent.x);
+                    expect(gameState.camera.rotation).toBeCloseTo(expectedRotation, 0.1);
                 }
             }
         });

@@ -35,7 +35,7 @@ describe('GameState Serialization', () => {
         };
         const track = Track.fromJSON(trackJSON);
 
-        const camera: Camera = { pos: { x: 50, y: 50 }, zoom: 1.5 };
+        const camera: Camera = { pos: { x: 50, y: 50 }, zoom: 1.5, rotation: 0 };
         const gameState = new GameState(camera, track);
 
         const playerCar = new Car(0, '#00ff00', 40, 22);
@@ -182,7 +182,7 @@ describe('GameState Serialization', () => {
             const invalidJson = JSON.stringify({
                 version: '2.0.0',
                 timestamp: Date.now(),
-                camera: { pos: { x: 0, y: 0 }, zoom: 1 },
+                camera: { pos: { x: 0, y: 0 }, zoom: 1, rotation: 0 },
                 track: { laneWidth: 5, numLanes: 4, samples: [], sTable: [], totalLength: 0 },
                 cars: [],
                 playerCarIndex: 0

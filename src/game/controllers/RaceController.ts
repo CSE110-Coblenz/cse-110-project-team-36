@@ -51,7 +51,7 @@ export class RaceController {
      * @param questionConfig - Configuration for question generation
      */
     constructor(track: Track, questionConfig: QuestionConfig) {
-        const camera = { pos: { x: 0, y: 0 }, zoom: 1 };
+        const camera = { pos: { x: 0, y: 0 }, zoom: 1, rotation: 0 };
         this.gameState = new GameState(camera, track);
         
         // Initialize cars on staggered lanes (player in lane 0, AI in lanes 1, 2, 3...)
@@ -206,8 +206,12 @@ export class RaceController {
             this.carController.step(dt);
             this.elapsedMs += dt * 1000;
         }
-        const pos = this.gameState.track.posAt(this.gameState.playerCar.sPhys);
-        this.gameState.updateCamera({ pos, zoom: this.gameState.camera.zoom });
+        const playerCar = this.gameState.playerCar;
+        const pos = this.gameState.track.posAt(playerCar.sPhys);
+        const tangent = this.gameState.track.tangentAt(playerCar.sPhys);
+        // Calculate rotation from track tangent (in radians, excluding wobble)
+        const rotation = Math.atan2(tangent.y, tangent.x);
+        this.gameState.updateCamera({ pos, zoom: this.gameState.camera.zoom, rotation });
     }
 
     /**
