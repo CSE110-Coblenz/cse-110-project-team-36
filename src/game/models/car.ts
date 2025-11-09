@@ -1,3 +1,4 @@
+import { FUEL_CONSUMP_PER_SEC, IDLE_FUEL_CONSUMP_PER_SEC, TIRE_WEAR_PER_LAP } from "../../const";
 import type { Track } from "./track";
 
 /**
@@ -30,9 +31,15 @@ export class Car {
     public laneChangeStartVelocity: number | null = null;  // lateral velocity (world units/sec) when lane change started (for smooth interruptions)
     public crashedThisFrame: boolean = false;  // flag to indicate crash occurred this frame (skip physics smoothing)
 
-    public lapCount: number = 0;
+    public lapCount: number = 0; // so this should be in racecontrol but for now leave it.
     private lastSProg: number = 0;
     private crossedFinish: boolean = false;
+
+    public fuel:number; // 0..100 %
+    public tireLife: number; //  0..100 %
+    public pitRequired: boolean; // indicator for pit stop
+    public inPitLane: boolean; // indicator that player is in pit stop
+    public speedLimiter?:boolean; // limits the speed in pit lane
 
     
 
@@ -50,7 +57,9 @@ export class Car {
         color: string = '#22c55e',
         carLength: number = 40,
         carWidth: number = 22,
-        laneIndex?: number
+        laneIndex?: number,
+        fuel:number = 100,
+
     ) {
         this.sProg = initialS;
         this.sPhys = initialS;
@@ -61,6 +70,15 @@ export class Car {
         if (laneIndex !== undefined) {
             this.laneIndex = laneIndex;
         }
+
+        /**
+         * pit stop related defaults
+         */
+        this.fuel = fuel; //start full tank
+        this.tireLife = 100; //start perfect condition
+        this.pitRequired = false; // no pit req
+        this.inPitLane = false; // not in pit
+        this.speedLimiter = false; // limiter off
     }
 
     /**
@@ -84,6 +102,30 @@ export class Car {
         }
         }
         this.lastSProg = this.sProg;
+    }
+
+    /**
+     * Update car consumables (fuel and tire wear)
+     * this is located here because we have other components
+     * of the race coupled with car. Interface would be ideal
+     * but for now its cool.
+     * 
+     * @param dt - time delta in seconds
+     */
+    updateConsumables(dt: number, lapCompleted:boolean = false): void {
+        const isIdle = this.vPhys <= 6;
+        if(isIdle){
+            this.fuel = Math.max(0, this.fuel - IDLE_FUEL_CONSUMP_PER_SEC*dt);
+        }
+        else{
+            this.fuel = Math.max(0, this.fuel - FUEL_CONSUMP_PER_SEC*dt);
+        }
+        // Tire wear happens per lap (or tweak as you like)
+        if (lapCompleted) {
+            this.tireLife = Math.max(0, this.tireLife - TIRE_WEAR_PER_LAP);
+        }
+
+        // Later, we can add extra factors like slip or lane-change fatigue
     }
 
     /**

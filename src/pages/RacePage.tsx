@@ -22,7 +22,7 @@ export const RacePage: React.FC<RacePageProps> = ({
     const [size, setSize] = useState({ w: PAGE_WIDTH, h: PAGE_HEIGHT });
     const [, setFrame] = useState(0);
 
-    const paused = raceController.getGameState().paused;  
+    const paused = raceController.getGameState().paused;
 
     useEffect(() => {
         if (!containerRef.current) return;
@@ -107,6 +107,9 @@ export const RacePage: React.FC<RacePageProps> = ({
                 accuracy={accuracy}
                 correctCount={correctCount}
                 incorrectCount={incorrectCount}
+                tireDecay={gs.playerCar?.tireLife ?? 0}
+                fuelLevel={gs.playerCar?.fuel ?? 0}
+                speed={gs.playerCar?.vPhys ?? 0}
             />
 
             <PauseOverlay

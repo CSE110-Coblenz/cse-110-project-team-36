@@ -2,6 +2,7 @@ import type { Track } from '../models/track';
 import { Car } from '../models/car';
 import type { GameState } from '../models/game-state';
 
+
 /**
  * Reward event interface
  */
@@ -73,7 +74,11 @@ export class CarController {
      * @param track - The track to update the car on
      */
     private updateCar(car: Car, dt: number, track: Track): void {
+        const prevLap = car.lapCount; // count alll the prev laps
         car.updateLaps();
+        const lapCompleted = car.lapCount > prevLap; // did the lapcounter increase sicne last frame.
+
+        car.updateConsumables(dt, lapCompleted);
 
         const rPrev = car.r; // r_{k-1}
         // a_decay(v) = -β for v > v_min; else 0
@@ -102,6 +107,7 @@ export class CarController {
     
         this.updatePhysicalState(car, dt, track);
         this.updateSlip(car, dt);
+
     }
     
 

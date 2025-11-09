@@ -7,8 +7,9 @@ export const PAGE_HEIGHT=600
 export const FUEL_WARN = 0.25;
 export const TIRE_WARN = 0.25;
 
-export const FUEL_CONSUMP_PER_SEC = 0.012;     // tune
-export const TIRE_WEAR_PER_LAP = 0.08;         // tune
+export const FUEL_CONSUMP_PER_SEC = 0.1;     // tune
+export const IDLE_FUEL_CONSUMP_PER_SEC = 0.001; // tune accordingly  
+export const TIRE_WEAR_PER_LAP = 1.34;         // tune
 export const PIT_SPEED_LIMIT = 40;             // your game units
 export const PIT_SERVICE_BASE_MS = 7000;       // 7s base time
 

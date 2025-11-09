@@ -8,10 +8,16 @@ import { formatRaceTime } from "../../utils/formatting";
  * @param accuracy - The accuracy in 0..1
  * @param correctCount - The number of correct answers
  * @param incorrectCount - The number of incorrect answers
+ * @param tireDecay - tire health
+ * @param fuelLeve - fuel indicator
+ * @param speed - speed of the car
  * @returns The HUD component
  */
 export function Hud({
   lap,
+  tireDecay,
+  fuelLevel,
+  speed,
   elapsedMs,
     accuracy,
     correctCount,
@@ -22,6 +28,9 @@ export function Hud({
   accuracy: number;
   correctCount: number;
   incorrectCount: number;
+  tireDecay: number;
+  fuelLevel: number;
+  speed: number;
 }) {
     const time = formatRaceTime(elapsedMs);
 
@@ -46,6 +55,9 @@ export function Hud({
       <div>Acc: {(accuracy * 100).toFixed(0)}%</div>
       <div style={{ opacity: 0.9, marginTop: 2 }}>Correct: {correctCount}</div>
       <div style={{ opacity: 0.9 }}>Mistakes: {incorrectCount}</div>
+      <div>Fuel Level: {Math.floor((fuelLevel)*100)/100}%</div>
+      <div>Tire Decay: {Math.floor(tireDecay)}%</div>
+      <div>Speed: {Math.floor(speed)} mph</div>
     </div>
   );
 }

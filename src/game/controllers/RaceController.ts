@@ -43,6 +43,7 @@ export class RaceController {
     private isRunning: boolean = false;
     private clock: GameClock;
     private listenerController: ListenerController;
+    
 
     /**
      * Constructor
@@ -203,8 +204,11 @@ export class RaceController {
                 this.carController.crash(pair);
             }
             
+            //physics update
             this.carController.step(dt);
+
             this.elapsedMs += dt * 1000;
+            
         }
         const pos = this.gameState.track.posAt(this.gameState.playerCar.sPhys);
         this.gameState.updateCamera({ pos, zoom: this.gameState.camera.zoom });
@@ -547,4 +551,6 @@ export class RaceController {
     static listSaveSlots(): string[] {
         return listSaveSlots();
     }
+
+    
 }
