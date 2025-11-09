@@ -39,6 +39,7 @@ export class RaceController {
     private isRunning: boolean = false;
     private clock: GameClock;
     private listenerController: ListenerController;
+    private raceCompleted: boolean = false;
 
     /**
      * Constructor
@@ -139,12 +140,41 @@ export class RaceController {
      * @param dt - The time step in seconds
      */
     step(dt: number) {
-        if (!this.gameState.paused) {
+        if (!this.gameState.paused && !this.raceCompleted) {
             this.carController.step(dt);
             this.elapsedMs += dt * 1000;
         }
+
+        if(this.gameState.playerCar.hasFinished()) {
+            this.completeRace();
+            return;
+        }
+
         const pos = this.gameState.track.posAt(this.gameState.playerCar.sPhys);
         this.gameState.updateCamera({ pos, zoom: this.gameState.camera.zoom });
+    }
+
+    /**
+     * Complete the race - stops everything and cleans up
+     */
+    completeRace(): void {
+        if (!this.isRunning) {
+            return;
+        }
+
+        // Stop game clock
+        this.clock.stop();
+
+        // Stop all listeners to prevent any further input
+        this.listenerController.stop();
+        
+        // Clean up event listeners
+        this.cleanupEventListeners();
+        
+        this.isRunning = false;
+        this.raceCompleted = true;
+
+        events.emit("RaceFinished", {});
     }
 
     /**

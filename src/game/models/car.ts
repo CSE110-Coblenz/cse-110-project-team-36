@@ -70,6 +70,10 @@ export class Car {
         this.lastSProg = this.sProg;
     }
 
+    hasFinished(): boolean {
+        return this.crossedFinish;
+    }
+
     /**
      * Get total distance traveled
      * 

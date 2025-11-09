@@ -41,6 +41,7 @@ export type EventMap = {
     PausedSet: { value: boolean };
     SettingsRequested: Record<string, never>;
     QuestionStateChanged: Record<string, never>;
+    RaceFinished: Record<string, never>;
 };
 
 export const events = new EventBus<EventMap>();
