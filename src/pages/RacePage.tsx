@@ -6,6 +6,8 @@ import { Hud } from "../rendering/game/Hud";
 import { RaceController } from "../game/controllers/RaceController";
 import { PAGE_WIDTH, PAGE_HEIGHT } from "../const";
 import { events } from "../shared/events";
+import type {DuelResultTier}  from "../minigame/duel/Model/duel-model";
+import PitDuelOverlay from "../rendering/game/PitDuelOverlay";
 
 interface RacePageProps {
     raceController: RaceController;
@@ -21,6 +23,9 @@ export const RacePage: React.FC<RacePageProps> = ({
     const containerRef = useRef<HTMLDivElement>(null);
     const [size, setSize] = useState({ w: PAGE_WIDTH, h: PAGE_HEIGHT });
     const [, setFrame] = useState(0);
+    
+    // controls the visibility of the pit-stop duel 
+    const [pitDuelVisible, setPitDuelVisible] = useState(false);
 
     const paused = raceController.getGameState().paused;
 
@@ -38,6 +43,18 @@ export const RacePage: React.FC<RacePageProps> = ({
         };
     }, [raceController]);
 
+    /**
+     * Effect that sets up a listener for the PitMinigameRequested event.
+     * When RaceController emits this event, we show the duel overlay.
+     */
+    useEffect(() => {
+        const unsubscribe = events.on("PitMinigameRequested", () => {
+            setPitDuelVisible(true);
+        });
+
+        return unsubscribe;
+    }, []);
+
     const gs = raceController.getGameState();
     const questionController = raceController.getQuestionController();
     const elapsedMs = raceController.getElapsedMs();
@@ -50,6 +67,15 @@ export const RacePage: React.FC<RacePageProps> = ({
     const handleExitToMenu = () => {
         raceController.exitRace(currentUser);
         onExit();
+    };
+
+    /**
+     * Called when the pitstop duel overlay finishes and returns a result tier.
+     * Here we simply forward the result into the EventBus so that RaceController,
+     * which subscribed to PitMinigameCompleted, can handle the outcome.
+     */
+    const handlePitDuelResult = (tier: DuelResultTier) => {
+        events.emit("PitMinigameCompleted", { tier });
     };
 
     return (
@@ -118,6 +144,14 @@ export const RacePage: React.FC<RacePageProps> = ({
                 onSettings={handleSettings}
                 onExit={handleExitToMenu}
             />
+
+            {/**Pit-stop duel minigame overlay */}
+            <PitDuelOverlay
+                visible={pitDuelVisible}
+                onClose={() => setPitDuelVisible(false)}
+                onResult={handlePitDuelResult}
+            />
         </div>
+
     );
 };

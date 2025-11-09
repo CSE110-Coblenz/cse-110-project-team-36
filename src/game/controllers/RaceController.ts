@@ -14,15 +14,17 @@ import { ListenerController } from "./ListenerController";
 import { QuestionController } from "./QuestionController";
 import { ANIMATION_TICK } from "../../const";
 import { updateUserStats } from "../../services/localStorage";
-import { 
-    serializeGameState, 
-    deserializeGameState, 
-    saveGameToLocalStorage, 
+import {
+    serializeGameState,
+    deserializeGameState,
+    saveGameToLocalStorage,
     loadGameFromLocalStorage,
     hasSavedGame,
     deleteSavedGame,
     listSaveSlots
 } from "../../serialization/game";
+
+import type { DuelResultTier } from "../../minigame/duel/Model/duel-model";
 
 /**
  * Race controller class
@@ -43,7 +45,7 @@ export class RaceController {
     private isRunning: boolean = false;
     private clock: GameClock;
     private listenerController: ListenerController;
-    
+
 
     /**
      * Constructor
@@ -54,13 +56,13 @@ export class RaceController {
     constructor(track: Track, questionConfig: QuestionConfig) {
         const camera = { pos: { x: 0, y: 0 }, zoom: 1 };
         this.gameState = new GameState(camera, track);
-        
+
         // Initialize cars on staggered lanes (player in lane 0, AI in lanes 1, 2, 3...)
         this.gameState.addPlayerCar(new Car(-300, '#22c55e', 40, 22, 0)); // Player in leftmost lane
         this.gameState.addCar(new Car(0, '#ef4444', 40, 22, 1)); // AI car 1
         this.gameState.addCar(new Car(-100, '#ef4444', 40, 22, 2)); // AI car 2
         this.gameState.addCar(new Car(-200, '#ef4444', 40, 22, 3)); // AI car 3
-        
+
         this.carController = new CarController(this.gameState);
         this.carController.initializeCars();
 
@@ -124,8 +126,20 @@ export class RaceController {
             this.statsManager.recordQuestion(question);
         });
 
-        this.eventUnsubscribers = [unsubCorrect, unsubIncorrect, unsubSkipped, unsubCompleted];
+        /**
+        * Listener for the PitMinigameCompleted event.
+        */
+        const unsubPitDuelCompleted = events.on("PitMinigameCompleted", ({ tier }) => {
+            const playerCar = this.gameState.playerCar;
+            this.handlePitDuelCompleted(playerCar, tier as DuelResultTier);
+        });
+
+        this.eventUnsubscribers = [unsubCorrect, unsubIncorrect, unsubSkipped, unsubCompleted, unsubPitDuelCompleted];
+
+
     }
+
+
 
     /**
      * Clean up event listeners
@@ -148,12 +162,12 @@ export class RaceController {
         // Create a dummy track for the constructor, then replace with loaded state
         const dummyTrack = Track.fromJSON({ version: 1, numLanes: 4, laneWidth: 10, points: [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 0, y: 1 }] });
         const controller = new RaceController(dummyTrack, questionConfig);
-        
+
         // Replace with the loaded game state
         controller.gameState = gameState;
         controller.carController = new CarController(gameState);
         controller.carController.initializeCars();
-        
+
         // Recreate collision service and lane controller with loaded state
         controller.collisionService = new CollisionService(gameState);
         controller.laneController = new LaneController(
@@ -161,7 +175,7 @@ export class RaceController {
             controller.carController,
             controller.collisionService
         );
-        
+
         // Recreate listener controller with lane change callbacks
         controller.listenerController = new ListenerController(
             () => controller.togglePause(),
@@ -181,7 +195,7 @@ export class RaceController {
                 }
             }
         );
-        
+
         return controller;
     }
 
@@ -193,7 +207,7 @@ export class RaceController {
     step(dt: number) {
         if (!this.gameState.paused) {
             const currentGameTime = this.elapsedMs / 1000;
-            
+
             this.laneController.updateLaneChanges(currentGameTime);
 
             const cars = Array.from(this.gameState.getCars());
@@ -203,16 +217,117 @@ export class RaceController {
             for (const pair of crashPairs) {
                 this.carController.crash(pair);
             }
-            
+
             //physics update
             this.carController.step(dt);
 
             this.elapsedMs += dt * 1000;
-            
+
         }
         const pos = this.gameState.track.posAt(this.gameState.playerCar.sPhys);
         this.gameState.updateCamera({ pos, zoom: this.gameState.camera.zoom });
     }
+
+    /**
+     * Called when the player crosses the pit entry trigger zone.
+     * This does not yet start the minigame; it just marks the car as
+     * being in the pit lane and enables the speed limiter.
+     *
+     * You should call this from your position/zone logic when the
+     * player's car enters the pit lane region on the track.
+     */
+    onPitEntry(): void {
+        const car = this.gameState.playerCar;
+
+        // Optionally restrict pit entry only when pit is required
+        if (!car.pitRequired) {
+            return;
+        }
+
+        car.inPitLane = true;
+        car.speedLimiter = true;
+    }
+
+    /**
+     * Called when the player reaches the pit box (the actual service spot)
+     * and has effectively stopped there.
+     *
+     * Responsibilities:
+     * - Freeze the car's velocity
+     * - Pause the race controller
+     * - Emit the event that asks the UI layer to show the duel overlay
+     */
+    onPitBoxEntered(): void {
+        const car = this.gameState.playerCar;
+        if (!car.inPitLane) {
+            // Ignore if somehow not in pit lane.
+            return;
+        }
+
+        // Stop the car while it is being serviced.
+        car.vPhys = 0;
+        car.vProg = 0;
+
+        // Pause the main race loop while the minigame runs.
+        this.pause();
+
+        // Ask the UI (RacePage) to show the pit duel overlay.
+        events.emit("PitMinigameRequested", {});
+    }
+
+    /**
+     * Called when the player leaves the pit lane and rejoins the main track.
+     *
+     * Responsibilities:
+     * - Disable pit lane flags on the car (e.g., speed limiter)
+     */
+    onPitExit(): void {
+        const car = this.gameState.playerCar;
+        car.inPitLane = false;
+        car.speedLimiter = false;
+    }
+
+    /**
+     * Handle the result of the pit-stop duel minigame.
+     *
+     * @param car  - The player's car whose fuel and tires will be updated.
+     * @param tier - The performance tier from the duel (WIN_BIG, WIN_CLOSE, LOSE).
+     *
+     * This method converts the abstract result tier into concrete in-race effects:
+     * - Fuel level after pit stop
+     * - Tire life after pit stop
+     * - Whether pit is still required or cleared
+     * - Resuming the race after the minigame.
+     */
+    handlePitDuelCompleted(car: Car, tier: DuelResultTier): void {
+        switch (tier) {
+            case "WIN_BIG":
+                // Best outcome: full refuel and full tire refresh.
+                car.fuel = 100;
+                car.tireLife = 100;
+                break;
+
+            case "WIN_CLOSE":
+                // Good outcome: strong refuel but not perfect.
+                car.fuel = 85;
+                car.tireLife = 90;
+                break;
+
+            case "LOSE":
+            default:
+                // Poor outcome: partial refuel, tires not fully refreshed.
+                car.fuel = 60;
+                car.tireLife = 70;
+                break;
+        }
+
+        // Pit no longer required after service is completed.
+        car.pitRequired = false;
+
+        // Resume the main race loop now that the minigame has finished.
+        this.resume();
+    }
+
 
     /**
      * Get the game state
@@ -346,19 +461,19 @@ export class RaceController {
         if (this.isRunning) {
             throw new Error("RaceController is already started. Call stop() before starting again.");
         }
-        
+
         // Start listener controller (pass containerElement and onResize)
         this.listenerController.start(containerElement, onResize);
-        
+
         // Start game clock
         this.clock.start(
             (dt) => this.step(dt),
             onFrame
         );
-        
+
         this.isRunning = true;
     }
-    
+
     /**
      * Stop the race
      */
@@ -366,15 +481,15 @@ export class RaceController {
         if (!this.isRunning) {
             return;
         }
-        
+
         // Stop game clock
         this.clock.stop();
-        
+
         // Stop all listeners
         this.listenerController.stop();
         this.isRunning = false;
     }
-    
+
     /**
      * Check if the race is currently running
      * 
@@ -394,17 +509,17 @@ export class RaceController {
             throw new Error("Cannot toggle pause: RaceController is not started. Call start() first.");
         }
         this.gameState.paused = !this.gameState.paused;
-        
+
         // Update listener controller pause state
         if (this.gameState.paused) {
             this.listenerController.pause();
         } else {
             this.listenerController.resume();
         }
-        
+
         events.emit("PausedSet", { value: this.gameState.paused });
     }
-    
+
     /**
      * Pause the race
      * 
@@ -418,7 +533,7 @@ export class RaceController {
             this.togglePause();
         }
     }
-    
+
     /**
      * Resume the race
      * 
@@ -432,7 +547,7 @@ export class RaceController {
             this.togglePause();
         }
     }
-    
+
     /**
      * Get pause state
      * 
@@ -441,7 +556,7 @@ export class RaceController {
     isPaused(): boolean {
         return this.gameState.paused;
     }
-    
+
     /**
      * Save stats for current user
      * 
@@ -552,5 +667,5 @@ export class RaceController {
         return listSaveSlots();
     }
 
-    
+
 }
