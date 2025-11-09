@@ -37,7 +37,12 @@ Discussion Notes:
 Action Items & Assignees:
 - [ ] Anthony: [Sprint 2 / Task] Fix camera onto car rotation 
 - [ ] Anthony: [Sprint 2 / Task] Fix collision physics when lane changing
+- [ ] Anthony: [Sprint 2 / Story 5 / Task 1] Develop track lane logic
 - [ ] Anthony: [Sprint 2 / Story 5 / Task 2] Develop pit stop track integration 
+- [ ] Anthony: [Sprint 2 / Task] Tweak game/car/track physics
+- [ ] Anthony: [Sprint 2 / Story 3 / Task 1] Build overtake logic
+- [ ] Anthony: [Sprint 2 / Bugfix] Disable keyboard listeners when paused
+- [ ] Anthony: [Sprint 2 / Task] Code review and refactor
 - [ ] Noe: [Sprint 2 / Task] Rework division question generation to accept fractions
 - [ ] Noe: [Sprint 2 / Task] Pause the game when losing focus on browser 
 - [ ] Noe: [Sprint 2 / Story 4] Campaign mode 
