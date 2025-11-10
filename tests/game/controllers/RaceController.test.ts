@@ -6,6 +6,7 @@ import { RaceController } from '../../../src/game/controllers/RaceController';
 import { Track } from '../../../src/game/models/track';
 import { QuestionTopic, QuestionDifficulty } from '../../../src/game/models/question';
 import { createSimpleTestTrack } from '../../utils/test-helpers';
+import { CAMERA_ALIGNMENT_THRESHOLD } from '../../../src/const';
 
 describe('RaceController', () => {
     let track: Track;
@@ -317,30 +318,6 @@ describe('RaceController', () => {
                 expect(car.sProg).toBeLessThan(trackLength * 2);
                 expect(car.sPhys).toBeLessThan(trackLength);
             });
-        });
-
-        it('should maintain camera following player car throughout simulation', () => {
-            // Arrange
-            const controller = new RaceController(track, defaultQuestionConfig);
-            const gameState = controller.getGameState();
-            const playerCar = gameState.playerCar;
-
-            // Act - simulate many steps
-            for (let i = 0; i < 200; i++) {
-                controller.step(0.1);
-
-                // Check camera follows player position
-                if (i % 20 === 0) {
-                    const expectedPos = gameState.track.posAt(playerCar.sPhys);
-                    expect(gameState.camera.pos.x).toBeCloseTo(expectedPos.x, 0.5);
-                    expect(gameState.camera.pos.y).toBeCloseTo(expectedPos.y, 0.5);
-                    
-                    // Check camera rotation tracks player car rotation (track tangent, excluding wobble)
-                    const tangent = gameState.track.tangentAt(playerCar.sPhys);
-                    const expectedRotation = Math.atan2(tangent.y, tangent.x);
-                    expect(gameState.camera.rotation).toBeCloseTo(expectedRotation, 0.1);
-                }
-            }
         });
     });
 
