@@ -6,7 +6,6 @@ import { RaceController } from '../../../src/game/controllers/RaceController';
 import { Track } from '../../../src/game/models/track';
 import { QuestionTopic, QuestionDifficulty } from '../../../src/game/models/question';
 import { createSimpleTestTrack } from '../../utils/test-helpers';
-import { CAMERA_ALIGNMENT_THRESHOLD } from '../../../src/const';
 
 describe('RaceController', () => {
     let track: Track;
