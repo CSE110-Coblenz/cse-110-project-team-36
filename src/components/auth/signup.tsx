@@ -2,7 +2,7 @@ import React from "react";
 import { Input } from "../input";
 import { Button } from "../button";
 import { ErrorMessage } from "../errorMsg";
-// import styles from "../../pages/styles/loginPage.module.css";
+import styles from "../../pages/styles/loginPage.module.css";
 
 export const SignupStep: React.FC<{
   username: string;
@@ -13,7 +13,7 @@ export const SignupStep: React.FC<{
   onEmailChange: (v: string) => void;
   onPasswordChange: (v: string) => void;
   onConfirmChange: (v: string) => void;
-  onSubmit: () => void;
+  onSubmit: (e: React.FormEvent) => void;
   onBack: () => void;
 }> = ({
   username,
@@ -27,48 +27,51 @@ export const SignupStep: React.FC<{
   onSubmit,
   onBack,
 }) => (
-  <form
-    onSubmit={(e) => {
-      e.preventDefault();
-      onSubmit();
-    }}
-    style={{ display: "grid", gap: 14, textAlign: "left", marginBottom: 12 }}
-  >
-    <Input label="Username" value={username} disabled />
+  <form onSubmit={onSubmit} className={styles.formContainer}>
+    <Input
+      label="Username"
+      value={username}
+      disabled
+      className={styles.input}
+    />
     <Input
       label="Email"
       value={email}
       onChange={(e) => onEmailChange(e.target.value)}
+      placeholder="you@example.com"
+      className={styles.input}
+      type="email"
     />
     <Input
       label="Password"
       type="password"
       value={password}
       onChange={(e) => onPasswordChange(e.target.value)}
+      placeholder="••••••"
+      className={styles.input}
     />
     <Input
       label="Confirm Password"
       type="password"
       value={confirmPassword}
       onChange={(e) => onConfirmChange(e.target.value)}
+      placeholder="••••••"
+      className={styles.input}
     />
     <ErrorMessage message={error} />
     <Button
       type="submit"
-      onClick={() => {
-        console.log("Account registered!");
-      }}
+      onClick={onSubmit}
+      additionalStyle={{ background: "var(--btn-blue-gradient)" }}
     >
       Sign Up
     </Button>
-    <Button additionalStyle={btnGray} type="button" onClick={onBack}>
+    <Button
+      type="button"
+      onClick={onBack}
+      additionalStyle={{ background: "var(--btn-gray-gradient)" }}
+    >
       ← Change Username
     </Button>
   </form>
 );
-
-const btnGray: React.CSSProperties = {
-  background: "var(--btn-gray-gradient)",
-  boxShadow: "0 4px 8px rgba(0, 0, 0, 0.6)",
-  color: "var(--color-white)",
-};

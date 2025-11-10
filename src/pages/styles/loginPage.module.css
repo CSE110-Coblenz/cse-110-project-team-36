@@ -38,6 +38,13 @@
   animation: cardPulse 2s infinite;
 }
 
+.formContainer {
+  display: grid;
+  gap: 14px; /* vertical spacing between input, error, buttons, text */
+  text-align: left;
+  margin-bottom: 0px;
+}
+
 /* === Titles === */
 .title {
   margin: 0;
@@ -116,6 +123,13 @@
   background: var(--color-error-bg);
   border-radius: 8px;
   border: 1px solid var(--color-error-border);
+}
+
+.helperText {
+  font-size: 0.75rem;
+  color: var(--color-gray-light);
+  text-shadow: 0 0 4px var(--color-black);
+  margin-top: 4px;
 }
 
 /* === Animations === */

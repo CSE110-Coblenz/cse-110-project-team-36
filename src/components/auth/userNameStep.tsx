@@ -2,6 +2,7 @@ import React from "react";
 import { Input } from "../input";
 import { Button } from "../button";
 import { ErrorMessage } from "../errorMsg";
+import styles from "../../pages/styles/loginPage.module.css";
 
 export const UsernameStep: React.FC<{
   username: string;
@@ -9,26 +10,21 @@ export const UsernameStep: React.FC<{
   onChange: (v: string) => void;
   onContinue: () => void;
 }> = ({ username, error, onChange, onContinue }) => (
-  <div
-    style={{ display: "grid", gap: 14, textAlign: "left", marginBottom: 12 }}
-  >
+  <div className={styles.formContainer}>
     <Input
       label="Username"
       value={username}
       onChange={(e) => onChange(e.target.value)}
-      onKeyDown={(e) => e.key === "Enter" && onContinue()}
       placeholder="SpeedBlaster99"
-      autoFocus
+      className={styles.input}
+      onKeyDown={(e) => e.key === "Enter" && onContinue()}
     />
     <ErrorMessage message={error} />
-    <Button additionalStyle={btnBlue} onClick={onContinue}>
+    <Button
+      onClick={onContinue}
+      additionalStyle={{ background: "var(--btn-blue-gradient)" }}
+    >
       Continue
     </Button>
   </div>
 );
-
-const btnBlue: React.CSSProperties = {
-  background: "var(--btn-blue-gradient)",
-  boxShadow: "var(--shadow-blue), var(--shadow-cyan)",
-  color: "var(--color-black)",
-};

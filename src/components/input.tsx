@@ -1,19 +1,17 @@
-import React from "react";
-
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
-  labelStyle?: React.CSSProperties;
-  inputStyle?: React.CSSProperties;
+  labelClassName?: string; // optional CSS class for label
+  className?: string; // optional CSS class for input
 }
 
 export const Input: React.FC<InputProps> = ({
   label,
-  labelStyle,
-  inputStyle,
-  ...props // all the other default props that come along input
+  labelClassName,
+  className,
+  ...props
 }) => (
   <div style={{ display: "grid", gap: 4 }}>
-    {label && <label style={labelStyle}>{label}</label>}
-    <input style={inputStyle} {...props} />
+    {label && <label className={labelClassName}>{label}</label>}
+    <input className={className} {...props} />
   </div>
 );

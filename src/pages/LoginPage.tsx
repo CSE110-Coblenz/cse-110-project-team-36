@@ -134,6 +134,9 @@ export const LoginPage: React.FC<{
             >
               Back
             </button>
+            <p className={styles.helperText}>
+              Enter your username to get started
+            </p>
           </>
         )}
       </div>

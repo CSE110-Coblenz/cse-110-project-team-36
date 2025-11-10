@@ -2,48 +2,46 @@ import React from "react";
 import { Input } from "../input";
 import { Button } from "../button";
 import { ErrorMessage } from "../errorMsg";
+import styles from "../../pages/styles/loginPage.module.css";
 
 export const LoginStep: React.FC<{
   username: string;
   password: string;
   error: string | null;
   onPasswordChange: (v: string) => void;
-  onSubmit: () => void;
+  onSubmit: (e: React.FormEvent) => void;
   onBack: () => void;
 }> = ({ username, password, error, onPasswordChange, onSubmit, onBack }) => (
-  <form
-    onSubmit={(e) => {
-      e.preventDefault();
-      onSubmit();
-    }}
-    style={{ display: "grid", gap: 14, textAlign: "left", marginBottom: 12 }}
-  >
-    <Input label="Username" value={username} disabled />
+  <form onSubmit={onSubmit} className={styles.formContainer}>
+    <Input
+      label="Username"
+      value={username}
+      disabled
+      className={styles.input}
+    />
     <Input
       label="Password"
       type="password"
       value={password}
       onChange={(e) => onPasswordChange(e.target.value)}
       placeholder="••••••"
+      className={styles.input}
       autoFocus
     />
     <ErrorMessage message={error} />
     <Button
       type="submit"
-      onClick={() => {
-        console.log("Submitted!");
-      }}
+      onClick={onSubmit}
+      additionalStyle={{ background: "var(--btn-blue-gradient)" }}
     >
       Login
     </Button>
-    <Button additionalStyle={btnGray} type="button" onClick={onBack}>
+    <Button
+      type="button"
+      onClick={onBack}
+      additionalStyle={{ background: "var(--btn-gray-gradient)" }}
+    >
       ← Change Username
     </Button>
   </form>
 );
-
-const btnGray: React.CSSProperties = {
-  background: "var(--btn-gray-gradient)",
-  boxShadow: "0 4px 8px rgba(0, 0, 0, 0.6)",
-  color: "var(--color-white)",
-};

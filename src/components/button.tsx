@@ -2,7 +2,7 @@ import React from "react";
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   additionalStyle?: React.CSSProperties; // additional styles for base button. Can be used to change colors, size etc.
-  onClick: () => void; // click handler
+  onClick: (e: React.FormEvent) => void; // click handler
   children?: React.ReactNode; // button text or elements
 }
 
