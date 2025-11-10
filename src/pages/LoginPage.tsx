@@ -11,6 +11,7 @@ import styles from "./styles/loginPage.module.css";
 import { UsernameStep } from "../components/auth/userNameStep";
 import { LoginStep } from "../components/auth/loginForm";
 import { SignupStep } from "../components/auth/signup";
+import { Button } from "../components/button";
 
 export const LoginPage: React.FC<{
   onPlayGuest: () => void;
@@ -122,18 +123,18 @@ export const LoginPage: React.FC<{
 
         {step === "username" && (
           <>
-            <button
+            <Button
               onClick={onPlayGuest}
-              className={`${styles.btnBase} ${styles.btnYellow}`}
+              additionalStyle={{ background: "var(--btn-yellow-gradient)" }}
             >
-              Play as Guest
-            </button>
-            <button
+              Play as guest
+            </Button>
+            <Button
               onClick={onBack}
-              className={`${styles.btnBase} ${styles.btnGray}`}
+              additionalStyle={{ background: "var(--btn-gray-gradient)" }}
             >
               Back
-            </button>
+            </Button>
             <p className={styles.helperText}>
               Enter your username to get started
             </p>
