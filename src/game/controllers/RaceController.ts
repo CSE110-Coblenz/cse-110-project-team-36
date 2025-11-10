@@ -2,6 +2,7 @@ import { GameState } from "../models/game-state";
 import { Track } from "../models/track";
 import { Car } from "../models/car";
 import { CarController } from "./CarController";
+import { CameraController } from "./CameraController";
 import { LaneController } from "./LaneController";
 import { CollisionService } from "../services/CollisionService";
 import { QuestionManager } from "../managers/QuestionManager";
@@ -33,6 +34,7 @@ import {
 export class RaceController {
     private gameState: GameState;
     private carController: CarController;
+    private cameraController: CameraController;
     private laneController: LaneController;
     private collisionService: CollisionService;
     private questionManager: QuestionManager;
@@ -62,6 +64,8 @@ export class RaceController {
         
         this.carController = new CarController(this.gameState);
         this.carController.initializeCars();
+        
+        this.cameraController = new CameraController(this.gameState);
 
         // Create collision service and lane controller
         this.collisionService = new CollisionService(this.gameState);
@@ -150,6 +154,7 @@ export class RaceController {
         
         // Replace with the loaded game state
         controller.gameState = gameState;
+        controller.cameraController = new CameraController(gameState);
         controller.carController = new CarController(gameState);
         controller.carController.initializeCars();
         
@@ -207,11 +212,7 @@ export class RaceController {
             this.elapsedMs += dt * 1000;
         }
         const playerCar = this.gameState.playerCar;
-        const pos = this.gameState.track.posAt(playerCar.sPhys);
-        const tangent = this.gameState.track.tangentAt(playerCar.sPhys);
-        // Calculate rotation from track tangent (in radians, excluding wobble)
-        const rotation = Math.atan2(tangent.y, tangent.x);
-        this.gameState.updateCamera({ pos, zoom: this.gameState.camera.zoom, rotation });
+        this.cameraController.update(dt, playerCar, this.gameState.track);
     }
 
     /**
