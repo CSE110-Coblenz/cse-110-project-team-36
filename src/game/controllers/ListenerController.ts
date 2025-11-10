@@ -1,4 +1,5 @@
 import { ResizeListener } from "../listeners/ResizeListener";
+import { VisibilityListener } from "../listeners/VisibilityListener";
 import {
     SpaceRewardListener,
     NumberInputListener,
@@ -21,6 +22,7 @@ export class ListenerController {
 
     private pauseKeyListener: (e: KeyboardEvent) => void;
     private resizeListener: ResizeListener;
+    private visibilityListener: VisibilityListener;
     private spaceRewardListener: SpaceRewardListener;
     private numberInputListener: NumberInputListener;
     private deleteListener: DeleteListener;
@@ -40,7 +42,8 @@ export class ListenerController {
         private laneChangeCallbacks: {
             onLaneChangeLeft: () => void;
             onLaneChangeRight: () => void;
-        }
+        },
+        private onVisibilityLost?: () => void
     ) {
         this.pauseKeyListener = (e: KeyboardEvent) => {
             const k = e.key.toLowerCase();
@@ -49,6 +52,12 @@ export class ListenerController {
                 this.onPauseToggle();
             }
         };
+
+        this.visibilityListener = new VisibilityListener((isVisible: boolean) => {
+            if (!isVisible && this.onVisibilityLost) {
+                this.onVisibilityLost();
+            }
+        });
 
         this.spaceRewardListener = new SpaceRewardListener(() => {
             if (!this.gameInputsPaused) {
@@ -109,6 +118,8 @@ export class ListenerController {
         this.resizeListener = new ResizeListener(containerElement, onResize);
         this.resizeListener.start();
 
+        this.visibilityListener.start();
+
         window.addEventListener("keydown", this.pauseKeyListener);
 
         this.spaceRewardListener.start();
@@ -132,6 +143,7 @@ export class ListenerController {
         window.removeEventListener("keydown", this.pauseKeyListener);
 
         this.resizeListener.stop();
+        this.visibilityListener.stop();
         this.spaceRewardListener.stop();
         this.numberInputListener.stop();
         this.deleteListener.stop();

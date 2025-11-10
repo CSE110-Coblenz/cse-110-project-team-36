@@ -92,11 +92,18 @@ export class RaceController {
                 onLaneChangeRight: () => {
                     this.laneController.switchLane(this.gameState.playerCar, 1, this.elapsedMs / 1000);
                 }
-            }
+            },
+            () => this.handleVisibilityLost(),
         );
 
         this.setupQuestionEventListeners();
         this.clock = new GameClock(ANIMATION_TICK);
+    }
+
+    private handleVisibilityLost(): void {
+        if (this.isRunning && !this.gameState.paused) {
+            this.pause();
+        }
     }
 
     /**
