@@ -6,8 +6,8 @@ import { Hud } from "../rendering/game/Hud";
 import { RaceController } from "../game/controllers/RaceController";
 import { PAGE_WIDTH, PAGE_HEIGHT } from "../const";
 import { events } from "../shared/events";
-import type {DuelResultTier}  from "../minigame/duel/Model/duel-model";
-import PitDuelOverlay from "../rendering/game/PitDuelOverlay";
+import type { MiniGameResult } from "../minigame/src/Model/MiniGameModel";
+import MiniGameView from "../minigame/src/View/MiniGameView";
 
 interface RacePageProps {
     raceController: RaceController;
@@ -15,7 +15,7 @@ interface RacePageProps {
     onExit: () => void;
 }
 
-export const RacePage: React.FC<RacePageProps> = ({ 
+export const RacePage: React.FC<RacePageProps> = ({
     raceController,
     currentUser,
     onExit
@@ -23,9 +23,9 @@ export const RacePage: React.FC<RacePageProps> = ({
     const containerRef = useRef<HTMLDivElement>(null);
     const [size, setSize] = useState({ w: PAGE_WIDTH, h: PAGE_HEIGHT });
     const [, setFrame] = useState(0);
-    
-    // controls the visibility of the pit-stop duel 
-    const [pitDuelVisible, setPitDuelVisible] = useState(false);
+
+    // controls the visibility of the pit-stop 
+    const [pitStopActive, setPitStopActive] = useState(false);
 
     const paused = raceController.getGameState().paused;
 
@@ -44,12 +44,12 @@ export const RacePage: React.FC<RacePageProps> = ({
     }, [raceController]);
 
     /**
-     * Effect that sets up a listener for the PitMinigameRequested event.
-     * When RaceController emits this event, we show the duel overlay.
+     * Effect that sets up a listener for the MiniGameRequested event.
+     * When RaceController emits this event, we show the minigame panel.
      */
     useEffect(() => {
-        const unsubscribe = events.on("PitMinigameRequested", () => {
-            setPitDuelVisible(true);
+        const unsubscribe = events.on("MiniGameRequested", () => {
+            setPitStopActive(true);
         });
 
         return unsubscribe;
@@ -57,6 +57,7 @@ export const RacePage: React.FC<RacePageProps> = ({
 
     const gs = raceController.getGameState();
     const questionController = raceController.getQuestionController();
+    const questionManager = raceController.getQuestionManager();
     const elapsedMs = raceController.getElapsedMs();
     const accuracy = raceController.getAccuracy();
     const correctCount = raceController.getCorrectCount();
@@ -69,14 +70,12 @@ export const RacePage: React.FC<RacePageProps> = ({
         onExit();
     };
 
+
     /**
-     * Called when the pitstop duel overlay finishes and returns a result tier.
+     * Called when the pitstop finishes and returns a result tier.
      * Here we simply forward the result into the EventBus so that RaceController,
      * which subscribed to PitMinigameCompleted, can handle the outcome.
      */
-    const handlePitDuelResult = (tier: DuelResultTier) => {
-        events.emit("PitMinigameCompleted", { tier });
-    };
 
     return (
         <div
@@ -89,8 +88,12 @@ export const RacePage: React.FC<RacePageProps> = ({
             }}
         >
             <QuestionAnswer questionController={questionController} />
-            <GameStage gs={gs} width={size.w} height={size.h} />
-            
+            <GameStage 
+            gs={gs} 
+            width={size.w} 
+            height={size.h} 
+            />
+
             <div style={{ position: "absolute", left: 12, top: 12, zIndex: 9999 }}>
                 <button
                     onClick={() => raceController.togglePause()}
@@ -145,12 +148,28 @@ export const RacePage: React.FC<RacePageProps> = ({
                 onExit={handleExitToMenu}
             />
 
-            {/**Pit-stop duel minigame overlay */}
-            <PitDuelOverlay
-                visible={pitDuelVisible}
-                onClose={() => setPitDuelVisible(false)}
-                onResult={handlePitDuelResult}
-            />
+            {/* Pit-stop minigame panel (HUD, not fullscreen) */}
+            {pitStopActive && (
+                <div
+                    style={{
+                        position: "absolute",
+                        right: 16,
+                        top: 80,
+                        zIndex: 9999,
+                    }}
+                >
+                    <MiniGameView
+                        visible={pitStopActive}
+                        questionManager={questionManager}
+                        onResult={(tier: MiniGameResult) => {
+                            // Forward result into EventBus -> RaceController -> PitController
+                            events.emit("MiniGameCompleted", { tier });
+                        }}
+                        onClose={() => setPitStopActive(false)}
+                    />
+                </div>
+            )}
+
         </div>
 
     );

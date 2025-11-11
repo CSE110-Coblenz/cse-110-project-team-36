@@ -1,8 +1,15 @@
-import { FUEL_CONSUMP_PER_SEC, IDLE_FUEL_CONSUMP_PER_SEC, TIRE_WEAR_PER_LAP } from "../../const";
+import {
+    FUEL_CONSUMP_PER_SEC,
+    IDLE_FUEL_CONSUMP_PER_SEC,
+    TIRE_WEAR_PER_LAP,
+    FUEL_PIT_THRESHOLD,
+    TIRE_PIT_THRESHOLD
+} from "../../const";
 import type { Track } from "./track";
 
 /**
  * Car class
+ * 
  * 
  * This class represents a car in the game.
  */
@@ -35,13 +42,14 @@ export class Car {
     private lastSProg: number = 0;
     private crossedFinish: boolean = false;
 
-    public fuel:number; // 0..100 %
+    public fuel: number; // 0..100 %
     public tireLife: number; //  0..100 %
     public pitRequired: boolean; // indicator for pit stop
-    public inPitLane: boolean; // indicator that player is in pit stop
-    public speedLimiter?:boolean; // limits the speed in pit lane
-
+    public inPitLane: boolean = false; // indicator that player is in pit stop
+    public speedLimiter?: boolean; // limits the speed in pit lane
     
+
+
 
     /**
      * Constructor
@@ -58,7 +66,7 @@ export class Car {
         carLength: number = 40,
         carWidth: number = 22,
         laneIndex?: number,
-        fuel:number = 100,
+        fuel: number = 100,
 
     ) {
         this.sProg = initialS;
@@ -98,8 +106,8 @@ export class Car {
         if (!this.crossedFinish && this.lastSProg > this.sProg) {
             this.lapCount++;
             if (this.lapCount >= 3) {
-            this.crossedFinish = true;
-        }
+                this.crossedFinish = true;
+            }
         }
         this.lastSProg = this.sProg;
     }
@@ -112,13 +120,13 @@ export class Car {
      * 
      * @param dt - time delta in seconds
      */
-    updateConsumables(dt: number, lapCompleted:boolean = false): void {
+    updateConsumables(dt: number, lapCompleted: boolean = false): void {
         const isIdle = this.vPhys <= 6;
-        if(isIdle){
-            this.fuel = Math.max(0, this.fuel - IDLE_FUEL_CONSUMP_PER_SEC*dt);
+        if (isIdle) {
+            this.fuel = Math.max(0, this.fuel - IDLE_FUEL_CONSUMP_PER_SEC * dt);
         }
-        else{
-            this.fuel = Math.max(0, this.fuel - FUEL_CONSUMP_PER_SEC*dt);
+        else {
+            this.fuel = Math.max(0, this.fuel - FUEL_CONSUMP_PER_SEC * dt);
         }
         // Tire wear happens per lap (or tweak as you like)
         if (lapCompleted) {
@@ -126,8 +134,13 @@ export class Car {
         }
 
         // Later, we can add extra factors like slip or lane-change fatigue
-    }
 
+        if (!this.pitRequired && (this.fuel <= FUEL_PIT_THRESHOLD ||
+            this.tireLife <= TIRE_PIT_THRESHOLD
+        )) {
+            this.pitRequired = true;
+        }
+    }
     /**
      * Get total distance traveled
      * 

@@ -24,7 +24,9 @@ import {
     listSaveSlots
 } from "../../serialization/game";
 
-import type { DuelResultTier } from "../../minigame/duel/Model/duel-model";
+import { PitController, type PitControllerHost } from "./PitController";
+import type { MiniGameResult } from "../../minigame/src/Model/MiniGameModel"
+
 
 /**
  * Race controller class
@@ -45,6 +47,17 @@ export class RaceController {
     private isRunning: boolean = false;
     private clock: GameClock;
     private listenerController: ListenerController;
+
+
+
+    /**
+     * PitController encapsulates all pit lane and minigame
+     * interaction logic, so RaceController does not need to
+     * directly manage pit zones.
+     */
+    private pitController: PitController;
+
+
 
 
     /**
@@ -98,8 +111,17 @@ export class RaceController {
             }
         );
 
+        // Create pit controller with a minimal host interface.
+        // We pass only the abilities it needs: pause/resume.
+        const pitHost: PitControllerHost = {
+            pauseRace: () => this.pause(),
+            resumeRace: () => this.resume(),
+        };
+        this.pitController = new PitController(this.gameState, pitHost);
+
         this.setupQuestionEventListeners();
         this.clock = new GameClock(ANIMATION_TICK);
+
     }
 
     /**
@@ -126,16 +148,15 @@ export class RaceController {
             this.statsManager.recordQuestion(question);
         });
 
-        /**
-        * Listener for the PitMinigameCompleted event.
-        */
-        const unsubPitDuelCompleted = events.on("PitMinigameCompleted", ({ tier }) => {
-            const playerCar = this.gameState.playerCar;
-            this.handlePitDuelCompleted(playerCar, tier as DuelResultTier);
+        const unsubMiniGame = events.on("MiniGameCompleted", ({ tier }: { tier: MiniGameResult }) => {
+            this.pitController.handleMiniGameCompleted(tier);
         });
 
-        this.eventUnsubscribers = [unsubCorrect, unsubIncorrect, unsubSkipped, unsubCompleted, unsubPitDuelCompleted];
-
+        this.eventUnsubscribers = [unsubCorrect,
+            unsubIncorrect,
+            unsubSkipped,
+            unsubCompleted,
+            unsubMiniGame];
 
     }
 
@@ -221,113 +242,15 @@ export class RaceController {
             //physics update
             this.carController.step(dt);
 
+            // pit logic update 
+            this.pitController.step(dt);
+
             this.elapsedMs += dt * 1000;
 
         }
         const pos = this.gameState.track.posAt(this.gameState.playerCar.sPhys);
         this.gameState.updateCamera({ pos, zoom: this.gameState.camera.zoom });
     }
-
-    /**
-     * Called when the player crosses the pit entry trigger zone.
-     * This does not yet start the minigame; it just marks the car as
-     * being in the pit lane and enables the speed limiter.
-     *
-     * You should call this from your position/zone logic when the
-     * player's car enters the pit lane region on the track.
-     */
-    onPitEntry(): void {
-        const car = this.gameState.playerCar;
-
-        // Optionally restrict pit entry only when pit is required
-        if (!car.pitRequired) {
-            return;
-        }
-
-        car.inPitLane = true;
-        car.speedLimiter = true;
-    }
-
-    /**
-     * Called when the player reaches the pit box (the actual service spot)
-     * and has effectively stopped there.
-     *
-     * Responsibilities:
-     * - Freeze the car's velocity
-     * - Pause the race controller
-     * - Emit the event that asks the UI layer to show the duel overlay
-     */
-    onPitBoxEntered(): void {
-        const car = this.gameState.playerCar;
-        if (!car.inPitLane) {
-            // Ignore if somehow not in pit lane.
-            return;
-        }
-
-        // Stop the car while it is being serviced.
-        car.vPhys = 0;
-        car.vProg = 0;
-
-        // Pause the main race loop while the minigame runs.
-        this.pause();
-
-        // Ask the UI (RacePage) to show the pit duel overlay.
-        events.emit("PitMinigameRequested", {});
-    }
-
-    /**
-     * Called when the player leaves the pit lane and rejoins the main track.
-     *
-     * Responsibilities:
-     * - Disable pit lane flags on the car (e.g., speed limiter)
-     */
-    onPitExit(): void {
-        const car = this.gameState.playerCar;
-        car.inPitLane = false;
-        car.speedLimiter = false;
-    }
-
-    /**
-     * Handle the result of the pit-stop duel minigame.
-     *
-     * @param car  - The player's car whose fuel and tires will be updated.
-     * @param tier - The performance tier from the duel (WIN_BIG, WIN_CLOSE, LOSE).
-     *
-     * This method converts the abstract result tier into concrete in-race effects:
-     * - Fuel level after pit stop
-     * - Tire life after pit stop
-     * - Whether pit is still required or cleared
-     * - Resuming the race after the minigame.
-     */
-    handlePitDuelCompleted(car: Car, tier: DuelResultTier): void {
-        switch (tier) {
-            case "WIN_BIG":
-                // Best outcome: full refuel and full tire refresh.
-                car.fuel = 100;
-                car.tireLife = 100;
-                break;
-
-            case "WIN_CLOSE":
-                // Good outcome: strong refuel but not perfect.
-                car.fuel = 85;
-                car.tireLife = 90;
-                break;
-
-            case "LOSE":
-            default:
-                // Poor outcome: partial refuel, tires not fully refreshed.
-                car.fuel = 60;
-                car.tireLife = 70;
-                break;
-        }
-
-        // Pit no longer required after service is completed.
-        car.pitRequired = false;
-
-        // Resume the main race loop now that the minigame has finished.
-        this.resume();
-    }
-
 
     /**
      * Get the game state

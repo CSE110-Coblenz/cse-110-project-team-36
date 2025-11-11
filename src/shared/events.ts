@@ -1,4 +1,4 @@
-import type { DuelResultTier } from "../minigame/duel/Model/duel-model";
+import type { MiniGameResult } from "../minigame/src/Model/MiniGameModel";
 
 export type Handler<T> = (payload: T) => void;
 
@@ -43,8 +43,8 @@ export type EventMap = {
     PausedSet: { value: boolean };
     SettingsRequested: Record<string, never>;
     QuestionStateChanged: Record<string, never>;
-    PitMinigameRequested: Record<string, never>;        //Event emitted by UI
-    PitMinigameCompleted: {tier: DuelResultTier};       //Event emitted by UI
+    MiniGameRequested: Record<string, never>;        //Event emitted by UI
+    MiniGameCompleted: {tier: MiniGameResult};  //Event emitted by UI
     
 };
 
