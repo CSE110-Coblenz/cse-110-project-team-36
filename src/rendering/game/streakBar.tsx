@@ -18,6 +18,7 @@ export const StreakBar: React.FC<StreakBarProps> = ({ streakController }) => {
     return () => clearInterval(id);
   }, [streakController]);
 
+  // Toggle bar style on Streak active/ inactive
   const barClass =
     state === "active"
       ? `${styles.barFill} ${styles.barActive}`
@@ -26,7 +27,8 @@ export const StreakBar: React.FC<StreakBarProps> = ({ streakController }) => {
   // visible bar style
   return (
     <div className={styles.barContainer}>
-      <div className={barClass} style={{ width: `${gauge}%` }} />
+      {/* Full bar when Streak activated */}
+      <div className={barClass} style={{ width: `${Math.min(gauge, 100)}%` }} />
       <div className={styles.barText}>🔥 {state.toUpperCase()}</div>
     </div>
   );
