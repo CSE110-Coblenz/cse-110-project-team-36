@@ -7,17 +7,8 @@ import { worldToScreen } from './utils';
 
 /**
  * Car layer component
- * 
- * This component renders the cars on the game stage.
- * 
- * @param track - The track to render
- * @param cars - The cars to render
- * @param stageWidth - The width of the game stage
- * @param stageHeight - The height of the game stage
- * @param camera - The camera to render the cars with
- * @returns The car layer component
  */
-export function CarLayer({ track, cars, stageWidth, stageHeight, camera }: { track: Track; cars: readonly Car[]; stageWidth: number; stageHeight: number; camera: Camera }) {
+export function CarLayer({ track, cars, stageWidth, stageHeight, camera }: { track: Track; cars: readonly Car[]; stageWidth: number; stageHeight: number; camera: Camera; }) {
     return (
         <Layer listening={false}>
             {cars.map((car, i) => (
@@ -36,19 +27,11 @@ export function CarLayer({ track, cars, stageWidth, stageHeight, camera }: { tra
 
 /**
  * Car renderer component
- * 
- * This component renders a single car on the game stage.
- * 
- * @param track - The track to render the car on
- * @param car - The car to render
- * @param stageWidth - The width of the game stage
- * @param stageHeight - The height of the game stage
- * @param camera - The camera to render the car with
- * @returns The car renderer component
  */
-function CarRenderer({ track, car, stageWidth, stageHeight, camera }: { track: Track; car: Car; stageWidth: number; stageHeight: number; camera: Camera }) {
+function CarRenderer({ track, car, stageWidth, stageHeight, camera }: { track: Track; car: Car; stageWidth: number; stageHeight: number; camera: Camera; }) {
     const { angleDeg, screen, scale, wobble } = useMemo(() => {
-        const worldPos = car.getWorldPosition(track);
+        const lateralOffset = car.lateral;
+        const worldPos = car.getWorldPosition(track, lateralOffset);
         const screenPos = worldToScreen({ x: worldPos.x, y: worldPos.y }, camera, stageWidth, stageHeight);
         return {
             angleDeg: worldPos.angleDeg,
@@ -61,7 +44,6 @@ function CarRenderer({ track, car, stageWidth, stageHeight, camera }: { track: T
     const w = car.carLength * scale;
     const h = car.carWidth * scale;
 
-    // Add wobble to rotation
     const totalRotation = angleDeg + wobble;
 
     return (

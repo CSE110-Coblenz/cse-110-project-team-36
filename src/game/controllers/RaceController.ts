@@ -2,6 +2,8 @@ import { GameState } from "../models/game-state";
 import { Track } from "../models/track";
 import { Car } from "../models/car";
 import { CarController } from "./CarController";
+import { LaneController } from "./LaneController";
+import { CollisionService } from "../services/CollisionService";
 import { QuestionManager } from "../managers/QuestionManager";
 import type { QuestionConfig } from "../managers/QuestionManager";
 import { QuestionStatsManager } from "../managers/QuestionStatsManager";
@@ -31,6 +33,8 @@ import {
 export class RaceController {
     private gameState: GameState;
     private carController: CarController;
+    private laneController: LaneController;
+    private collisionService: CollisionService;
     private questionManager: QuestionManager;
     private statsManager: QuestionStatsManager;
     private questionController: QuestionController;
@@ -50,12 +54,23 @@ export class RaceController {
     constructor(track: Track, questionConfig: QuestionConfig) {
         const camera = { pos: { x: 0, y: 0 }, zoom: 1 };
         this.gameState = new GameState(camera, track);
-        this.gameState.addPlayerCar(new Car(0, '#22c55e'));
-        this.gameState.addCar(new Car(-100, '#ef4444'));
-        this.gameState.addCar(new Car(-200, '#ef4444'));
-        this.gameState.addCar(new Car(-300, '#ef4444'));
+        
+        // Initialize cars on staggered lanes (player in lane 0, AI in lanes 1, 2, 3...)
+        this.gameState.addPlayerCar(new Car(-300, '#22c55e', 40, 22, 0)); // Player in leftmost lane
+        this.gameState.addCar(new Car(0, '#ef4444', 40, 22, 1)); // AI car 1
+        this.gameState.addCar(new Car(-100, '#ef4444', 40, 22, 2)); // AI car 2
+        this.gameState.addCar(new Car(-200, '#ef4444', 40, 22, 3)); // AI car 3
+        
         this.carController = new CarController(this.gameState);
         this.carController.initializeCars();
+
+        // Create collision service and lane controller
+        this.collisionService = new CollisionService(this.gameState);
+        this.laneController = new LaneController(
+            this.gameState,
+            this.carController,
+            this.collisionService
+        );
 
         this.questionManager = new QuestionManager(questionConfig);
         this.statsManager = new QuestionStatsManager();
@@ -70,6 +85,14 @@ export class RaceController {
                 onDelete: () => this.questionController.deleteChar(),
                 onEnterSubmit: () => this.questionController.submitAnswer(),
                 onSkip: () => this.questionController.skipQuestion()
+            },
+            {
+                onLaneChangeLeft: () => {
+                    this.laneController.switchLane(this.gameState.playerCar, -1, this.elapsedMs / 1000);
+                },
+                onLaneChangeRight: () => {
+                    this.laneController.switchLane(this.gameState.playerCar, 1, this.elapsedMs / 1000);
+                }
             }
         );
 
@@ -123,13 +146,41 @@ export class RaceController {
      */
     static fromGameState(gameState: GameState, questionConfig: QuestionConfig): RaceController {
         // Create a dummy track for the constructor, then replace with loaded state
-        const dummyTrack = Track.fromJSON({ version: 1, points: [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 0, y: 1 }] });
+        const dummyTrack = Track.fromJSON({ version: 1, numLanes: 4, laneWidth: 10, points: [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 0, y: 1 }] });
         const controller = new RaceController(dummyTrack, questionConfig);
         
         // Replace with the loaded game state
         controller.gameState = gameState;
         controller.carController = new CarController(gameState);
         controller.carController.initializeCars();
+        
+        // Recreate collision service and lane controller with loaded state
+        controller.collisionService = new CollisionService(gameState);
+        controller.laneController = new LaneController(
+            gameState,
+            controller.carController,
+            controller.collisionService
+        );
+        
+        // Recreate listener controller with lane change callbacks
+        controller.listenerController = new ListenerController(
+            () => controller.togglePause(),
+            () => controller.queueReward(gameState.playerCar, 150),
+            {
+                onNumberInput: (char) => controller.questionController.addChar(char),
+                onDelete: () => controller.questionController.deleteChar(),
+                onEnterSubmit: () => controller.questionController.submitAnswer(),
+                onSkip: () => controller.questionController.skipQuestion()
+            },
+            {
+                onLaneChangeLeft: () => {
+                    controller.laneController.switchLane(gameState.playerCar, -1, controller.elapsedMs / 1000);
+                },
+                onLaneChangeRight: () => {
+                    controller.laneController.switchLane(gameState.playerCar, 1, controller.elapsedMs / 1000);
+                }
+            }
+        );
         
         return controller;
     }
@@ -141,6 +192,18 @@ export class RaceController {
      */
     step(dt: number) {
         if (!this.gameState.paused && !this.raceCompleted) {
+            const currentGameTime = this.elapsedMs / 1000;
+            
+            this.laneController.updateLaneChanges(currentGameTime);
+
+            const cars = Array.from(this.gameState.getCars());
+            this.collisionService.updateLaneIndex(cars, this.laneController);
+
+            const crashPairs = this.collisionService.scanCollisions(cars, this.laneController);
+            for (const pair of crashPairs) {
+                this.carController.crash(pair);
+            }
+            
             this.carController.step(dt);
             this.elapsedMs += dt * 1000;
         }

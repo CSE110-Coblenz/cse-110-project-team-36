@@ -22,7 +22,8 @@ describe('GameState Serialization', () => {
     const createTestGameState = (): GameState => {
         const trackJSON: TrackJSON = {
             version: 1,
-            width: 20,
+            numLanes: 4,
+            laneWidth: 5,
             points: [
                 { x: 0, y: 0 },
                 { x: 100, y: 0 },
@@ -111,7 +112,6 @@ describe('GameState Serialization', () => {
             const jsonString = serializeGameState(gameState);
             const parsed = JSON.parse(jsonString);
 
-            expect(parsed.track).toHaveProperty('width');
             expect(parsed.track).toHaveProperty('samples');
             expect(parsed.track).toHaveProperty('sTable');
             expect(parsed.track).toHaveProperty('totalLength');
@@ -183,7 +183,7 @@ describe('GameState Serialization', () => {
                 version: '2.0.0',
                 timestamp: Date.now(),
                 camera: { pos: { x: 0, y: 0 }, zoom: 1 },
-                track: { width: 20, samples: [], sTable: [], totalLength: 0 },
+                track: { laneWidth: 5, numLanes: 4, samples: [], sTable: [], totalLength: 0 },
                 cars: [],
                 playerCarIndex: 0
             });
@@ -240,7 +240,8 @@ describe('GameState Serialization', () => {
         it('should work with RaceController reward system', () => {
             const trackJSON: TrackJSON = {
                 version: 1,
-                width: 20,
+                numLanes: 4,
+                laneWidth: 5,
                 points: [
                     { x: 0, y: 0 },
                     { x: 100, y: 0 },

@@ -21,6 +21,15 @@ export class Car {
     public carLength: number = 40;      // car size (world units)
     public carWidth: number = 22;
 
+    public laneIndex: number = 0;       // current lane index (0 = leftmost)
+    public targetLaneIndex: number | null = null;  // target lane during lane change
+    public laneChangeStartTime: number | null = null;  // game time (seconds) when lane change started
+    public laneChangeDuration: number = 1.0;  // duration of lane change in seconds
+    public pendingLaneChanges: number = 0;  // net lane changes requested (direction-based queue)
+    public laneChangeStartOffset: number | null = null;  // lateral offset (world units) where lane change started from (for smooth interruptions)
+    public laneChangeStartVelocity: number | null = null;  // lateral velocity (world units/sec) when lane change started (for smooth interruptions)
+    public crashedThisFrame: boolean = false;  // flag to indicate crash occurred this frame (skip physics smoothing)
+
     public lapCount: number = 0;
     private lastSProg: number = 0;
     private crossedFinish: boolean = false;
@@ -32,12 +41,14 @@ export class Car {
      * @param color - The color of the car
      * @param carLength - The length of the car
      * @param carWidth - The width of the car
+     * @param laneIndex - The initial lane index (defaults to center lane, will be set by track)
      */
     constructor(
         initialS: number = 0,
         color: string = '#22c55e',
         carLength: number = 40,
-        carWidth: number = 22
+        carWidth: number = 22,
+        laneIndex?: number
     ) {
         this.sProg = initialS;
         this.sPhys = initialS;
@@ -45,6 +56,9 @@ export class Car {
         this.color = color;
         this.carLength = carLength;
         this.carWidth = carWidth;
+        if (laneIndex !== undefined) {
+            this.laneIndex = laneIndex;
+        }
     }
 
     /**
@@ -85,16 +99,41 @@ export class Car {
     }
 
     /**
+     * Check if the car is currently changing lanes
+     * 
+     * @returns True if the car is changing lanes
+     */
+    isChangingLanes(): boolean {
+        return this.targetLaneIndex !== null;
+    }
+
+    /**
+     * Get the progress of the current lane change (0 to 1)
+     * 
+     * @param currentGameTime - Current game time in seconds
+     * @returns Progress ratio [0, 1], or 0 if not changing lanes
+     */
+    getLaneChangeProgress(currentGameTime: number): number {
+        if (!this.isChangingLanes() || this.laneChangeStartTime === null) {
+            return 0;
+        }
+        const elapsed = currentGameTime - this.laneChangeStartTime;
+        const progress = elapsed / this.laneChangeDuration;
+        return Math.max(0, Math.min(1, progress));
+    }
+
+    /**
      * Get the world position and rotation angle for this car
      * 
      * @param track - The track to compute position relative to
+     * @param lateralOffset - The lateral offset from centerline (computed by LaneController)
      * @returns Object containing world position (x, y) and rotation angle in degrees
      */
-    getWorldPosition(track: Track): { x: number; y: number; angleDeg: number } {
+    getWorldPosition(track: Track, lateralOffset: number): { x: number; y: number; angleDeg: number } {
         const p = track.posAt(this.sPhys);
         const t = track.tangentAt(this.sPhys);
         const n = track.normalAt(this.sPhys);
-        const wp = { x: p.x + n.x * this.lateral, y: p.y + n.y * this.lateral };
+        const wp = { x: p.x + n.x * lateralOffset, y: p.y + n.y * lateralOffset };
         const ang = Math.atan2(t.y, t.x);
         const angleDeg = (ang * 180) / Math.PI;
         return { x: wp.x, y: wp.y, angleDeg };
@@ -120,6 +159,12 @@ export class Car {
             color: this.color,
             carLength: this.carLength,
             carWidth: this.carWidth,
+            laneIndex: this.laneIndex,
+            targetLaneIndex: this.targetLaneIndex,
+            laneChangeStartTime: this.laneChangeStartTime,
+            pendingLaneChanges: this.pendingLaneChanges,
+            laneChangeStartOffset: this.laneChangeStartOffset,
+            laneChangeStartVelocity: this.laneChangeStartVelocity,
             lapCount: this.lapCount,
             lastSProg: this.lastSProg,
             crossedFinish: this.crossedFinish,
@@ -144,11 +189,17 @@ export class Car {
         color: string;
         carLength: number;
         carWidth: number;
+        laneIndex?: number;
+        targetLaneIndex?: number | null;
+        laneChangeStartTime?: number | null;
+        pendingLaneChanges?: number;
+        laneChangeStartOffset?: number | null;
+        laneChangeStartVelocity?: number | null;
         lapCount: number;
         lastSProg: number;
         crossedFinish: boolean;
     }): Car {
-        const car = new Car(data.sProg, data.color, data.carLength, data.carWidth);
+        const car = new Car(data.sProg, data.color, data.carLength, data.carWidth, data.laneIndex);
         car.sProg = data.sProg;
         car.vProg = data.vProg;
         car.r = data.r;
@@ -157,6 +208,12 @@ export class Car {
         car.lateral = data.lateral;
         car.slipFactor = data.slipFactor ?? 0;
         car.slipWobble = data.slipWobble ?? 0;
+        car.laneIndex = data.laneIndex ?? 0;
+        car.targetLaneIndex = data.targetLaneIndex ?? null;
+        car.laneChangeStartTime = data.laneChangeStartTime ?? null;
+        car.pendingLaneChanges = data.pendingLaneChanges ?? 0;
+        car.laneChangeStartOffset = data.laneChangeStartOffset ?? null;
+        car.laneChangeStartVelocity = data.laneChangeStartVelocity ?? null;
         car.lapCount = data.lapCount;
         car.lastSProg = data.lastSProg;
         car.crossedFinish = data.crossedFinish;
