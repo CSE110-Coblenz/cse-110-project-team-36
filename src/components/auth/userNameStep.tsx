@@ -9,7 +9,9 @@ export const UsernameStep: React.FC<{
   error: string | null;
   onChange: (v: string) => void;
   onContinue: () => void;
-}> = ({ username, error, onChange, onContinue }) => (
+  onPlayGuest: () => void;
+  onBack: () => void;
+}> = ({ username, error, onChange, onContinue, onPlayGuest, onBack }) => (
   <div className={styles.formContainer}>
     <Input
       label="Username"
@@ -26,5 +28,18 @@ export const UsernameStep: React.FC<{
     >
       Continue
     </Button>
+    <Button
+      onClick={onPlayGuest}
+      additionalStyle={{ background: "var(--btn-yellow-gradient)" }}
+    >
+      Play as guest
+    </Button>
+    <Button
+      onClick={onBack}
+      additionalStyle={{ background: "var(--btn-gray-gradient)" }}
+    >
+      Back
+    </Button>
+    <p className={styles.helperText}>Enter your username to get started</p>
   </div>
 );
