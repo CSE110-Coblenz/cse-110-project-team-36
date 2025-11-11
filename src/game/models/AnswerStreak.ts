@@ -8,12 +8,12 @@ export class AnswerStreak {
   isStreakActivated: boolean = false;
 
   onCorrectAnswer() {
-    this.gauge = Math.min(100, this.gauge + 10);
+    this.gauge = Math.min(100, this.gauge + 10); // correct answer progresses gauge
     if (this.gauge >= 100) {
-      this.activateStreak();
+      this.activateStreak(); // max gauge activates streak
     }
     if (this.state != "active") {
-      this.state = "building streak";
+      this.state = "building streak"; // "building" state when streak inactive
     }
   }
 
@@ -23,7 +23,7 @@ export class AnswerStreak {
 
   activateStreak() {
     this.state = "active";
-    this.time = 30;
+    this.time = 30; // time left to answer another question correctly
     this.isStreakActivated = true;
   }
 
@@ -35,9 +35,7 @@ export class AnswerStreak {
   }
 
   decay() {
-    if (this.gauge > 0) {
-      this.gauge -= this.decayRate;
-    }
+    this.gauge = Math.max(0, this.gauge - this.decayRate);
     if (this.gauge < 50) {
       this.state = "cooldown";
       this.isStreakActivated = false;

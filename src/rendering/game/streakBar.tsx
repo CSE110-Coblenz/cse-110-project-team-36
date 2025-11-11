@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { StreakController } from "../../game/controllers/StreakController";
+import styles from "../styles/streakBar.module.css";
 
 interface StreakBarProps {
   streakController: StreakController;
@@ -17,46 +18,16 @@ export const StreakBar: React.FC<StreakBarProps> = ({ streakController }) => {
     return () => clearInterval(id);
   }, [streakController]);
 
+  const barClass =
+    state === "active"
+      ? `${styles.barFill} ${styles.barActive}`
+      : `${styles.barFill} ${styles.barInactive}`;
+
   // visible bar style
   return (
-    <div
-      style={{
-        width: 200,
-        height: 24,
-        borderRadius: 12,
-        border: "2px solid white",
-        overflow: "hidden",
-        background: "rgba(255,255,255,0.1)",
-        position: "relative",
-      }}
-    >
-      <div
-        style={{
-          width: `${gauge}%`,
-          height: "100%",
-          background:
-            state === "active"
-              ? "linear-gradient(90deg, #ffef00, #ff9a00, #ff2a00)"
-              : "linear-gradient(90deg, #888, #555)",
-          transition: "width 0.2s ease",
-        }}
-      />
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: "100%",
-          height: "100%",
-          textAlign: "center",
-          lineHeight: "24px",
-          fontWeight: 700,
-          fontSize: "0.85rem",
-          color: "white",
-        }}
-      >
-        🔥 {state.toUpperCase()}
-      </div>
+    <div className={styles.barContainer}>
+      <div className={barClass} style={{ width: `${gauge}%` }} />
+      <div className={styles.barText}>🔥 {state.toUpperCase()}</div>
     </div>
   );
 };

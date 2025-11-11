@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { QuestionController } from "../../game/controllers/QuestionController";
 import { StreakController } from "../../game/controllers/StreakController";
-import { StreakBar } from "./streakBar";
+import { StreakBar } from "./StreakBar";
 import { events } from "../../shared/events";
 
 interface QuestionAnswerProps {
