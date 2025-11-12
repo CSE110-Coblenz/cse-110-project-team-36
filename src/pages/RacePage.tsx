@@ -6,6 +6,7 @@ import { Hud } from "../rendering/game/Hud";
 import { RaceController } from "../game/controllers/RaceController";
 import { PAGE_WIDTH, PAGE_HEIGHT } from "../const";
 import { events } from "../shared/events";
+import { Minimap } from "../rendering/game/Minimap"; 
 
 interface RacePageProps {
     raceController: RaceController;
@@ -21,8 +22,16 @@ export const RacePage: React.FC<RacePageProps> = ({
     const containerRef = useRef<HTMLDivElement>(null);
     const [size, setSize] = useState({ w: PAGE_WIDTH, h: PAGE_HEIGHT });
     const [, setFrame] = useState(0);
-
-    const paused = raceController.getGameState().paused;  
+    const paused = raceController.getGameState().paused; 
+    const [minimapEnabled, setMinimapEnabled] = useState<boolean>(() => {
+        try {
+            return localStorage.getItem('formulafun_minimap_enabled') !== "0";
+        } catch { return true; }
+    }); 
+    const unsubMinimapToggle = events.on("ToggleMinimap", ({ value }: { value: boolean }) => {
+            setMinimapEnabled(!!value);
+            try { localStorage.setItem('formulafun_minimap_enabled', value ? "1" : "0"); } catch {}
+        });
 
     useEffect(() => {
         if (!containerRef.current) return;
@@ -108,6 +117,8 @@ export const RacePage: React.FC<RacePageProps> = ({
                 correctCount={correctCount}
                 incorrectCount={incorrectCount}
             />
+            {/* Minimap (toggleable) */}
+            {minimapEnabled && gs && <Minimap gs={gs} size={160} position="bottom-right" />}
 
             <PauseOverlay
                 visible={paused}
