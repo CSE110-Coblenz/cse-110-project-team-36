@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 import { QuestionStatsManager } from "../../game/managers/QuestionStatsManager";
+import { events } from "../../shared/events";
 
 interface PostRaceStatsProps {
     statsManager: QuestionStatsManager;
@@ -7,9 +8,19 @@ interface PostRaceStatsProps {
     onExit: () => void;
 }
 
-export const PostRaceStats: React.FC<PostRaceStatsProps> = ({ statsManager, time, onExit }) => {
-    const stats = statsManager.getStats();
+export const PostRaceStats: React.FC<PostRaceStatsProps> = ({ statsManager, time, onExit}) => {
 
+    const [show, setShow] = useState(false);
+
+    events.on("RaceFinished", () => {
+        setShow(true);
+    });
+
+    if (!show) {
+        return null;
+    }
+
+    const stats = statsManager.getStats();
     const correct = stats.filter(s => s.outcome === "correct").length;
     const incorrect = stats.filter(s => s.outcome === "incorrect").length;
     const skipped = stats.filter(s => s.outcome === "skipped").length;

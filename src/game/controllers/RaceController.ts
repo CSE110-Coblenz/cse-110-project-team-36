@@ -209,35 +209,13 @@ export class RaceController {
         }
 
         if(this.gameState.playerCar.hasFinished()) {
-            this.completeRace();
-            return;
+            this.raceCompleted = true;
+            this.stop();
+            events.emit("RaceFinished", {});
         }
 
         const pos = this.gameState.track.posAt(this.gameState.playerCar.sPhys);
         this.gameState.updateCamera({ pos, zoom: this.gameState.camera.zoom });
-    }
-
-    /**
-     * Complete the race - stops everything and cleans up
-     */
-    completeRace(): void {
-        if (!this.isRunning) {
-            return;
-        }
-
-        // Stop game clock
-        this.clock.stop();
-
-        // Stop all listeners to prevent any further input
-        this.listenerController.stop();
-        
-        // Clean up event listeners
-        this.cleanupEventListeners();
-        
-        this.isRunning = false;
-        this.raceCompleted = true;
-
-        events.emit("RaceFinished", {});
     }
 
     /**

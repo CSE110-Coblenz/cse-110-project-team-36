@@ -22,16 +22,11 @@ export const RacePage: React.FC<RacePageProps> = ({
     const containerRef = useRef<HTMLDivElement>(null);
     const [size, setSize] = useState({ w: PAGE_WIDTH, h: PAGE_HEIGHT });
     const [, setFrame] = useState(0);
-    const [raceCompleted, setRaceCompleted] = useState(false);
 
     const paused = raceController.getGameState().paused;  
 
     useEffect(() => {
         if (!containerRef.current) return;
-
-        const unsubRaceCompleted = events.on("RaceFinished", () => {
-            setRaceCompleted(true);
-        });
 
         raceController.start(
             containerRef.current,
@@ -41,7 +36,6 @@ export const RacePage: React.FC<RacePageProps> = ({
 
         return () => {
             raceController.stop();
-            unsubRaceCompleted();
         };
     }, [raceController]);
 
@@ -123,13 +117,11 @@ export const RacePage: React.FC<RacePageProps> = ({
                 onExit={handleExitToMenu}
             />
 
-            {raceCompleted && (
-                <PostRaceStats
-                    statsManager={raceController.getStatsManager()}
-                    time={raceController.getElapsedMs() / 1000}
-                    onExit={handleExitToMenu}
-                />
-            )}
+            <PostRaceStats
+                statsManager={raceController.getStatsManager()}
+                time={raceController.getElapsedMs() / 1000}
+                onExit={handleExitToMenu}
+            />
 
         </div>
     );
