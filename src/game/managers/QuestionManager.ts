@@ -207,4 +207,16 @@ export class QuestionManager {
     getCurrentQuestionModel(): Question {
         return this.currentQuestion;
     }
+
+    /**
+     * Expose the active difficulty so other systems (like the pit minigame)
+     * can scale their challenge appropriately.
+     */
+    getDifficulty(): QuestionDifficulty {
+        return this.config.difficulty;
+    }
+
+    getConfig(): QuestionConfig {
+        return { ...this.config };
+    }
 }

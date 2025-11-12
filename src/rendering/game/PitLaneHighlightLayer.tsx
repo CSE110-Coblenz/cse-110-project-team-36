@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Layer, Line } from "react-konva";
 import type { Track } from "../../game/models/track";
 import type { Camera } from "../../game/types";
@@ -17,46 +17,14 @@ import type { Camera } from "../../game/types";
  * it only visualizes the region that is considered the pit entry.
  */
 export interface PitLaneHighlightLayerProps {
-    /**
-     * The track geometry used to compute positions along the lap.
-     */
     track: Track;
-
-    /**
-     * Camera that defines how world space is mapped to the stage.
-     * Same camera object that TrackLayer / CarLayer use.
-     */
     camera: Camera;
-
-    /**
-     * Width of the Konva Stage in pixels.
-     */
     stageWidth: number;
-
-    /**
-     * Height of the Konva Stage in pixels.
-     */
     stageHeight: number;
-
-    /**
-     * Fraction [0, 1) of the lap where the pit entry highlight starts.
-     * This will be multiplied by track.length to get an along-track
-     * distance in world units.
-     */
-    pitStartFrac: number;
-
-    /**
-     * Fraction [0, 1) of the lap where the pit entry highlight ends.
-     */
-    pitEndFrac: number;
-
-    /**
-     * Lane index to highlight.
-     * 0 = leftmost lane, (numLanes - 1) = rightmost lane.
-     *
-     * For your pit lane, we use 0 to highlight the very left lane.
-     */
-    laneIndex: number;
+    entryStartFrac: number;
+    laneStartFrac: number;
+    laneEndFrac: number;
+    exitEndFrac: number;
 }
 
 /**
@@ -82,6 +50,94 @@ function worldToScreen(
     };
 }
 
+type ScreenPoint = { x: number; y: number };
+
+interface SegmentSamples {
+    inner: ScreenPoint[];
+    outer: ScreenPoint[];
+    center: ScreenPoint[];
+}
+
+function lerp(a: number, b: number, t: number): number {
+    return a + (b - a) * t;
+}
+
+function sampleSegment(params: {
+    track: Track;
+    camera: Camera;
+    stageWidth: number;
+    stageHeight: number;
+    startFrac: number;
+    endFrac: number;
+    innerStart: number;
+    innerEnd: number;
+    widthStart: number;
+    widthEnd: number;
+    samples?: number;
+}): SegmentSamples {
+    const {
+        track,
+        camera,
+        stageWidth,
+        stageHeight,
+        startFrac,
+        endFrac,
+        innerStart,
+        innerEnd,
+        widthStart,
+        widthEnd,
+        samples = 36,
+    } = params;
+
+    const length = track.length;
+    const fracSpan = Math.max(0, endFrac - startFrac);
+    const steps = Math.max(2, Math.round(samples * fracSpan * 60));
+
+    const innerPoints: ScreenPoint[] = [];
+    const outerPoints: ScreenPoint[] = [];
+    const centerPoints: ScreenPoint[] = [];
+
+    for (let i = 0; i <= steps; i++) {
+        const t = i / steps;
+        const frac = startFrac + (endFrac - startFrac) * t;
+        const s = frac * length;
+
+        const innerOffset = lerp(innerStart, innerEnd, t);
+        const width = lerp(widthStart, widthEnd, t);
+        const centerOffset = innerOffset + width / 2;
+
+        const center = track.posAt(s);
+        const normal = track.normalAt(s);
+
+        const innerWorld = {
+            x: center.x + normal.x * innerOffset,
+            y: center.y + normal.y * innerOffset,
+        };
+        const outerWorld = {
+            x: center.x + normal.x * (innerOffset + width),
+            y: center.y + normal.y * (innerOffset + width),
+        };
+        const centerWorld = {
+            x: center.x + normal.x * centerOffset,
+            y: center.y + normal.y * centerOffset,
+        };
+
+        innerPoints.push(worldToScreen(innerWorld.x, innerWorld.y, camera, stageWidth, stageHeight));
+        outerPoints.push(worldToScreen(outerWorld.x, outerWorld.y, camera, stageWidth, stageHeight));
+        centerPoints.push(worldToScreen(centerWorld.x, centerWorld.y, camera, stageWidth, stageHeight));
+    }
+
+    return { inner: innerPoints, outer: outerPoints, center: centerPoints };
+}
+
+function flatten(points: ScreenPoint[]): number[] {
+    const out: number[] = [];
+    for (const p of points) {
+        out.push(p.x, p.y);
+    }
+    return out;
+}
+
 /**
  * PitLaneHighlightLayer
  *
@@ -104,63 +160,126 @@ export const PitLaneHighlightLayer: React.FC<PitLaneHighlightLayerProps> = ({
     camera,
     stageWidth,
     stageHeight,
-    pitStartFrac,
-    pitEndFrac,
-    laneIndex,
+    entryStartFrac,
+    laneStartFrac,
+    laneEndFrac,
+    exitEndFrac,
 }) => {
-    // Safety: ensure fracs are in [0, 1] and ordered.
-    const startFrac = Math.max(0, Math.min(1, pitStartFrac));
-    const endFrac = Math.max(0, Math.min(1, pitEndFrac));
-    if (endFrac <= startFrac) {
-        return null;
-    }
+    const { polygonPoints, centerLinePoints } = useMemo(() => {
+        const safeEntry = Math.max(0, Math.min(1, entryStartFrac));
+        const safeLaneStart = Math.max(safeEntry, Math.min(1, laneStartFrac));
+        const safeLaneEnd = Math.max(safeLaneStart, Math.min(1, laneEndFrac));
+        const safeExit = Math.max(safeLaneEnd, Math.min(1, exitEndFrac));
 
-    const L = track.length;
-    const sStart = startFrac * L;
-    const sEnd = endFrac * L;
+        if (safeExit <= safeEntry) {
+            return { polygonPoints: [] as number[], centerLinePoints: [] as number[] };
+        }
 
-    /**
-     * Number of samples along the pit region.
-     * Higher -> smoother line, but more draw cost.
-     */
-    const NUM_SAMPLES = 60;
+        const laneOuterEdge = track.width / 2;
+        const rampGap = track.laneWidth * 0.35;
+        const pitLaneWidth = track.laneWidth * 1.15;
+        const rampWidth = Math.max(6, track.laneWidth * 0.2);
 
-    const laneOffset = track.getLaneOffset(laneIndex);
+        const entrySegment = sampleSegment({
+            track,
+            camera,
+            stageWidth,
+            stageHeight,
+            startFrac: safeEntry,
+            endFrac: safeLaneStart,
+            innerStart: laneOuterEdge,
+            innerEnd: laneOuterEdge + rampGap,
+            widthStart: rampWidth,
+            widthEnd: pitLaneWidth,
+        });
 
-    const points: number[] = [];
+        const serviceSegment = sampleSegment({
+            track,
+            camera,
+            stageWidth,
+            stageHeight,
+            startFrac: safeLaneStart,
+            endFrac: safeLaneEnd,
+            innerStart: laneOuterEdge + rampGap,
+            innerEnd: laneOuterEdge + rampGap,
+            widthStart: pitLaneWidth,
+            widthEnd: pitLaneWidth,
+        });
 
-    for (let i = 0; i <= NUM_SAMPLES; i++) {
-        const t = i / NUM_SAMPLES;
-        const s = sStart + (sEnd - sStart) * t;
+        const exitSegment = sampleSegment({
+            track,
+            camera,
+            stageWidth,
+            stageHeight,
+            startFrac: safeLaneEnd,
+            endFrac: safeExit,
+            innerStart: laneOuterEdge + rampGap,
+            innerEnd: laneOuterEdge,
+            widthStart: pitLaneWidth,
+            widthEnd: rampWidth,
+        });
 
-        // Centerline position at s.
-        const center = track.posAt(s);
-        // Unit normal pointing "to the side" of the track.
-        const normal = track.normalAt(s);
+        const segments = [entrySegment, serviceSegment, exitSegment];
 
-        // Lane center position = centerline + laneOffset * normal.
-        const wx = center.x + normal.x * laneOffset;
-        const wy = center.y + normal.y * laneOffset;
+        const outerPoints: ScreenPoint[] = [];
+        segments.forEach((seg, idx) => {
+            const pts = idx === 0 ? seg.outer : seg.outer.slice(1);
+            outerPoints.push(...pts);
+        });
 
-        // Convert from world to screen space.
-        const screen = worldToScreen(wx, wy, camera, stageWidth, stageHeight);
-        points.push(screen.x, screen.y);
-    }
+        const innerPoints: ScreenPoint[] = [];
+        segments
+            .slice()
+            .reverse()
+            .forEach((seg, idx) => {
+                const pts = idx === 0 ? seg.inner.slice().reverse() : seg.inner.slice(0, -1).reverse();
+                innerPoints.push(...pts);
+            });
 
-    // If for some reason we have too few points, don't draw.
-    if (points.length < 4) {
+        const polygonPoints = flatten([...outerPoints, ...innerPoints]);
+
+        const centerPoints: ScreenPoint[] = [];
+        segments.forEach((seg, idx) => {
+            const pts = idx === 0 ? seg.center : seg.center.slice(1);
+            centerPoints.push(...pts);
+        });
+
+        return {
+            polygonPoints,
+            centerLinePoints: flatten(centerPoints),
+        };
+    }, [
+        track,
+        camera,
+        stageWidth,
+        stageHeight,
+        entryStartFrac,
+        laneStartFrac,
+        laneEndFrac,
+        exitEndFrac,
+    ]);
+
+    if (polygonPoints.length < 6) {
         return null;
     }
 
     return (
         <Layer listening={false}>
             <Line
-                points={points}
-                stroke="red"
-                strokeWidth={6}
+                points={polygonPoints}
+                closed
+                fill="rgba(244, 114, 182, 0.28)"
+                stroke="rgba(248, 113, 113, 0.9)"
+                strokeWidth={2}
+                lineJoin="round"
+            />
+            <Line
+                points={centerLinePoints}
+                stroke="#fecaca"
+                strokeWidth={3}
+                dash={[12, 10]}
                 lineCap="round"
                 lineJoin="round"
-                opacity={0.9}
             />
         </Layer>
     );

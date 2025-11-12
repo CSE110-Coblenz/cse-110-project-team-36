@@ -1,6 +1,6 @@
 import { MiniGameModel, type MiniGameResult } from "../Model/MiniGameModel";
 import type { QuestionManager } from "../../../game/managers/QuestionManager";
-import type { Question } from "../../../game/models/question";
+import { QuestionDifficulty, type Question } from "../../../game/models/question";
 
 
 
@@ -45,7 +45,12 @@ export class MiniGameController {
      * @param questionManager - The existing QuestionManager to reuse.
      */
     constructor(durationSeconds: number, questionManager: QuestionManager) {
-        this.model = new MiniGameModel(durationSeconds);
+        const difficulty = typeof questionManager.getDifficulty === "function"
+            ? questionManager.getDifficulty()
+            : QuestionDifficulty.MEDIUM;
+        const taskCount = MiniGameController.taskCountForDifficulty(difficulty);
+
+        this.model = new MiniGameModel(durationSeconds, { taskCount });
         this.questionManager = questionManager;
         this.currentQuestion = this.generateQuestion();
     }
@@ -144,6 +149,7 @@ export class MiniGameController {
         }
 
         this.model.recordAnswer(correct);
+        this.model.applyProgressBoost(correct);
         this.currentAnswerText = "";
 
         if (this.model.isActive) {
@@ -163,6 +169,18 @@ export class MiniGameController {
         // Use the manager's config (topic + difficulty) as-is.
         this.questionManager.generateQuestion();
         return this.questionManager.getCurrentQuestionModel();
+    }
+
+    private static taskCountForDifficulty(difficulty: QuestionDifficulty): number {
+        switch (difficulty) {
+            case QuestionDifficulty.EASY:
+                return 1;
+            case QuestionDifficulty.MEDIUM:
+                return 2;
+            case QuestionDifficulty.HARD:
+            default:
+                return 3;
+        }
     }
 
 }

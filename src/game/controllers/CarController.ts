@@ -1,6 +1,7 @@
 import type { Track } from '../models/track';
 import { Car } from '../models/car';
 import type { GameState } from '../models/game-state';
+import { PIT_SPEED_LIMIT } from "../../const";
 
 
 /**
@@ -87,6 +88,12 @@ export class CarController {
         const slipDecel = car.slipFactor > 0 ? -this.slipVelocityDecay * (car.vProg - this.vMin) : 0;
         // v_{k+1} = v_k + (a_base + r_{k-1} + a_decay(v_k) + slip_decel) * dt
         car.vProg += (this.aBase + rPrev + aDecay + slipDecel) * dt;
+        
+        //When speedLimiter is flagged the cars' speed is clamped.
+        if (car.speedLimiter) {
+            car.vProg = Math.min(car.vProg, PIT_SPEED_LIMIT);
+        }
+
         // v_prog clipped to [v_min, v_max]
         const vProgClipped = Math.max(this.vMin, Math.min(this.vMax, car.vProg)); 
         // Δs = min(v_prog_clipped * dt, Δs_max)
@@ -139,10 +146,16 @@ export class CarController {
         const aT = this.kv * (vDes - car.vPhys);
         // v_phys_{k+1} = v_phys_k + a_t * dt
         car.vPhys += aT * dt;
-        // v_phys clipped to 0
+        // v_phys clipped to 0 and pit limiter when active
         car.vPhys = Math.max(0, car.vPhys);
+
+        if (car.speedLimiter) {
+            car.vPhys = Math.min(car.vPhys, PIT_SPEED_LIMIT);
+        }
+
         // s_phys_{k+1} = wrap(s_phys_k + v_phys_k * dt)
         car.sPhys = track.wrapS(car.sPhys + car.vPhys * dt);
+        
     }
 
     /**

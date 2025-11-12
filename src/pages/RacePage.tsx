@@ -148,26 +148,15 @@ export const RacePage: React.FC<RacePageProps> = ({
                 onExit={handleExitToMenu}
             />
 
-            {/* Pit-stop minigame panel (HUD, not fullscreen) */}
             {pitStopActive && (
-                <div
-                    style={{
-                        position: "absolute",
-                        right: 16,
-                        top: 80,
-                        zIndex: 9999,
+                <MiniGameView
+                    visible={pitStopActive}
+                    questionManager={questionManager}
+                    onResult={(tier: MiniGameResult) => {
+                        events.emit("MiniGameCompleted", { tier });
                     }}
-                >
-                    <MiniGameView
-                        visible={pitStopActive}
-                        questionManager={questionManager}
-                        onResult={(tier: MiniGameResult) => {
-                            // Forward result into EventBus -> RaceController -> PitController
-                            events.emit("MiniGameCompleted", { tier });
-                        }}
-                        onClose={() => setPitStopActive(false)}
-                    />
-                </div>
+                    onClose={() => setPitStopActive(false)}
+                />
             )}
 
         </div>

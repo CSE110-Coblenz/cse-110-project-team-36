@@ -1,6 +1,15 @@
 import { GameState } from "../models/game-state";
+import { Car } from "../models/car";
 import { events } from "../../shared/events";
 import type { MiniGameResult } from "../../minigame/src/Model/MiniGameModel";
+import {
+    PIT_ENTRY_START_FRAC,
+    PIT_ENTRY_END_FRAC,
+    PIT_LANE_START_FRAC,
+    PIT_LANE_END_FRAC,
+    PIT_EXIT_END_FRAC,
+    PIT_STOP_SPEED_THRESHOLD,
+} from "../../const";
 
 /**
  * Interface that describes what the PitController needs
@@ -65,11 +74,11 @@ export class PitController {
      *
      * Tweak these values so they line up with the visual pit lane.
      */
-    private readonly pitEntryStartFrac: number = 0.05; // 5% of lap
-    private readonly pitEntryEndFrac: number = 0.10;   // 10% of lap
-    private readonly pitLaneStartFrac: number = 0.10;   // 10% of lap
-    private readonly pitLaneEndFrac: number = 0.14;     // 14% of lap
-    private readonly pitExitEndFrac: number = 0.20;    // 20% of lap
+    private readonly pitEntryStartFrac: number = PIT_ENTRY_START_FRAC;
+    private readonly pitEntryEndFrac: number = PIT_ENTRY_END_FRAC;
+    private readonly pitLaneStartFrac: number = PIT_LANE_START_FRAC;
+    private readonly pitLaneEndFrac: number = PIT_LANE_END_FRAC;
+    private readonly pitExitEndFrac: number = PIT_EXIT_END_FRAC;
 
     /**
      * Previous-frame flags for whether the player car was inside
@@ -143,7 +152,6 @@ export class PitController {
         const inExitZone = s >= pitEntryStart && s < pitExitEnd;
 
         // Define what "nearly stopped" means for pit Lane service.
-        const PIT_STOP_SPEED_THRESHOLD = 5; // world units / second
         const isNearlyStopped = car.vPhys <= PIT_STOP_SPEED_THRESHOLD;
 
         // --- Detect transitions and react ---
@@ -184,8 +192,7 @@ export class PitController {
             return;
         }
 
-        car.inPitLane = true;
-        car.speedLimiter = true;
+        this.snapCarIntoPitLane(car);
     }
 
     /**
@@ -260,10 +267,47 @@ export class PitController {
                 break;
         }
 
+        const boostTarget = this.getBoostVelocityForTier(tier);
+        car.vProg = Math.max(car.vProg, boostTarget);
+        car.vPhys = Math.max(car.vPhys, boostTarget * 0.75);
+        car.r = Math.max(car.r, boostTarget * 0.02);
+        car.speedLimiter = false;
+
         // After a pit service, the pit is no longer required.
         car.pitRequired = false;
 
         // Resume the race now that the minigame is over.
         this.host.resumeRace();
+    }
+
+    private getBoostVelocityForTier(tier: MiniGameResult): number {
+        switch (tier) {
+            case "WIN_BIG":
+                return 260;
+            case "WIN_CLOSE":
+                return 210;
+            case "LOSE":
+            default:
+                return 160;
+        }
+    }
+
+    /**
+     * Force the player car into the dedicated pit lane so the minigame
+     * always becomes reachable even if other cars block manual lane changes.
+     */
+    private snapCarIntoPitLane(car: Car): void {
+        const track = this.gameState.track;
+        const pitLaneIndex = Math.max(0, track.numLanes - 1);
+
+        car.laneIndex = pitLaneIndex;
+        car.pendingLaneChanges = 0;
+        car.targetLaneIndex = null;
+        car.laneChangeStartTime = null;
+        car.laneChangeStartOffset = null;
+        car.laneChangeStartVelocity = null;
+        car.lateral = track.getLaneOffset(pitLaneIndex);
+        car.inPitLane = true;
+        car.speedLimiter = true;
     }
 }

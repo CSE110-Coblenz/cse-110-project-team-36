@@ -4,6 +4,12 @@ import { TrackLayer } from "./TrackLayer";
 import { CarLayer } from "./CarLayer";
 import { SkidMarkLayer } from "./SkidMarkLayer";
 import { PitLaneHighlightLayer } from "./PitLaneHighlightLayer";
+import {
+    PIT_ENTRY_START_FRAC,
+    PIT_LANE_START_FRAC,
+    PIT_LANE_END_FRAC,
+    PIT_EXIT_END_FRAC,
+} from "../../const";
 
 
 /**
@@ -22,10 +28,12 @@ export function GameStage({ gs, width, height, }: { gs: GameState; width: number
     const cars = gs.getCars();
     const playerCar = gs.playerCar;
 
-    // show pit highlight only if fuel or tires are low
-    const showPitHighlight =
-        !!playerCar &&
-        (playerCar.fuel < 30 || playerCar.tireLife < 20); 
+    const showPitHighlight = !!playerCar && (
+        playerCar.pitRequired ||
+        playerCar.inPitLane ||
+        playerCar.fuel < 30 ||
+        playerCar.tireLife < 20
+    );
 
     return (
 
@@ -46,16 +54,18 @@ export function GameStage({ gs, width, height, }: { gs: GameState; width: number
              * laneIndex = 0 => leftmost lane.
              */}
 
-             {showPitHighlight && (
-            <PitLaneHighlightLayer
-                track={gs.track}
-                camera={gs.camera}
-                stageWidth={width}
-                stageHeight={height}
-                pitStartFrac={0.05}
-                pitEndFrac={0.10}
-                laneIndex={3}
-            />)}
+            {showPitHighlight && (
+                <PitLaneHighlightLayer
+                    track={gs.track}
+                    camera={gs.camera}
+                    stageWidth={width}
+                    stageHeight={height}
+                    entryStartFrac={PIT_ENTRY_START_FRAC}
+                    laneStartFrac={PIT_LANE_START_FRAC}
+                    laneEndFrac={PIT_LANE_END_FRAC}
+                    exitEndFrac={PIT_EXIT_END_FRAC}
+                />
+            )}
 
             <SkidMarkLayer
                 gs={gs}
