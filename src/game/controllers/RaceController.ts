@@ -214,7 +214,7 @@ export class RaceController {
             events.emit("RaceFinished", {});
         }
 
-        const pos = this.gameState.track.posAt(this.gameState.playerCar.sPhys);
+        const pos = this.gameState.track.posAt(this.gameState.playerCar.s);
         this.gameState.updateCamera({ pos, zoom: this.gameState.camera.zoom });
     }
 

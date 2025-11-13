@@ -34,8 +34,7 @@ describe('CarController', () => {
             const cars = gameState.getCars();
             expect(cars).toHaveLength(3);
             cars.forEach(car => {
-                expect(car.vProg).toBe(5); // vMin default
-                expect(car.vPhys).toBe(5);
+                expect(car.v).toBe(5);
             });
         });
 
@@ -136,26 +135,26 @@ describe('CarController', () => {
             gameState.addPlayerCar(car1);
             gameState.addCar(car2);
             controller.initializeCars();
-            const initialS1 = car1.sProg;
-            const initialS2 = car2.sProg;
+            const initialS1 = car1.s;
+            const initialS2 = car2.s;
 
             controller.step(0.1);
-            expect(car1.sProg).not.toBe(initialS1);
-            expect(car2.sProg).not.toBe(initialS2);
+            expect(car1.s).not.toBe(initialS1);
+            expect(car2.s).not.toBe(initialS2);
         });
 
         it('should increase progress velocity with positive reward', () => {
             const car = new Car();
             gameState.addPlayerCar(car);
             controller.initializeCars();
-            const initialV = car.vProg;
+            const initialV = car.v;
 
             controller.queueReward(car, 50);
             controller.step(0.1);
 
             expect(car.r).toBeGreaterThan(0);
             controller.step(0.1);
-            expect(car.vProg).toBeGreaterThan(initialV);
+            expect(car.v).toBeGreaterThan(initialV);
         });
 
         it('should decrease progress velocity with decay when v > vMin', () => {
@@ -163,14 +162,13 @@ describe('CarController', () => {
             gameState.addPlayerCar(car);
             controller.initializeCars();
 
-            // Set vProg to be above vMin
-            car.vProg = 20;
-            const initialV = car.vProg;
+            car.v = 20;
+            const initialV = car.v;
 
             controller.step(0.1);
 
             const expectedDecay = initialV + (-30) * 0.1; // v += aDecay * dt
-            expect(car.vProg).toBeCloseTo(expectedDecay, 2);
+            expect(car.v).toBeCloseTo(expectedDecay, 2);
         });
 
         it('should not decay progress velocity when v <= vMin', () => {
@@ -178,12 +176,12 @@ describe('CarController', () => {
             gameState.addPlayerCar(car);
             controller.initializeCars();
 
-            car.vProg = 5;
-            const initialV = car.vProg;
+            car.v = 5;
+            const initialV = car.v;
 
             controller.step(0.1);
 
-            expect(car.vProg).toBeGreaterThanOrEqual(initialV);
+            expect(car.v).toBeGreaterThanOrEqual(initialV);
         });
 
         it('should wrap progress position around track length', () => {
@@ -192,19 +190,19 @@ describe('CarController', () => {
             controller.initializeCars();
 
             const trackLength = gameState.track.length;
-            car.sProg = trackLength - 10;
+            car.s = trackLength - 10;
 
             controller.step(0.1);
 
-            expect(car.sProg).toBeGreaterThan(0);
-            expect(car.sProg).toBeLessThan(trackLength);
+            expect(car.s).toBeGreaterThan(0);
+            expect(car.s).toBeLessThan(trackLength);
 
             for (let i = 0; i < 20; i++) {
                 controller.step(0.1);
             }
 
-            expect(car.sProg).toBeGreaterThanOrEqual(0);
-            expect(car.sProg).toBeLessThan(trackLength);
+            expect(car.s).toBeGreaterThanOrEqual(0);
+            expect(car.s).toBeLessThan(trackLength);
         });
 
         it('should decay reward state exponentially', () => {
@@ -240,30 +238,16 @@ describe('CarController', () => {
     });
 
     describe('Physics Step - Physical State', () => {
-        it('should update physical velocity to track progress velocity', () => {
-            const car = new Car();
-            gameState.addPlayerCar(car);
-            controller.initializeCars();
-
-            car.vProg = 20;
-            const initialVPhys = car.vPhys;
-
-            controller.step(0.1);
-
-            expect(car.vPhys).toBeGreaterThan(initialVPhys);
-        });
-
         it('should never allow physical velocity to go negative', () => {
             const car = new Car();
             gameState.addPlayerCar(car);
             controller.initializeCars();
 
-            car.vPhys = 0.5;
-            car.vProg = 0;
+            car.v = 0.5;
 
             controller.step(0.1);
 
-            expect(car.vPhys).toBeGreaterThanOrEqual(0);
+            expect(car.v).toBeGreaterThanOrEqual(0);
         });
 
         it('should wrap physical position around track', () => {
@@ -272,12 +256,12 @@ describe('CarController', () => {
             controller.initializeCars();
 
             const trackLength = gameState.track.length;
-            car.sPhys = trackLength - 5;
+            car.s = trackLength - 5;
 
             controller.step(0.1);
 
-            expect(car.sPhys).toBeGreaterThanOrEqual(0);
-            expect(car.sPhys).toBeLessThan(trackLength);
+            expect(car.s).toBeGreaterThanOrEqual(0);
+            expect(car.s).toBeLessThan(trackLength);
         });
 
         it('should respect curvature limits on physical velocity', () => {
@@ -290,26 +274,12 @@ describe('CarController', () => {
             complexGameState.addPlayerCar(car);
             complexController.initializeCars();
 
-            car.sPhys = complexTrack.length / 4;
-            car.vProg = 100;
+            car.s = complexTrack.length / 4;
+            car.v = 1000;
 
             complexController.step(0.1);
 
-            expect(car.vPhys).toBeLessThan(car.vProg);
-        });
-
-        it('should drive physical velocity with position error', () => {
-            const car = new Car();
-            gameState.addPlayerCar(car);
-            controller.initializeCars();
-
-            car.sProg = 100;
-            car.sPhys = 50;
-            const initialVPhys = car.vPhys;
-
-            controller.step(0.1);
-
-            expect(car.vPhys).toBeGreaterThan(initialVPhys);
+            expect(car.v).toBeLessThan(1000);
         });
     });
 
@@ -319,7 +289,7 @@ describe('CarController', () => {
             gameState.addPlayerCar(car);
             controller.initializeCars();
 
-            car.sPhys = gameState.track.length / 2;
+            car.s = gameState.track.length / 2;
 
             expect(() => controller.step(0.1)).not.toThrow();
         });
@@ -341,7 +311,7 @@ describe('CarController', () => {
             ];
 
             testPoints.forEach(s => {
-                car.sPhys = s;
+                car.s = s;
                 expect(() => complexController.step(0.1)).not.toThrow();
             });
         });
@@ -357,11 +327,11 @@ describe('CarController', () => {
                 controller.step(0.1);
             }
 
-            expect(car.sProg).toBeGreaterThanOrEqual(0);
-            expect(car.sProg).toBeLessThan(gameState.track.length);
-            expect(car.sPhys).toBeGreaterThanOrEqual(0);
-            expect(car.sPhys).toBeLessThan(gameState.track.length);
-            expect(car.vPhys).toBeGreaterThanOrEqual(0);
+            expect(car.s).toBeGreaterThanOrEqual(0);
+            expect(car.s).toBeLessThan(gameState.track.length);
+            expect(car.s).toBeGreaterThanOrEqual(0);
+            expect(car.s).toBeLessThan(gameState.track.length);
+            expect(car.v).toBeGreaterThanOrEqual(0);
         });
 
         it('should maintain physics consistency over time', () => {
@@ -370,15 +340,13 @@ describe('CarController', () => {
             controller.initializeCars();
 
             controller.queueReward(car, 50);
-            const initialProg = car.sProg;
-            const initialPhys = car.sPhys;
+            const initialPhys = car.s;
 
             for (let i = 0; i < 50; i++) {
                 controller.step(0.1);
             }
 
-            expect(car.sProg).toBeGreaterThan(initialProg);
-            expect(car.sPhys).toBeGreaterThan(initialPhys);
+            expect(car.s).toBeGreaterThan(initialPhys);
         });
     });
 });

@@ -57,10 +57,9 @@ export function createTestCar(
     sProg: number = 0,
     color: string = '#test',
     options: Partial<{
-        vProg: number;
         r: number;
-        sPhys: number;
-        vPhys: number;
+        s: number;
+        v: number;
         lateral: number;
         lapCount: number;
         carLength: number;
@@ -74,10 +73,9 @@ export function createTestCar(
         options.carWidth || 22
     );
 
-    if (options.vProg !== undefined) car.vProg = options.vProg;
     if (options.r !== undefined) car.r = options.r;
-    if (options.sPhys !== undefined) car.sPhys = options.sPhys;
-    if (options.vPhys !== undefined) car.vPhys = options.vPhys;
+    if (options.s !== undefined) car.s = options.s;
+    if (options.v !== undefined) car.v = options.v;
     if (options.lateral !== undefined) car.lateral = options.lateral;
     if (options.lapCount !== undefined) car.lapCount = options.lapCount;
 
@@ -96,7 +94,7 @@ export function createTestGameState(
     const gameState = new GameState(camera, track);
 
     // Add player car
-    const playerCar = createTestCar(0, '#00ff00', { vProg: 60, r: 10 });
+    const playerCar = createTestCar(0, '#00ff00', { v: 60, r: 10 });
     gameState.addPlayerCar(playerCar);
 
     // Add AI cars
@@ -104,7 +102,7 @@ export function createTestGameState(
         const aiCar = createTestCar(
             -(i + 1) * 50,
             `#ff${(i * 50).toString(16).padStart(4, '0')}`,
-            { vProg: 55 - i * 5, lapCount: i }
+            { v: 55 - i * 5, lapCount: i }
         );
         gameState.addCar(aiCar);
     }
@@ -166,8 +164,8 @@ export function createMockLocalStorage() {
  */
 export function validateSerializedCar(serialized: any) {
     const requiredProps = [
-        'sProg', 'vProg', 'r', 'sPhys', 'vPhys', 'lateral',
-        'color', 'carLength', 'carWidth', 'lapCount', 'lastSProg', 'crossedFinish'
+        'r', 's', 'v', 'lateral',
+        'color', 'carLength', 'carWidth', 'lapCount', 'lastS', 'crossedFinish'
     ];
 
     requiredProps.forEach(prop => {

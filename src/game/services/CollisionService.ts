@@ -52,7 +52,7 @@ export class CollisionService {
         for (const otherCar of carsInTargetLane) {
             if (otherCar === car) continue;
 
-            const distance = Math.abs(car.sPhys - otherCar.sPhys);
+            const distance = Math.abs(car.s - otherCar.s);
             const wrappedDistance = Math.min(distance, this.trackLength - distance);
             if (wrappedDistance < threshold) {
                 return true;
@@ -71,7 +71,7 @@ export class CollisionService {
         const sameLane = carLanes.some(lane => otherLanes.includes(lane));
         if (!sameLane) return false;
 
-        const distance = Math.abs(car.sPhys - otherCar.sPhys);
+        const distance = Math.abs(car.s - otherCar.s);
         const wrappedDistance = Math.min(distance, this.trackLength - distance);
         const collisionThreshold = (car.carLength + otherCar.carLength) / 2;
         if (wrappedDistance > collisionThreshold) return false;
@@ -81,7 +81,7 @@ export class CollisionService {
             const half = this.trackLength / 2;
             return d > half ? d - this.trackLength : (d < -half ? d + this.trackLength : d);
         };
-        const wDiff = wrappedDiff(car.sPhys, otherCar.sPhys);
+        const wDiff = wrappedDiff(car.s, otherCar.s);
         return wDiff < 0;
     }
 
@@ -103,18 +103,18 @@ export class CollisionService {
         for (const [, carSet] of this.laneIndex.entries()) {
             if (!carSet || carSet.size < 2) continue;
             const laneCars = Array.from(carSet);
-            laneCars.sort((a, b) => a.sPhys - b.sPhys);
+            laneCars.sort((a, b) => a.s - b.s);
 
             const checkPair = (a: Car, b: Car) => {
                 const aLanes = laneController.getEffectiveLanes(a);
                 const bLanes = laneController.getEffectiveLanes(b);
                 const same = aLanes.some(l => bLanes.includes(l));
                 if (!same) return;
-                const d = wrapDist(a.sPhys, b.sPhys);
+                const d = wrapDist(a.s, b.s);
                 const threshold = (a.carLength + b.carLength) / 2;
                 if (d > threshold) return;
                 const half = this.trackLength / 2;
-                const sDiff = a.sPhys - b.sPhys;
+                const sDiff = a.s - b.s;
                 const wDiff = sDiff > half ? sDiff - this.trackLength : (sDiff < -half ? sDiff + this.trackLength : sDiff);
                 const rear = wDiff < 0 ? a : b;
                 const front = wDiff < 0 ? b : a;
