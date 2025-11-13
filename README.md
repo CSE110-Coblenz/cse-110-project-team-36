@@ -37,7 +37,6 @@ src/
 │  ├─ clock.ts
 │  └─ types.ts
 ├─ minigame/src/
-│  ├─ __tests__/
 │  ├─ Controller/
 │  │  └─ MiniGameController.ts
 │  ├─ Model/
@@ -109,16 +108,8 @@ Open the printed local URL (typically `http://localhost:5173`).
 ---
 
 ##  Scripts (common)
+- **Scripts**script/ci-local.sh
 
-```bash
-npm run dev        # Local dev (Vite)
-npm run build      # Production build to /dist (local testing only)
-npm run preview    # Preview the built app locally
-npm test           # Run Jest unit tests
-npm run coverage   # (if defined) Run tests with coverage output
-npm run lint       # ESLint
-npm run typecheck  # TypeScript checks
-```
 
 > Check `package.json` for the complete, authoritative list of scripts.
 
@@ -126,13 +117,9 @@ npm run typecheck  # TypeScript checks
 
 ## Testing
 
-- **Framework:** Jest (`jsdom`) with TypeScript support  
-- **Test locations:**  
-  - `src/**/__tests__/**/*.(test|spec).ts(x)`  
-  - `tests/**/*.(test|spec).ts(x)`  
-- **Coverage:** HTML/LCOV/Text reports saved to `coverage/`
-
-Tip: Keep UI-free logic in plain TS modules (e.g., `Model/`, `utils/`, `services/`) to make testing straightforward.
+- **Stack:** Jest + ts-jest in a `jsdom` environment.  
+- **Where tests live:** cse-110-project-team-36/tests
+- **To run the tests** bash scripts/ci-local.sh
 
 ---
 
