@@ -1,0 +1,66 @@
+==================================================
+
+Meeting: Standup — Week 7
+Date: Monday, November 11
+Time: 6:20pm - 7:00pm
+Location: Remote (Discord)
+
+Attendees:
+- Jared
+- Noe
+- Anthony
+- Eli
+- Jeff
+Note: All members present!
+
+==================================================
+
+Standup Format:
+
+Yesterday / Last Worked On:
+- Jared: Reviewed Anthony’s game physics PR, streak feature implemented & merged, began UI refactor (cleaned up logic and main menu so far).
+- Noe: Built auto-pause when clicking off tab/window, PR reviewed by Anthony. Fixing post-race finish screen (WIP). Reviewed Anthony’s camera changes, worked on campaign mode & separate campaign button. Noted laps feel slow (consider increasing accel/velocity).
+- Anthony: Rescaled track for smoother path calculations, reviewed & refactored Sprint 1 code into MVC, fixed keyboard listeners staying active during pause, built lane system (dynamic lane count via JSON), implemented new camera controller with self-correcting rotation, improved collision & lane-changing logic.
+- Eli: Working on pitstop minigame (PR out, needs review). UI complete, implementing logic for pitstop trigger after X attempts, overlay activation, and progression bars.
+- Jeff: Updated HUD UI to match design, created meetings folder + 3 templates, completed sprint planning notes and took live standup notes, 50% completion on minimap.
+
+Today / Working On Next:
+- Jared: Continue refactor for UI changes.
+- Noe: Continue finish screen fix, tune track feel (accel/velocity), continue campaign implementation.
+- Anthony: Begin bot AI logic (random answer timing, human-like correctness, bot difficulty stats).
+- Eli: Implement pitstop logic (overlay, progress bars, entry/exit flow).
+- Jeff: Finish minimap renderer + functionality + tests; implement race finish/lap line on track.
+
+Blockers / Needs Help:
+- Eli: Needs pitstop PR reviewed.
+- Noe: Needs help debugging finish screen soon if not resolved.
+- Jeff: None at the moment, but will request review when minimap PR is ready.
+
+==================================================
+
+Team Notes:
+- PR Reviews to be completed by tomorrow.
+- Finish screen must be completed by tomorrow (Noe).
+
+Pitstop Discussion:
+- Acts as a separate new lane segment on track (not appearing only when fuel is low).
+- Player/bot should be able to enter ≥ 1 time per race (team leaning toward multiple allowed).
+- When entering pitstop:
+  - Car halts → overlay minigame appears.
+  - Answer question challenges to fill 1–3 progress bars (fuel, tires, etc).
+  - Bars decay if not filled, correct answers boost progress.
+  - Once complete → boosted exit back into the race.
+- Overlay should feel like a true minigame (not core gameplay reuse).
+- Jared emphasized creating pitstop state tracking (player/bot) to enforce rules.
+- Eli working on overlay where race is background + minigame UI on top.
+- Eli is open to adjusting pitstop trigger logic.
+
+- Track Size Discussion:
+  - Jared requested larger track.
+  - Anthony explained current sizing is sufficient given new smoothing changes.
+
+- Bot AI Plan (Anthony):
+  - Bots answer on timers, randomly correct/incorrect to simulate players.
+  - Configurable difficulty stats per bot (skill, reaction delay, accuracy, etc).
+
+==================================================

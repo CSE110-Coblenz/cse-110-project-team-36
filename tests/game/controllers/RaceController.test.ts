@@ -318,25 +318,6 @@ describe('RaceController', () => {
                 expect(car.sPhys).toBeLessThan(trackLength);
             });
         });
-
-        it('should maintain camera following player car throughout simulation', () => {
-            // Arrange
-            const controller = new RaceController(track, defaultQuestionConfig);
-            const gameState = controller.getGameState();
-            const playerCar = gameState.playerCar;
-
-            // Act - simulate many steps
-            for (let i = 0; i < 200; i++) {
-                controller.step(0.1);
-
-                // Check camera follows player
-                if (i % 20 === 0) {
-                    const expectedPos = gameState.track.posAt(playerCar.sPhys);
-                    expect(gameState.camera.pos.x).toBeCloseTo(expectedPos.x, 0.5);
-                    expect(gameState.camera.pos.y).toBeCloseTo(expectedPos.y, 0.5);
-                }
-            }
-        });
     });
 
     describe('Lifecycle Management', () => {
