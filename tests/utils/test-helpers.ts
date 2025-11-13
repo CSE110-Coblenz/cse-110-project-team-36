@@ -90,7 +90,7 @@ export function createTestGameState(
     trackType: 'simple' | 'complex' = 'simple'
 ): GameState {
     const track = trackType === 'simple' ? createSimpleTestTrack() : createComplexTestTrack();
-    const camera: Camera = { pos: { x: 50, y: 50 }, zoom: 1.0 };
+    const camera: Camera = { pos: { x: 50, y: 50 }, zoom: 1.0, rotation: 0 };
     const gameState = new GameState(camera, track);
 
     // Add player car

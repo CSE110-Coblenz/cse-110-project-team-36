@@ -13,7 +13,7 @@ describe('CarController', () => {
 
     beforeEach(() => {
         const track = createSimpleTestTrack();
-        const camera = { pos: { x: 0, y: 0 }, zoom: 1 };
+        const camera = { pos: { x: 0, y: 0 }, zoom: 1, rotation: 0 };
         gameState = new GameState(camera, track);
         controller = new CarController(gameState);
     });
@@ -266,7 +266,7 @@ describe('CarController', () => {
 
         it('should respect curvature limits on physical velocity', () => {
             const complexTrack = createComplexTestTrack();
-            const complexCamera = { pos: { x: 0, y: 0 }, zoom: 1 };
+            const complexCamera = { pos: { x: 0, y: 0 }, zoom: 1, rotation: 0 };
             const complexGameState = new GameState(complexCamera, complexTrack);
             const complexController = new CarController(complexGameState);
 
@@ -296,7 +296,7 @@ describe('CarController', () => {
 
         it('should handle curved track sections', () => {
             const complexTrack = createComplexTestTrack();
-            const complexCamera = { pos: { x: 0, y: 0 }, zoom: 1 };
+            const complexCamera = { pos: { x: 0, y: 0 }, zoom: 1, rotation: 0 };
             const complexGameState = new GameState(complexCamera, complexTrack);
             const complexController = new CarController(complexGameState);
 

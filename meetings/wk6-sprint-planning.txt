@@ -1,0 +1,75 @@
+==================================================
+
+Meeting: Sprint Planning — Week 6
+Date: Wednesday, November 5
+Time: 3:00pm - 4:00pm
+Location: In-Person
+
+Attendees:
+- Anthony
+- Jared
+- Noe
+- Jefferson
+- Elyas
+Note: All members present!
+
+==================================================
+
+Agenda:
+1. Discuss restructuring codebase into cleaner MVC-style architecture
+2. Designate tasks for current sprint and assign responsibilities
+3. Open floor for additional topics, questions, and blockers
+
+==================================================
+
+Discussion Notes:
+- Reaffirmed previously agreed-upon restructuring of the codebase into a more MVC-aligned architecture.
+- Controllers now own game logic (CarController, RaceController, etc.).
+- Managers handle stateful logic and coordination (QuestionManager, QuestionStatsManager).
+- Models define core data + game entities (car.ts, game-state.ts, etc.).
+- Rendering/UI components moved under /rendering and /pages to keep them view-specific.
+- Services handle external dependencies such as saving to localStorage.
+- Tests reorganized to mirror folder structure for better maintainability.
+- Discussed assignment of action items (Shown below).
+
+==================================================
+
+Action Items & Assignees:
+- [ ] Anthony: [Sprint 2 / Task] Fix camera onto car rotation 
+- [ ] Anthony: [Sprint 2 / Task] Fix collision physics when lane changing
+- [ ] Anthony: [Sprint 2 / Story 5 / Task 1] Develop track lane logic
+- [ ] Anthony: [Sprint 2 / Story 5 / Task 2] Develop pit stop track integration 
+- [ ] Anthony: [Sprint 2 / Task] Tweak game/car/track physics
+- [ ] Anthony: [Sprint 2 / Story 3 / Task 1] Build overtake logic
+- [ ] Anthony: [Sprint 2 / Bugfix] Disable keyboard listeners when paused
+- [ ] Anthony: [Sprint 2 / Task] Code review and refactor
+- [ ] Noe: [Sprint 2 / Task] Rework division question generation to accept fractions
+- [ ] Noe: [Sprint 2 / Task] Pause the game when losing focus on browser 
+- [ ] Noe: [Sprint 2 / Story 4] Campaign mode 
+- [ ] Elyas: [Sprint 2 / Task] README Creation
+- [ ] Elyas: [Sprint 2 / Story 5] Bot 1v1 minigame
+- [ ] Jared: [Sprint 2 / Task] UI components refactoring
+- [ ] Jared: [Sprint 2 / Story 1] Streak/Combo Mode
+- [ ] Jared: [Sprint 2 / Story 3 / Task 3] Wire in bot car settings with the race creation page 
+- [ ] Jefferson: [Task] Meeting Notes 
+- [ ] Jefferson: [Sprint 2 / Task] Update HUD UI
+- [ ] Jefferson: [Sprint 2 / Story 2 / Task 2] Build tests for minimap rendering 
+- [ ] Jefferson: [Sprint 2 / Story 2 / Task 1] Build minimap renderer
+- [ ] Jefferson: [Sprint 3 / Story 3] Practice Mode 
+
+==================================================
+
+Sprint Objectives:
+- Complete the transition toward a clearer MVC-style architecture, ensuring separation of concerns between
+  models, controllers, managers, services, and rendering components.
+- Deliver key gameplay improvements for Sprint 2: camera/car interaction fixes, collision refinement,
+  minimap functionality, pit stop integration, and HUD updates.
+- Ensure new features follow the updated directory conventions and include tests where appropriate.
+
+Definition of Done:
+- Code follows MVC structure (no rendering/UI logic inside controllers or models).
+- Feature is functional, merged to main after PR approval, and passes automated tests.
+- Test coverage updated for new logic or UI behavior changes (when applicable).
+- No breaking regressions in existing gameplay (race starts, car movement, rendering pipeline, etc.).
+
+==================================================

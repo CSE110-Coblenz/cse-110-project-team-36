@@ -2,6 +2,7 @@ import { GameState } from "../models/game-state";
 import { Track } from "../models/track";
 import { Car } from "../models/car";
 import { CarController } from "./CarController";
+import { CameraController } from "./CameraController";
 import { LaneController } from "./LaneController";
 import { CollisionService } from "../services/CollisionService";
 import { QuestionManager } from "../managers/QuestionManager";
@@ -33,6 +34,7 @@ import {
 export class RaceController {
     private gameState: GameState;
     private carController: CarController;
+    private cameraController: CameraController;
     private laneController: LaneController;
     private collisionService: CollisionService;
     private questionManager: QuestionManager;
@@ -52,7 +54,7 @@ export class RaceController {
      * @param questionConfig - Configuration for question generation
      */
     constructor(track: Track, questionConfig: QuestionConfig) {
-        const camera = { pos: { x: 0, y: 0 }, zoom: 1 };
+        const camera = { pos: { x: 0, y: 0 }, zoom: 1, rotation: 0 };
         this.gameState = new GameState(camera, track);
         
         // Initialize cars on staggered lanes (player in lane 0, AI in lanes 1, 2, 3...)
@@ -63,6 +65,8 @@ export class RaceController {
         
         this.carController = new CarController(this.gameState);
         this.carController.initializeCars();
+        
+        this.cameraController = new CameraController(this.gameState);
 
         // Create collision service and lane controller
         this.collisionService = new CollisionService(this.gameState);
@@ -93,11 +97,18 @@ export class RaceController {
                 onLaneChangeRight: () => {
                     this.laneController.switchLane(this.gameState.playerCar, 1, this.elapsedMs / 1000);
                 }
-            }
+            },
+            () => this.handleVisibilityLost(),
         );
 
         this.setupQuestionEventListeners();
         this.clock = new GameClock(ANIMATION_TICK);
+    }
+
+    private handleVisibilityLost(): void {
+        if (this.isRunning && !this.gameState.paused) {
+            this.pause();
+        }
     }
 
     /**
@@ -151,6 +162,7 @@ export class RaceController {
         
         // Replace with the loaded game state
         controller.gameState = gameState;
+        controller.cameraController = new CameraController(gameState);
         controller.carController = new CarController(gameState);
         controller.carController.initializeCars();
         
@@ -214,8 +226,8 @@ export class RaceController {
             events.emit("RaceFinished", {});
         }
 
-        const pos = this.gameState.track.posAt(this.gameState.playerCar.s);
-        this.gameState.updateCamera({ pos, zoom: this.gameState.camera.zoom });
+        const playerCar = this.gameState.playerCar;
+        this.cameraController.update(dt, playerCar, this.gameState.track);
     }
 
     /**
