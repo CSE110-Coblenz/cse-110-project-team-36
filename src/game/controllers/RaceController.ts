@@ -5,6 +5,7 @@ import { CarController } from "./CarController";
 import { CameraController } from "./CameraController";
 import { LaneController } from "./LaneController";
 import { CollisionController } from "./CollisionController";
+import { SlipController } from "./SlipController";
 import { QuestionManager } from "../managers/QuestionManager";
 import type { QuestionConfig } from "../managers/QuestionManager";
 import { QuestionStatsManager } from "../managers/QuestionStatsManager";
@@ -15,6 +16,7 @@ import { ListenerController } from "./ListenerController";
 import { QuestionController } from "./QuestionController";
 import { ANIMATION_TICK } from "../../const";
 import { updateUserStats } from "../../services/localStorage";
+import type { RaceConfig } from "../config/types";
 import { 
     serializeGameState, 
     deserializeGameState, 
@@ -37,6 +39,7 @@ export class RaceController {
     private cameraController: CameraController;
     private laneController: LaneController;
     private collisionController: CollisionController;
+    private slipController: SlipController;
     private questionManager: QuestionManager;
     private statsManager: QuestionStatsManager;
     private questionController: QuestionController;
@@ -52,8 +55,9 @@ export class RaceController {
      * 
      * @param track - The track to initialize the race controller on
      * @param questionConfig - Configuration for question generation
+     * @param raceConfig - Race configuration (includes physics config)
      */
-    constructor(track: Track, questionConfig: QuestionConfig) {
+    constructor(track: Track, questionConfig: QuestionConfig, raceConfig: RaceConfig) {
         const camera = { pos: { x: 0, y: 0 }, zoom: 1, rotation: 0 };
         this.gameState = new GameState(camera, track);
         
@@ -63,7 +67,7 @@ export class RaceController {
         this.gameState.addCar(new Car(-100, '#ef4444', 40, 22, 2)); // AI car 2
         this.gameState.addCar(new Car(-200, '#ef4444', 40, 22, 3)); // AI car 3
         
-        this.carController = new CarController(this.gameState);
+        this.carController = new CarController(this.gameState, raceConfig);
         this.carController.initializeCars();
         
         this.cameraController = new CameraController(this.gameState);
@@ -74,12 +78,16 @@ export class RaceController {
             this.carController
         );
         
-        // Create collision service with dependencies
+        // Create collision controller with dependencies
         this.collisionController = new CollisionController(
             this.gameState,
             this.laneController,
-            this.carController
+            this.carController,
+            raceConfig
         );
+
+        // Create slip controller
+        this.slipController = new SlipController(this.gameState, raceConfig);
 
         this.questionManager = new QuestionManager(questionConfig);
         this.statsManager = new QuestionStatsManager();
@@ -158,17 +166,18 @@ export class RaceController {
      * 
      * @param gameState - The saved game state
      * @param questionConfig - Configuration for question generation
+     * @param raceConfig - Race configuration (includes physics config)
      * @returns A new RaceController with the loaded state
      */
-    static fromGameState(gameState: GameState, questionConfig: QuestionConfig): RaceController {
+    static fromGameState(gameState: GameState, questionConfig: QuestionConfig, raceConfig: RaceConfig): RaceController {
         // Create a dummy track for the constructor, then replace with loaded state
         const dummyTrack = Track.fromJSON({ version: 1, numLanes: 4, laneWidth: 10, points: [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 0, y: 1 }] });
-        const controller = new RaceController(dummyTrack, questionConfig);
+        const controller = new RaceController(dummyTrack, questionConfig, raceConfig);
         
         // Replace with the loaded game state
         controller.gameState = gameState;
         controller.cameraController = new CameraController(gameState);
-        controller.carController = new CarController(gameState);
+        controller.carController = new CarController(gameState, raceConfig);
         controller.carController.initializeCars();
         
         // Recreate lane controller first
@@ -177,12 +186,16 @@ export class RaceController {
             controller.carController
         );
         
-        // Recreate collision service with dependencies
+        // Recreate collision controller with dependencies
         controller.collisionController = new CollisionController(
             gameState,
             controller.laneController,
-            controller.carController
+            controller.carController,
+            raceConfig
         );
+
+        // Recreate slip controller
+        controller.slipController = new SlipController(gameState, raceConfig);
         
         // Recreate listener controller with lane change callbacks
         controller.listenerController = new ListenerController(
@@ -224,6 +237,12 @@ export class RaceController {
             this.collisionController.handleAllCollisions(cars, currentGameTime);
             
             this.carController.step(dt);
+            
+            // Update slip effects for all cars
+            this.slipController.updateAllSlips(cars, dt);
+            
+            this.gameState.updateSkidMarks(dt);
+            
             this.elapsedMs += dt * 1000;
         }
 
@@ -507,11 +526,12 @@ export class RaceController {
      * 
      * @param jsonString - The serialized game state
      * @param questionConfig - Configuration for question generation
+     * @param raceConfig - Race configuration (includes physics config)
      * @returns A new RaceController with the loaded state
      */
-    static loadFromString(jsonString: string, questionConfig: QuestionConfig): RaceController {
+    static loadFromString(jsonString: string, questionConfig: QuestionConfig, raceConfig: RaceConfig): RaceController {
         const gameState = deserializeGameState(jsonString);
-        return RaceController.fromGameState(gameState, questionConfig);
+        return RaceController.fromGameState(gameState, questionConfig, raceConfig);
     }
 
     /**
@@ -527,15 +547,16 @@ export class RaceController {
      * Load game state from localStorage
      * 
      * @param questionConfig - Configuration for question generation
+     * @param raceConfig - Race configuration (includes physics config)
      * @param slotName - The name of the save slot (default: 'default')
      * @returns A new RaceController with the loaded state, or null if no save exists
      */
-    static loadFromLocalStorage(questionConfig: QuestionConfig, slotName: string = 'default'): RaceController | null {
+    static loadFromLocalStorage(questionConfig: QuestionConfig, raceConfig: RaceConfig, slotName: string = 'default'): RaceController | null {
         const gameState = loadGameFromLocalStorage(slotName);
         if (!gameState) {
             return null;
         }
-        return RaceController.fromGameState(gameState, questionConfig);
+        return RaceController.fromGameState(gameState, questionConfig, raceConfig);
     }
 
     /**

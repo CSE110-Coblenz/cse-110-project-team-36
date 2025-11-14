@@ -2,6 +2,7 @@ import type { GameState } from '../models/game-state';
 import type { Car } from '../models/car';
 import type { LaneController } from './LaneController';
 import type { CarController } from './CarController';
+import type { PhysicsConfig } from '../config/types';
 
 /**
  * Collision controller for detecting collisions between cars
@@ -12,7 +13,8 @@ export class CollisionController {
     constructor(
         private gameState: GameState,
         private laneController: LaneController,
-        private carController: CarController
+        private carController: CarController,
+        private physicsConfig: PhysicsConfig
     ) {
         this.trackLength = this.gameState.track.length;
     }
@@ -217,7 +219,7 @@ export class CollisionController {
         const mergingCar = car1Changing ? car1 : (car2Changing ? car2 : null);
         const stationaryCar = car1Changing ? car2 : (car2Changing ? car1 : null);
 
-        this.carController.applyCrashEffects({ rear, front });
+        this.applyCrashEffects({ rear, front });
 
         if (mergingCar && stationaryCar) {
             this.carController.applyPenalty(stationaryCar, 0.4);
@@ -243,11 +245,34 @@ export class CollisionController {
     }): void {
         const { rear, front } = collision;
         const track = this.gameState.track;
-        this.carController.applyCrashEffects({ rear, front });
+        this.applyCrashEffects({ rear, front });
         const separationDistance = (rear.carLength + front.carLength) / 2 + 1e-3;
         const epsilon = 1e-1;
         front.s = track.wrapS(front.s + epsilon);
         rear.s = track.wrapS(front.s - separationDistance);
+    }
+
+    /**
+     * Apply crash effects (velocity, slip, rewards) without position separation
+     * Used for lane-change collisions where only lateral position should change
+     * 
+     * @param pair - The collision pair
+     */
+    public applyCrashEffects(pair: { rear: Car; front: Car }): void {
+        const { rear, front } = pair;
+
+        const originalRearV = rear.v;
+        rear.v = this.physicsConfig.vMin;
+        rear.r = 0;
+        this.carController.resetPendingRewards(rear);
+        rear.slipFactor = Math.min(1, rear.slipFactor + 0.8);
+
+        const momentum = originalRearV * rear.carLength;
+        const speedBump = (momentum * this.physicsConfig.momentumTransfer) / front.carLength;
+        front.v = Math.min(front.v + speedBump, this.physicsConfig.vMax * 1.5);
+        front.r = 0;
+        this.carController.resetPendingRewards(front);
+        front.slipFactor = Math.min(1, front.slipFactor + 0.8);
     }
 }
 

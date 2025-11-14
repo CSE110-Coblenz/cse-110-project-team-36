@@ -6,6 +6,7 @@ import { Track, TrackJSON } from '../../src/game/models/track';
 import { Car } from '../../src/game/models/car';
 import { GameState } from '../../src/game/models/game-state';
 import { Camera } from '../../src/game/types';
+import type { PhysicsConfig, RaceConfig } from '../../src/game/config/types';
 
 /**
  * Creates a simple rectangular test track
@@ -206,4 +207,37 @@ export function validateSerializedGameState(serialized: any) {
 
     validateSerializedTrack(serialized.track);
     serialized.cars.forEach(validateSerializedCar);
+}
+
+/**
+ * Creates a default physics config for testing
+ */
+export function createDefaultPhysicsConfig(): PhysicsConfig {
+    return {
+        vMin: 5,
+        vMax: 500,
+        aBase: 0,
+        tauA: 0.5,
+        beta: 30,
+        vBonus: 10,
+        kappaEps: 0.001,
+        vKappaScale: 10,
+        slipDecay: 0.5,
+        slipWobbleAmp: 25,
+        slipWobbleFreq: 2,
+        baseMu: 0.8,
+        slipVelocityDecay: 8,
+        momentumTransfer: 0.3,
+        kKappaBrake: 10
+    };
+}
+
+/**
+ * Creates a default race config for testing
+ */
+export function createDefaultRaceConfig(): RaceConfig {
+    return {
+        ...createDefaultPhysicsConfig(),
+        trackFile: 'track1.json'
+    };
 }

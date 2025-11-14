@@ -5,7 +5,7 @@
 import { CarController } from '../../../src/game/controllers/CarController';
 import { Car } from '../../../src/game/models/car';
 import { GameState } from '../../../src/game/models/game-state';
-import { createSimpleTestTrack, createComplexTestTrack } from '../../utils/test-helpers';
+import { createSimpleTestTrack, createComplexTestTrack, createDefaultPhysicsConfig } from '../../utils/test-helpers';
 
 describe('CarController', () => {
     let gameState: GameState;
@@ -15,12 +15,12 @@ describe('CarController', () => {
         const track = createSimpleTestTrack();
         const camera = { pos: { x: 0, y: 0 }, zoom: 1, rotation: 0 };
         gameState = new GameState(camera, track);
-        controller = new CarController(gameState);
+        controller = new CarController(gameState, createDefaultPhysicsConfig());
     });
 
     describe('Initialization', () => {
-        it('should accept GameState in constructor', () => {
-            const newController = new CarController(gameState);
+        it('should accept GameState and PhysicsConfig in constructor', () => {
+            const newController = new CarController(gameState, createDefaultPhysicsConfig());
             expect(newController).toBeDefined();
             expect(newController.getParams()).toBeDefined();
         });
@@ -283,7 +283,7 @@ describe('CarController', () => {
             const complexTrack = createComplexTestTrack();
             const complexCamera = { pos: { x: 0, y: 0 }, zoom: 1, rotation: 0 };
             const complexGameState = new GameState(complexCamera, complexTrack);
-            const complexController = new CarController(complexGameState);
+            const complexController = new CarController(complexGameState, createDefaultPhysicsConfig());
 
             const car = new Car();
             complexGameState.addPlayerCar(car);
@@ -313,7 +313,7 @@ describe('CarController', () => {
             const complexTrack = createComplexTestTrack();
             const complexCamera = { pos: { x: 0, y: 0 }, zoom: 1, rotation: 0 };
             const complexGameState = new GameState(complexCamera, complexTrack);
-            const complexController = new CarController(complexGameState);
+            const complexController = new CarController(complexGameState, createDefaultPhysicsConfig());
 
             const car = new Car();
             complexGameState.addPlayerCar(car);
