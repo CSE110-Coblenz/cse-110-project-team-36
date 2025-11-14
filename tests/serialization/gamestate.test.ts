@@ -17,6 +17,7 @@ import { Track, TrackJSON } from '../../src/game/models/track';
 import { Camera } from '../../src/game/types';
 import { RaceController } from '../../src/game/controllers/RaceController';
 import { QuestionTopic, QuestionDifficulty } from '../../src/game/models/question';
+import { createDefaultRaceConfig } from '../utils/test-helpers';
 
 describe('GameState Serialization', () => {
     const createTestGameState = (): GameState => {
@@ -256,7 +257,7 @@ describe('GameState Serialization', () => {
                 topic: QuestionTopic.MIXED,
                 difficulty: QuestionDifficulty.MEDIUM
             };
-            const raceController = new RaceController(track, questionConfig);
+            const raceController = new RaceController(track, questionConfig, createDefaultRaceConfig());
 
             raceController.queueReward(raceController.getGameState().playerCar, 100);
             raceController.queueRewardByIndex(1, 50); // AI car
@@ -264,7 +265,7 @@ describe('GameState Serialization', () => {
             raceController.step(1 / 60);
 
             const jsonString = raceController.saveToString();
-            const loadedController = RaceController.loadFromString(jsonString, questionConfig);
+            const loadedController = RaceController.loadFromString(jsonString, questionConfig, createDefaultRaceConfig());
 
             const originalPlayerReward = raceController.getGameState().playerCar.r;
             const loadedPlayerReward = loadedController.getGameState().playerCar.r;

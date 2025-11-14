@@ -62,7 +62,11 @@ export class ConfigController {
     /**
      * Validate that a config has all required physics fields
      */
-    private static validatePhysicsConfig(config: any): asserts config is PhysicsConfig {
+    private static validatePhysicsConfig(config: unknown): asserts config is PhysicsConfig {
+        if (typeof config !== 'object' || config === null) {
+            throw new Error('Invalid physics config: must be an object');
+        }
+        
         const requiredFields = [
             'vMin', 'vMax', 'aBase', 'tauA', 'beta', 'vBonus',
             'kappaEps', 'vKappaScale', 'slipDecay', 'slipWobbleAmp',
@@ -70,8 +74,9 @@ export class ConfigController {
             'momentumTransfer', 'kKappaBrake'
         ];
         
+        const configObj = config as Record<string, unknown>;
         for (const field of requiredFields) {
-            if (typeof config[field] !== 'number') {
+            if (typeof configObj[field] !== 'number') {
                 throw new Error(`Invalid physics config: missing or invalid field '${field}'`);
             }
         }
@@ -80,8 +85,13 @@ export class ConfigController {
     /**
      * Validate that a race config has all required fields
      */
-    private static validateRaceConfig(config: any): asserts config is RaceConfig {
-        if (typeof config.trackFile !== 'string') {
+    private static validateRaceConfig(config: unknown): asserts config is RaceConfig {
+        if (typeof config !== 'object' || config === null) {
+            throw new Error('Invalid race config: must be an object');
+        }
+        
+        const configObj = config as Record<string, unknown>;
+        if (typeof configObj.trackFile !== 'string') {
             throw new Error('Invalid race config: missing or invalid field \'trackFile\'');
         }
         this.validatePhysicsConfig(config);
