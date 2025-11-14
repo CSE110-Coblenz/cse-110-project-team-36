@@ -7,11 +7,9 @@ import { Car as CarClass } from '../game/models/car';
 import { GameState as GameStateClass } from '../game/models/game-state';
 
 export interface SerializedCar {
-    sProg: number;
-    vProg: number;
     r: number;
-    sPhys: number;
-    vPhys: number;
+    s: number;
+    v: number;
     lateral: number;
     color: string;
     carLength: number;
@@ -23,7 +21,7 @@ export interface SerializedCar {
     laneChangeStartOffset: number | null;
     laneChangeStartVelocity: number | null;
     lapCount: number;
-    lastSProg: number;
+    lastS: number;
     crossedFinish: boolean;
 }
 

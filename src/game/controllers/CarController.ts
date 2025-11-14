@@ -21,22 +21,25 @@ export class CarController {
     private pendingRewards = new Map<Car, number>();
 
     private vMin: number = 5;               // v_min
-    private vMax: number = 500;             // v_max
+    private vMax: number = 500;            // v_max
     private aBase: number = 0;              // a_base
     private tauA: number = 0.5;             // τ_a (reward smoothing time constant, seconds)
     private beta: number = 30;              // β in a_decay(v) = -β·1_{v>v_min}
-    private kv: number = 5;                 // k_v in a_t = k_v (v_des - v_phys)
-    private kp: number = 2;                 // k_p in v_des = clip(v_min + k_p e_s, ...)
+    private kv: number = 5;                 // (no longer used directly; kept for compatibility)
+    private kp: number = 2;                 // (no longer used directly; kept for compatibility)
     private vBonus: number = 10;            // v_bonus
-    private mu: number = 0.8;               // μ (effective friction coefficient)
+    private mu: number = 0.8;               // μ (not used; baseMu is used instead)
     private kappaEps: number = 1e-3;        // ε (curvature floor to avoid div by 0)
     private vKappaScale: number = 10;       // γ_κ (scale knob; spec addendum)
     private slipDecay: number = 0.5;        // slip decay rate per second (slower)
     private slipWobbleAmp: number = 25;     // wobble amplitude in degrees (stronger)
     private slipWobbleFreq: number = 2;     // wobble frequency in Hz (slower)
     private baseMu: number = 0.8;           // base friction coefficient
-    private slipVelocityDecay: number = 8;  // how quickly slip forces vProg to vMin
+    private slipVelocityDecay: number = 8;  // how quickly slip forces v down to vMin
     private momentumTransfer: number = 0.3; // how much momentum is transferred to the front car in crash
+
+    // Soft braking gain for curvature overspeed: a_brake = -kKappaBrake * max(0, vTemp - vCap)
+    private kKappaBrake: number = 10;
 
     constructor(gameState: GameState) {
         this.gameState = gameState;
@@ -67,76 +70,91 @@ export class CarController {
     }
 
     /**
-     * Update a single car's physics
+     * Update a single car: laps + unified physics + slip/skid visuals.
      * @param car - The car to update
      * @param dt - The time step in seconds
      * @param track - The track to update the car on
      */
     private updateCar(car: Car, dt: number, track: Track): void {
+        // Laps based on authoritative along-track state (s)
         car.updateLaps();
 
-        const rPrev = car.r; // r_{k-1}
-        // a_decay(v) = -β for v > v_min; else 0
-        const aDecay = car.vProg > this.vMin ? -this.beta : 0;
-        // Apply slip deceleration to reduce vProg to vMin quickly
-        const slipDecel = car.slipFactor > 0 ? -this.slipVelocityDecay * (car.vProg - this.vMin) : 0;
-        // v_{k+1} = v_k + (a_base + r_{k-1} + a_decay(v_k) + slip_decel) * dt
-        car.vProg += (this.aBase + rPrev + aDecay + slipDecel) * dt;
-        // v_prog clipped to [v_min, v_max]
-        const vProgClipped = Math.max(this.vMin, Math.min(this.vMax, car.vProg)); 
-        // Δs = min(v_prog_clipped * dt, Δs_max)
-        const deltaS = vProgClipped * dt; 
-        // s_{k+1} = wrap(s_k + Δs)
-        car.sProg = track.wrapS(car.sProg + deltaS); 
-        // rho = exp(-dt / τ_a)
-        const rho = Math.exp(-dt / this.tauA); 
-        // r_{k+1} = rho * r_k
-        car.r = rho * car.r;
-        // A_k
-        const Ak = this.pendingRewards.get(car) ?? 0; 
-        if (Ak !== 0) {
-            // r_{k+1} = r_k + A_k
-            car.r += Ak; 
-            this.pendingRewards.set(car, 0);
-        }
-    
-        this.updatePhysicalState(car, dt, track);
+        // Unified physics (single-state v/s)
+        this.updateCarPosition(car, dt, track);
+
+        // Slip decay + wobble + skidmarks
         this.updateSlip(car, dt);
     }
-    
 
     /**
-     * Update physical rendering state to track progress state
+     * Unified car physics: single authoritative along-track state using v/s.
+     * Implements:
+     *   - Reward smoothing into r
+     *   - Base + reward + decay + slip acceleration
+     *   - Curvature-based speed cap with soft braking
+     *   - Single progress integration on s
      * 
      * @param car - The car to update
      * @param dt - The time step in seconds
      * @param track - The track to update the car on
      */
-    private updatePhysicalState(car: Car, dt: number, track: Track): void {
-        // Precomputed curvature lookup
-        const kappa = track.curvatureAt(car.sPhys);
-        // Apply slip to friction: μ_effective = μ * (1 - slipFactor)
-        const muEffective = this.baseMu * (1 - car.slipFactor * 0.6); // slip reduces friction by 60%
-        // v_kappa_raw = sqrt(μ * g / (|κ| + ε))
-        const vKappaRaw = Math.sqrt((muEffective * 9.81) / (Math.abs(kappa) + this.kappaEps));
-        // v_kappa_max = γ_κ * v_kappa_raw
+    private updateCarPosition(car: Car, dt: number, track: Track): void {
+        const v = car.v;
+        const s = car.s;
+
+        // 1. Reward smoothing: r_{k+1} = ρ r_k + Σ A_k
+        const rho = Math.exp(-dt / this.tauA);
+        car.r = rho * car.r;
+
+        // 2. Consume pending reward impulse(s): add A_k into r
+        const Ak = this.pendingRewards.get(car) ?? 0;
+        if (Ak !== 0) {
+            car.r += Ak;
+            this.pendingRewards.set(car, 0);
+        }
+
+        // 3. Base + reward + decay + slip accelerations (unconstrained)
+        // Decay: a_decay(v) = -β 1_{v > vMin}
+        const aDecay = v > this.vMin ? -this.beta : 0;
+
+        // Slip extra deceleration toward vMin
+        const slipDecel = car.slipFactor > 0 ? -this.slipVelocityDecay * (v - this.vMin) : 0;
+
+        // Unconstrained acceleration
+        const aUn =
+            this.aBase +       // baseline
+            car.r +            // smoothed reward
+            aDecay +           // decay toward vMin
+            slipDecel;         // slip penalties
+
+        // 4. Curvature-based speed cap with effective friction depending on slip
+        const kappa = track.curvatureAt(s);
+        const muEffective = this.baseMu * (1 - car.slipFactor * 0.6);
+        const vKappaRaw = Math.sqrt(
+            (muEffective * 9.81) / (Math.abs(kappa) + this.kappaEps)
+        );
         const vKappaMax = this.vKappaScale * vKappaRaw;
-        // L = track.length
-        const L = track.length;
-        // e_s = ((s_prog - s_phys + L / 2) % L + L) % L - L / 2
-        const eS = ((car.sProg - car.sPhys + L / 2) % L + L) % L - L / 2;
-        // v_des_unclipped = v_min + k_p * e_s
-        const vDesUnclipped = this.vMin + this.kp * eS;
-        // v_des = max(0, min(v_des_unclipped, v_kappa_max + v_bonus))
-        const vDes = Math.max(0, Math.min(vDesUnclipped, vKappaMax + this.vBonus));
-        // a_t = k_v * (v_des - v_phys)
-        const aT = this.kv * (vDes - car.vPhys);
-        // v_phys_{k+1} = v_phys_k + a_t * dt
-        car.vPhys += aT * dt;
-        // v_phys clipped to 0
-        car.vPhys = Math.max(0, car.vPhys);
-        // s_phys_{k+1} = wrap(s_phys_k + v_phys_k * dt)
-        car.sPhys = track.wrapS(car.sPhys + car.vPhys * dt);
+        const vCap = vKappaMax + this.vBonus;
+
+        // 5. Soft braking:
+        //    vTemp = v + aUn * dt
+        //    a_brake = -kKappaBrake * max(0, vTemp - vCap)
+        //    vNext = clamp(vTemp + a_brake * dt, 0, vMax)
+        const vTemp = v + aUn * dt;
+
+        const overspeed = Math.max(0, vTemp - vCap);
+        const aBrake = -this.kKappaBrake * overspeed;
+        let vNext = vTemp + aBrake * dt;
+
+        // Global clamps
+        vNext = Math.max(0, Math.min(vNext, this.vMax));
+
+        // 6. Optionally enforce a floor for motion; vUsed is what we integrate s with
+        const vUsed = Math.max(this.vMin, vNext);
+
+        // 7. Commit back to car (authoritative state)
+        car.v = vNext;
+        car.s = track.wrapS(s + vUsed * dt);
     }
 
     /**
@@ -206,15 +224,15 @@ export class CarController {
         
         // Update wobble based on slip factor
         if (car.slipFactor > 0) {
-            const wobblePhase = this.slipWobbleFreq * car.sPhys * 0.1;
+            const wobblePhase = this.slipWobbleFreq * car.s * 0.1;
             car.slipWobble = car.slipFactor * this.slipWobbleAmp * Math.sin(wobblePhase);
             
             const skidMark = this.gameState.getSkidMarks(car);
             if (skidMark) {
                 // TODO: clean this up into utils
-                const p = track.posAt(car.sPhys);
-                const t = track.tangentAt(car.sPhys);
-                const n = track.normalAt(car.sPhys);
+                const p = track.posAt(car.s);
+                const t = track.tangentAt(car.s);
+                const n = track.normalAt(car.s);
                 const laneOffset = car.lateral;
                 const centerPos = {
                     x: p.x + n.x * laneOffset,
@@ -274,31 +292,22 @@ export class CarController {
         const { rear, front } = pair;
         const track = this.gameState.track;
 
-        // Instantaneous speed effects
-        const originalRearV = rear.vProg;
-        rear.vProg = this.vMin;
-        rear.vPhys = 0;
+        const originalRearV = rear.v;
+        rear.v = this.vMin;
         rear.r = 0;
         this.resetPendingRewards(rear);
         rear.slipFactor = Math.min(1, rear.slipFactor + 0.8);
 
-        // Momentum transfer to front
         const momentum = originalRearV * rear.carLength;
-        const speedBump = (momentum * this.momentumTransfer) / front.carLength; // use same 30%
-        front.vProg = Math.min(front.vProg + speedBump, this.vMax * 1.5);
-        front.vPhys = 0;
+        const speedBump = (momentum * this.momentumTransfer) / front.carLength;
+        front.v = Math.min(front.v + speedBump, this.vMax * 1.5);
         front.r = 0;
         this.resetPendingRewards(front);
         front.slipFactor = Math.min(1, front.slipFactor + 0.8);
 
-        // Resolve overlap: place rear behind front by separation distance
         const separationDistance = (rear.carLength + front.carLength) / 2 + 1e-3;
         const epsilon = 1e-1; // small forward nudge for front
-        front.sPhys = track.wrapS(front.sPhys + epsilon);
-        rear.sPhys = track.wrapS(front.sPhys - separationDistance);
-
-        // Sync progress to avoid re-pull via e_s
-        rear.sProg = rear.sPhys;
-        front.sProg = front.sPhys;
+        front.s = track.wrapS(front.s + epsilon);
+        rear.s = track.wrapS(front.s - separationDistance);
     }
 }

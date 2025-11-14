@@ -136,10 +136,10 @@ export class CameraController {
      * @param track - The track to get position and tangent from
      */
     update(dt: number, playerCar: Car, track: Track): void {
-        const pos = track.posAt(playerCar.sPhys);
+        const pos = track.posAt(playerCar.s);
         
         // Calculate desired rotation from track tangent (in radians)
-        const tangent = track.tangentAt(playerCar.sPhys);
+        const tangent = track.tangentAt(playerCar.s);
         this.desiredRotation = Math.atan2(tangent.y, tangent.x);
         
         // Get current camera rotation

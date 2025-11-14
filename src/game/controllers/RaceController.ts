@@ -45,6 +45,7 @@ export class RaceController {
     private isRunning: boolean = false;
     private clock: GameClock;
     private listenerController: ListenerController;
+    private raceCompleted: boolean = false;
 
     /**
      * Constructor
@@ -202,7 +203,7 @@ export class RaceController {
      * @param dt - The time step in seconds
      */
     step(dt: number) {
-        if (!this.gameState.paused) {
+        if (!this.gameState.paused && !this.raceCompleted) {
             const currentGameTime = this.elapsedMs / 1000;
             
             this.laneController.updateLaneChanges(currentGameTime);
@@ -218,6 +219,13 @@ export class RaceController {
             this.carController.step(dt);
             this.elapsedMs += dt * 1000;
         }
+
+        if(this.gameState.playerCar.hasFinished()) {
+            this.raceCompleted = true;
+            this.stop();
+            events.emit("RaceFinished", {});
+        }
+
         const playerCar = this.gameState.playerCar;
         this.cameraController.update(dt, playerCar, this.gameState.track);
     }
@@ -247,15 +255,6 @@ export class RaceController {
      */
     getQuestionController(): QuestionController {
         return this.questionController;
-    }
-
-    /**
-     * Get the lane controller
-     * 
-     * @returns The lane controller
-     */
-    getLaneController(): LaneController {
-        return this.laneController;
     }
 
     /**
