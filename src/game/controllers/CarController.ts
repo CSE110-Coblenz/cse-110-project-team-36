@@ -21,14 +21,11 @@ export class CarController {
     private pendingRewards = new Map<Car, number>();
 
     private vMin: number = 5;               // v_min
-    private vMax: number = 500;            // v_max
+    private vMax: number = 500;             // v_max
     private aBase: number = 0;              // a_base
     private tauA: number = 0.5;             // τ_a (reward smoothing time constant, seconds)
     private beta: number = 30;              // β in a_decay(v) = -β·1_{v>v_min}
-    private kv: number = 5;                 // (no longer used directly; kept for compatibility)
-    private kp: number = 2;                 // (no longer used directly; kept for compatibility)
     private vBonus: number = 10;            // v_bonus
-    private mu: number = 0.8;               // μ (not used; baseMu is used instead)
     private kappaEps: number = 1e-3;        // ε (curvature floor to avoid div by 0)
     private vKappaScale: number = 10;       // γ_κ (scale knob; spec addendum)
     private slipDecay: number = 0.5;        // slip decay rate per second (slower)
@@ -76,23 +73,13 @@ export class CarController {
      * @param track - The track to update the car on
      */
     private updateCar(car: Car, dt: number, track: Track): void {
-        // Laps based on authoritative along-track state (s)
         car.updateLaps();
-
-        // Unified physics (single-state v/s)
         this.updateCarPosition(car, dt, track);
-
-        // Slip decay + wobble + skidmarks
         this.updateSlip(car, dt);
     }
 
     /**
-     * Unified car physics: single authoritative along-track state using v/s.
-     * Implements:
-     *   - Reward smoothing into r
-     *   - Base + reward + decay + slip acceleration
-     *   - Curvature-based speed cap with soft braking
-     *   - Single progress integration on s
+     * Car position updating
      * 
      * @param car - The car to update
      * @param dt - The time step in seconds
@@ -192,12 +179,16 @@ export class CarController {
             aBase: this.aBase,
             tauA: this.tauA,
             beta: this.beta,
-            kv: this.kv,
-            kp: this.kp,
             vBonus: this.vBonus,
-            mu: this.mu,
             kappaEps: this.kappaEps,
             vKappaScale: this.vKappaScale,
+            slipDecay: this.slipDecay,
+            slipWobbleAmp: this.slipWobbleAmp,
+            slipWobbleFreq: this.slipWobbleFreq,
+            baseMu: this.baseMu,
+            slipVelocityDecay: this.slipVelocityDecay,
+            momentumTransfer: this.momentumTransfer,
+            kKappaBrake: this.kKappaBrake,
         };
     }
 
@@ -286,11 +277,13 @@ export class CarController {
     }
 
     /**
-     * Apply crash effects for a rear/front pair and resolve overlap.
+     * Apply crash effects (velocity, slip, rewards) without position separation
+     * Used for lane-change collisions where only lateral position should change
+     * 
+     * @param pair - The collision pair
      */
-    public crash(pair: { rear: Car; front: Car }): void {
+    public applyCrashEffects(pair: { rear: Car; front: Car }): void {
         const { rear, front } = pair;
-        const track = this.gameState.track;
 
         const originalRearV = rear.v;
         rear.v = this.vMin;
@@ -304,10 +297,5 @@ export class CarController {
         front.r = 0;
         this.resetPendingRewards(front);
         front.slipFactor = Math.min(1, front.slipFactor + 0.8);
-
-        const separationDistance = (rear.carLength + front.carLength) / 2 + 1e-3;
-        const epsilon = 1e-1; // small forward nudge for front
-        front.s = track.wrapS(front.s + epsilon);
-        rear.s = track.wrapS(front.s - separationDistance);
     }
 }

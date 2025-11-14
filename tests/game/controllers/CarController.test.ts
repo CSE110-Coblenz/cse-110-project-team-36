@@ -46,12 +46,16 @@ describe('CarController', () => {
                 aBase: 0,
                 tauA: 0.5,
                 beta: 30,
-                kv: 5,
-                kp: 2,
                 vBonus: 10,
-                mu: 0.8,
                 kappaEps: 0.001,
                 vKappaScale: 10,
+                slipDecay: 0.5,
+                slipWobbleAmp: 25,
+                slipWobbleFreq: 2,
+                baseMu: 0.8,
+                slipVelocityDecay: 8,
+                momentumTransfer: 0.3,
+                kKappaBrake: 10,
             });
         });
 
@@ -60,7 +64,13 @@ describe('CarController', () => {
                 vMin: 10,
                 vMax: 60,
                 beta: 40,
-                kv: 7,
+                slipDecay: 0.2,
+                slipWobbleAmp: 15,
+                slipWobbleFreq: 1.5,
+                baseMu: 0.7,
+                slipVelocityDecay: 6,
+                momentumTransfer: 0.25,
+                kKappaBrake: 8,
             };
 
             controller.setParams(newParams);
@@ -69,9 +79,7 @@ describe('CarController', () => {
             expect(params.vMin).toBe(10);
             expect(params.vMax).toBe(60);
             expect(params.beta).toBe(40);
-            expect(params.kv).toBe(7);
             expect(params.tauA).toBe(0.5);
-            expect(params.kp).toBe(2);
         });
 
         it('should handle partial parameter updates', () => {
@@ -82,6 +90,13 @@ describe('CarController', () => {
             expect(params.vMin).toBe(15);
             expect(params.vMax).toBe(500);
             expect(params.beta).toBe(30);
+            expect(params.slipDecay).toBe(0.5);
+            expect(params.slipWobbleAmp).toBe(25);
+            expect(params.slipWobbleFreq).toBe(2);
+            expect(params.baseMu).toBe(0.8);
+            expect(params.slipVelocityDecay).toBe(8);
+            expect(params.momentumTransfer).toBe(0.3);
+            expect(params.kKappaBrake).toBe(10);
         });
     });
 

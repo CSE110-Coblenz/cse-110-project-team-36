@@ -4,7 +4,7 @@ import { Car } from "../models/car";
 import { CarController } from "./CarController";
 import { CameraController } from "./CameraController";
 import { LaneController } from "./LaneController";
-import { CollisionService } from "../services/CollisionService";
+import { CollisionController } from "./CollisionController";
 import { QuestionManager } from "../managers/QuestionManager";
 import type { QuestionConfig } from "../managers/QuestionManager";
 import { QuestionStatsManager } from "../managers/QuestionStatsManager";
@@ -36,7 +36,7 @@ export class RaceController {
     private carController: CarController;
     private cameraController: CameraController;
     private laneController: LaneController;
-    private collisionService: CollisionService;
+    private collisionController: CollisionController;
     private questionManager: QuestionManager;
     private statsManager: QuestionStatsManager;
     private questionController: QuestionController;
@@ -68,12 +68,17 @@ export class RaceController {
         
         this.cameraController = new CameraController(this.gameState);
 
-        // Create collision service and lane controller
-        this.collisionService = new CollisionService(this.gameState);
+        // Create lane controller first
         this.laneController = new LaneController(
             this.gameState,
-            this.carController,
-            this.collisionService
+            this.carController
+        );
+        
+        // Create collision service with dependencies
+        this.collisionController = new CollisionController(
+            this.gameState,
+            this.laneController,
+            this.carController
         );
 
         this.questionManager = new QuestionManager(questionConfig);
@@ -166,12 +171,17 @@ export class RaceController {
         controller.carController = new CarController(gameState);
         controller.carController.initializeCars();
         
-        // Recreate collision service and lane controller with loaded state
-        controller.collisionService = new CollisionService(gameState);
+        // Recreate lane controller first
         controller.laneController = new LaneController(
             gameState,
-            controller.carController,
-            controller.collisionService
+            controller.carController
+        );
+        
+        // Recreate collision service with dependencies
+        controller.collisionController = new CollisionController(
+            gameState,
+            controller.laneController,
+            controller.carController
         );
         
         // Recreate listener controller with lane change callbacks
@@ -209,12 +219,9 @@ export class RaceController {
             this.laneController.updateLaneChanges(currentGameTime);
 
             const cars = Array.from(this.gameState.getCars());
-            this.collisionService.updateLaneIndex(cars, this.laneController);
-
-            const crashPairs = this.collisionService.scanCollisions(cars, this.laneController);
-            for (const pair of crashPairs) {
-                this.carController.crash(pair);
-            }
+            
+            // Handle all collisions in a single unified method call
+            this.collisionController.handleAllCollisions(cars, currentGameTime);
             
             this.carController.step(dt);
             this.elapsedMs += dt * 1000;
