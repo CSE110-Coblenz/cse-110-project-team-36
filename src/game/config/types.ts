@@ -22,10 +22,10 @@ export interface PhysicsConfig {
 
 /**
  * Race configuration interface
- * Extends PhysicsConfig and adds race-specific settings
+ * Master config that contains other configs separately
  */
-export interface RaceConfig extends PhysicsConfig {
-    extends?: string;           // Reference to physics config file (e.g., "config1.json")
+export interface RaceConfig {
+    physics: PhysicsConfig;     // Physics configuration
     trackFile: string;          // Reference to track file (e.g., "track1.json")
 }
 

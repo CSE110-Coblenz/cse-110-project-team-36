@@ -237,7 +237,7 @@ export function createDefaultPhysicsConfig(): PhysicsConfig {
  */
 export function createDefaultRaceConfig(): RaceConfig {
     return {
-        ...createDefaultPhysicsConfig(),
+        physics: createDefaultPhysicsConfig(),
         trackFile: 'track1.json'
     };
 }

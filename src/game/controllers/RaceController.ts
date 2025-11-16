@@ -67,7 +67,7 @@ export class RaceController {
         this.gameState.addCar(new Car(-100, '#ef4444', 40, 22, 2)); // AI car 2
         this.gameState.addCar(new Car(-200, '#ef4444', 40, 22, 3)); // AI car 3
         
-        this.carController = new CarController(this.gameState, raceConfig);
+        this.carController = new CarController(this.gameState, raceConfig.physics);
         this.carController.initializeCars();
         
         this.cameraController = new CameraController(this.gameState);
@@ -83,11 +83,11 @@ export class RaceController {
             this.gameState,
             this.laneController,
             this.carController,
-            raceConfig
+            raceConfig.physics
         );
 
         // Create slip controller
-        this.slipController = new SlipController(this.gameState, raceConfig);
+        this.slipController = new SlipController(this.gameState, raceConfig.physics);
 
         this.questionManager = new QuestionManager(questionConfig);
         this.statsManager = new QuestionStatsManager();
@@ -177,7 +177,7 @@ export class RaceController {
         // Replace with the loaded game state
         controller.gameState = gameState;
         controller.cameraController = new CameraController(gameState);
-        controller.carController = new CarController(gameState, raceConfig);
+        controller.carController = new CarController(gameState, raceConfig.physics);
         controller.carController.initializeCars();
         
         // Recreate lane controller first
@@ -191,11 +191,11 @@ export class RaceController {
             gameState,
             controller.laneController,
             controller.carController,
-            raceConfig
+            raceConfig.physics
         );
 
         // Recreate slip controller
-        controller.slipController = new SlipController(gameState, raceConfig);
+        controller.slipController = new SlipController(gameState, raceConfig.physics);
         
         // Recreate listener controller with lane change callbacks
         controller.listenerController = new ListenerController(

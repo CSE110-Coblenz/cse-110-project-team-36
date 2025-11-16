@@ -1,8 +1,8 @@
 import type { PhysicsConfig, RaceConfig } from '../config/types';
 
 /**
- * Config controller for loading and merging configuration files
- * Handles inheritance from physics configs to race configs
+ * Config controller for loading configuration files
+ * Race configs fully specify their physics config by importing it directly
  */
 export class ConfigController {
     /**
@@ -26,32 +26,14 @@ export class ConfigController {
 
     /**
      * Load a race config from a JSON file
-     * Handles inheritance from physics configs
      * 
      * @param raceFile - Path to the race config file (e.g., "race1.json")
-     * @returns Promise resolving to the loaded RaceConfig with merged physics config
+     * @returns Promise resolving to the loaded RaceConfig
      */
     static async loadRaceConfig(raceFile: string): Promise<RaceConfig> {
         try {
             const raceModule = await import(/* @vite-ignore */ `../../assets/races/${raceFile}.ts`);
             const raceConfig = raceModule.default as RaceConfig;
-                
-            // If extends is specified, load and merge the physics config
-            if (raceConfig.extends) {
-                const physicsConfig = await this.loadPhysicsConfig(raceConfig.extends);
-                // Merge: race config overrides physics config
-                const merged: RaceConfig = {
-                    ...physicsConfig,
-                    ...raceConfig,
-                    // Ensure extends and trackFile are preserved
-                    extends: raceConfig.extends,
-                    trackFile: raceConfig.trackFile
-                };
-                this.validateRaceConfig(merged);
-                return merged;
-            }
-            
-            // If no extends, validate that all physics fields are present
             this.validateRaceConfig(raceConfig);
             return raceConfig;
         } catch (error) {
@@ -94,7 +76,10 @@ export class ConfigController {
         if (typeof configObj.trackFile !== 'string') {
             throw new Error('Invalid race config: missing or invalid field \'trackFile\'');
         }
-        this.validatePhysicsConfig(config);
+        if (!configObj.physics || typeof configObj.physics !== 'object') {
+            throw new Error('Invalid race config: missing or invalid field \'physics\'');
+        }
+        this.validatePhysicsConfig(configObj.physics);
     }
 }
 
