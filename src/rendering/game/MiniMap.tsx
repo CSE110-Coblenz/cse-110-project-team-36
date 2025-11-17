@@ -96,42 +96,41 @@
     };
   });
 
-   // Finish line marker at s = 0 (aligned with track’s world geometry)
-   const finishLine = useMemo(() => {
-     const s = 0;
-     const centerPos = track.posAt(s);
-     const normal = track.normalAt(s);
-     const tangent = track.tangentAt(s);
+   const finishLine = (() => {
+    const s = 0;
+    const centerPos = track.posAt(s);
+    const n = track.normalAt(s);
+    const tangent = track.tangentAt(s);
 
-     const halfWidth = track.width * 0.5;
-     const halfThickness = Math.max(track.width / (track.numLanes * 6), 3);
+    const halfWidth = track.width * 0.5;
+    const halfThickness = Math.max(track.width / (track.numLanes * 6), 3);
 
-     const cornersWorld: Vec2[] = [
-       {
-         x: centerPos.x + normal.x * halfWidth + tangent.x * halfThickness,
-         y: centerPos.y + normal.y * halfWidth + tangent.y * halfThickness,
-       },
-       {
-         x: centerPos.x - normal.x * halfWidth + tangent.x * halfThickness,
-         y: centerPos.y - normal.y * halfWidth + tangent.y * halfThickness,
-       },
-       {
-         x: centerPos.x - normal.x * halfWidth - tangent.x * halfThickness,
-         y: centerPos.y - normal.y * halfWidth - tangent.y * halfThickness,
-       },
-       {
-         x: centerPos.x + normal.x * halfWidth - tangent.x * halfThickness,
-         y: centerPos.y + normal.y * halfWidth - tangent.y * halfThickness,
-       },
-     ];
+    const cornersWorld = [
+      {
+        x: centerPos.x + n.x * halfWidth + tangent.x * halfThickness,
+        y: centerPos.y + n.y * halfWidth + tangent.y * halfThickness,
+      },
+      {
+        x: centerPos.x - n.x * halfWidth + tangent.x * halfThickness,
+        y: centerPos.y - n.y * halfWidth + tangent.y * halfThickness,
+      },
+      {
+        x: centerPos.x - n.x * halfWidth - tangent.x * halfThickness,
+        y: centerPos.y - n.y * halfWidth - tangent.y * halfThickness,
+      },
+      {
+        x: centerPos.x + n.x * halfWidth - tangent.x * halfThickness,
+        y: centerPos.y + n.y * halfWidth - tangent.y * halfThickness,
+      },
+    ];
 
-     const mapped = cornersWorld.map(worldToMini);
-     const d = mapped
-       .map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`)
-       .join(" ") + " Z";
-
-     return d;
-   }, [track, center, scale]);
+    const d: number[] = [];
+    for (const w of cornersWorld) {
+      const p = worldToMini(w);
+      d.push(p.x, p.y);
+    }
+    return d;
+  })();
 
    return (
      <div
