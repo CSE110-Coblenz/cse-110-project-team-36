@@ -2,6 +2,7 @@ import type { Track } from '../models/track';
 import { Car } from '../models/car';
 import type { GameState } from '../models/game-state';
 import type { PhysicsConfig } from '../config/types';
+import { clamp } from '../../utils/math';
 
 /**
  * Reward event interface
@@ -126,7 +127,7 @@ export class CarController {
         let vNext = vTemp + aBrake * dt;
 
         // Global clamps
-        vNext = Math.max(0, Math.min(vNext, this.config.vMax));
+        vNext = clamp(vNext, 0, this.config.vMax);
 
         // 6. Optionally enforce a floor for motion; vUsed is what we integrate s with
         const vUsed = Math.max(this.config.vMin, vNext);

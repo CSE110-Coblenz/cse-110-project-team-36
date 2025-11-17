@@ -21,11 +21,31 @@ export interface PhysicsConfig {
 }
 
 /**
+ * Bot configuration template interface
+ * Defines base statistics and behavior parameters for bot cars
+ * Individual bots are created by scaling these values with a difficulty scalar
+ */
+export interface BotConfig {
+    answerSpeedBase: number;           // Base mean answer speed (seconds)
+    answerSpeedStdDev: number;         // Standard deviation for answer speed
+    accuracyBase: number;              // Base accuracy probability
+    accuracyStdDev: number;            // Standard deviation for accuracy
+    safetyTimeBase: number;            // Base safety time threshold (seconds)
+    safetyTimeStdDev: number;          // Standard deviation for safety time
+}
+
+/**
  * Race configuration interface
  * Master config that contains other configs separately
  */
 export interface RaceConfig {
     physics: PhysicsConfig;     // Physics configuration
     trackFile: string;          // Reference to track file (e.g., "track1.json")
+    botConfig: BotConfig;      // Single bot configuration template (scaled by difficulty at runtime)
+    botDifficultyRanges: [number, number][]; // Array of difficulty ranges for each bot [a, b]
+    initialPositions: number[]; // Array of initial positions for each bot
+    laneIndices: number[]; // Array of lane indices for each bot
+    userCarLaneIndex: number; // Lane index for the user car
+    userCarInitialPosition: number; // Initial position for the user car
 }
 

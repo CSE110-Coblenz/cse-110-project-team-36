@@ -2,12 +2,12 @@
  * Unit tests for Car model
  */
 
-import { Car } from '../../../src/game/models/car';
+import { UserCar } from '../../../src/game/models/user-car';
 
 describe('Car Model', () => {
     describe('Constructor', () => {
         it('should create car with default values', () => {
-            const car = new Car();
+            const car = new UserCar();
 
             expect(car.r).toBe(0);
             expect(car.s).toBe(0);
@@ -25,7 +25,7 @@ describe('Car Model', () => {
             const carLength = 50;
             const carWidth = 30;
 
-            const car = new Car(initialS, color, carLength, carWidth);
+            const car = new UserCar(initialS, color, carLength, carWidth);
 
             expect(car.s).toBe(initialS);
             expect(car.color).toBe(color);
@@ -38,7 +38,7 @@ describe('Car Model', () => {
         });
 
         it('should initialize velocities to vMin', () => {
-            const car = new Car(0, '#test', 40, 22);
+            const car = new UserCar(0, '#test', 40, 22);
             const vMin = 10;
 
             car.initialize(vMin);
@@ -51,7 +51,7 @@ describe('Car Model', () => {
     describe('Lap Tracking', () => {
 
         it('should increment lapCount when crossing finish line (from >90% to <10%)', () => {
-            const car = Car.fromSerializedData({
+            const car = UserCar.fromSerializedData({
                 r: 0,
                 s: 0,
                 v: 0,
@@ -71,7 +71,7 @@ describe('Car Model', () => {
         });
 
         it('should not increment lapCount when crossing finish line if already crossed', () => {
-            const car = Car.fromSerializedData({
+            const car = UserCar.fromSerializedData({
                 r: 0,
                 s: 0,
                 v: 0,
@@ -94,7 +94,7 @@ describe('Car Model', () => {
         });
 
         it('should reset crossedFinish flag after passing 50%', () => {
-            const car = Car.fromSerializedData({
+            const car = UserCar.fromSerializedData({
                 r: 0,
                 s: 0,
                 v: 0,
@@ -124,7 +124,7 @@ describe('Car Model', () => {
         });
 
         it('should update lastS correctly', () => {
-            const car = new Car();
+            const car = new UserCar();
             car.s = 100;
 
             car.updateLaps();
@@ -137,7 +137,7 @@ describe('Car Model', () => {
         });
 
         it('should not increment lap when not crossing finish line', () => {
-            const car = new Car();
+            const car = new UserCar();
             car.s = 100;
             car.lapCount = 5;
 
@@ -148,7 +148,7 @@ describe('Car Model', () => {
         });
 
         it('should handle multiple lap crossings correctly', () => {
-            const car = new Car();
+            const car = new UserCar();
             car.lapCount = 0;
 
             car.s = 950;
@@ -180,7 +180,7 @@ describe('Car Model', () => {
         const trackLength = 1000;
 
         it('should calculate total distance with zero laps', () => {
-            const car = new Car();
+            const car = new UserCar();
             car.s = 250;
             car.lapCount = 0;
 
@@ -190,7 +190,7 @@ describe('Car Model', () => {
         });
 
         it('should calculate total distance with multiple laps', () => {
-            const car = new Car();
+            const car = new UserCar();
             car.s = 300;
             car.lapCount = 3;
 
@@ -200,7 +200,7 @@ describe('Car Model', () => {
         });
 
         it('should calculate total distance with partial progress', () => {
-            const car = new Car();
+            const car = new UserCar();
             car.s = 750;
             car.lapCount = 5;
 
@@ -210,7 +210,7 @@ describe('Car Model', () => {
         });
 
         it('should handle zero progress correctly', () => {
-            const car = new Car();
+            const car = new UserCar();
             car.s = 0;
             car.lapCount = 2;
 
@@ -220,7 +220,7 @@ describe('Car Model', () => {
         });
 
         it('should handle large lap counts correctly', () => {
-            const car = new Car();
+            const car = new UserCar();
             car.s = 123;
             car.lapCount = 100;
 

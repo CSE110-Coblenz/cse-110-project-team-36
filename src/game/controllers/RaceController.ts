@@ -1,7 +1,10 @@
 import { GameState } from "../models/game-state";
 import { Track } from "../models/track";
 import { Car } from "../models/car";
+import { UserCar } from "../models/user-car";
+import { BotCar } from "../models/bot-car";
 import { CarController } from "./CarController";
+import { BotController } from "./BotController";
 import { CameraController } from "./CameraController";
 import { LaneController } from "./LaneController";
 import { CollisionController } from "./CollisionController";
@@ -40,6 +43,7 @@ export class RaceController {
     private laneController: LaneController;
     private collisionController: CollisionController;
     private slipController: SlipController;
+    private botController: BotController;
     private questionManager: QuestionManager;
     private statsManager: QuestionStatsManager;
     private questionController: QuestionController;
@@ -61,11 +65,38 @@ export class RaceController {
         const camera = { pos: { x: 0, y: 0 }, zoom: 1, rotation: 0 };
         this.gameState = new GameState(camera, track);
         
-        // Initialize cars on staggered lanes (player in lane 0, AI in lanes 1, 2, 3...)
-        this.gameState.addPlayerCar(new Car(-300, '#22c55e', 40, 22, 0)); // Player in leftmost lane
-        this.gameState.addCar(new Car(0, '#ef4444', 40, 22, 1)); // AI car 1
-        this.gameState.addCar(new Car(-100, '#ef4444', 40, 22, 2)); // AI car 2
-        this.gameState.addCar(new Car(-200, '#ef4444', 40, 22, 3)); // AI car 3
+        this.gameState.addPlayerCar(new UserCar(
+            raceConfig.userCarInitialPosition,
+            '#22c55e',
+            40,
+            22,
+            raceConfig.userCarLaneIndex
+        ));
+        
+        // Create bot cars with configurations
+        const botConfig = raceConfig.botConfig;
+        const difficultyRanges = raceConfig.botDifficultyRanges;
+        const initialPositions = raceConfig.initialPositions;
+        const laneIndices = raceConfig.laneIndices;
+        
+        for (let i = 0; i < difficultyRanges.length; i++) {
+            const [minDifficulty, maxDifficulty] = difficultyRanges[i];
+            // Generate random difficulty within range
+            const difficulty = minDifficulty + Math.random() * (maxDifficulty - minDifficulty);
+            
+            const botCar = new BotCar(
+                initialPositions[i],
+                '#ef4444',
+                40,
+                22,
+                difficulty,
+                botConfig,
+                laneIndices[i]
+            );
+            // Initialize next answer time based on bot's answer speed
+            botCar.nextAnswerTime = botCar.answerSpeed;
+            this.gameState.addCar(botCar);
+        }
         
         this.carController = new CarController(this.gameState, raceConfig.physics);
         this.carController.initializeCars();
@@ -92,6 +123,13 @@ export class RaceController {
         this.questionManager = new QuestionManager(questionConfig);
         this.statsManager = new QuestionStatsManager();
         this.questionController = new QuestionController(this.questionManager);
+
+        // Create bot controller
+        this.botController = new BotController(
+            this.gameState,
+            this.laneController,
+            this.carController
+        );
 
         // Create listener controller with all callbacks
         this.listenerController = new ListenerController(
@@ -197,6 +235,13 @@ export class RaceController {
         // Recreate slip controller
         controller.slipController = new SlipController(gameState, raceConfig.physics);
         
+        // Recreate bot controller
+        controller.botController = new BotController(
+            gameState,
+            controller.laneController,
+            controller.carController
+        );
+        
         // Recreate listener controller with lane change callbacks
         controller.listenerController = new ListenerController(
             () => controller.togglePause(),
@@ -235,6 +280,9 @@ export class RaceController {
             
             // Handle all collisions in a single unified method call
             this.collisionController.handleAllCollisions(cars, currentGameTime);
+            
+            // Update bot AI behavior
+            this.botController.updateBots(currentGameTime);
             
             this.carController.step(dt);
             

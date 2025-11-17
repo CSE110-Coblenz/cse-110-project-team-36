@@ -2,6 +2,7 @@ import type { GameState } from '../models/game-state';
 import type { Car } from '../models/car';
 import type { Track } from '../models/track';
 import { MAX_CAMERA_ROTATION_RATE, CAMERA_ALIGNMENT_THRESHOLD } from '../../const';
+import { clamp } from '../../utils/math';
 
 /**
  * Calculate ease-in-out speed factor for camera rotation based on current angular distance
@@ -185,7 +186,7 @@ export class CameraController {
             const speedFactor = calculateEasedSpeedFactor(absAngularDelta, CAMERA_ALIGNMENT_THRESHOLD);
             const maxRotationStep = MAX_CAMERA_ROTATION_RATE * dt;
             const easedRotationStep = maxRotationStep * speedFactor;
-            const rotationStep = Math.max(-easedRotationStep, Math.min(easedRotationStep, angularDelta));
+            const rotationStep = clamp(angularDelta, -easedRotationStep, easedRotationStep);
             newRotation = this.normalizeAngle(currentRotation + rotationStep);
         } else {
             newRotation = currentRotation;

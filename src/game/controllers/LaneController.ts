@@ -82,25 +82,6 @@ export class LaneController {
     }
 
     /**
-     * Get wrapped signed difference between two s positions
-     * Returns positive if s1 is ahead of s2. Normalized to [-trackLength/2, trackLength/2].
-     * 
-     * @param s1 - First position
-     * @param s2 - Second position
-     * @param trackLength - Total track length
-     * @returns Signed difference accounting for wrapping
-     */
-    public getWrappedSDiff(s1: number, s2: number, trackLength: number): number {
-        const diff = s1 - s2;
-        if (diff > trackLength / 2) {
-            return diff - trackLength;
-        } else if (diff < -trackLength / 2) {
-            return diff + trackLength;
-        }
-        return diff;
-    }
-
-    /**
      * Cancel a lane change and boot car back to source lane
      * 
      * @param car - The car to cancel lane change for

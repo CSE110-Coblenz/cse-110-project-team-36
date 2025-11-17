@@ -3,10 +3,11 @@
  */
 
 import { Track, TrackJSON } from '../../src/game/models/track';
-import { Car } from '../../src/game/models/car';
+import { UserCar } from '../../src/game/models/user-car';
+import { BotCar } from '../../src/game/models/bot-car';
 import { GameState } from '../../src/game/models/game-state';
 import { Camera } from '../../src/game/types';
-import type { PhysicsConfig, RaceConfig } from '../../src/game/config/types';
+import type { PhysicsConfig, RaceConfig, BotConfig } from '../../src/game/config/types';
 
 /**
  * Creates a simple rectangular test track
@@ -53,6 +54,7 @@ export function createComplexTestTrack(): Track {
 
 /**
  * Creates a test car with specified properties
+ * Returns UserCar (no backward compatibility with Car)
  */
 export function createTestCar(
     sProg: number = 0,
@@ -66,8 +68,8 @@ export function createTestCar(
         carLength: number;
         carWidth: number;
     }> = {}
-): Car {
-    const car = new Car(
+): UserCar {
+    const car = new UserCar(
         sProg,
         color,
         options.carLength || 40,
@@ -95,16 +97,27 @@ export function createTestGameState(
     const gameState = new GameState(camera, track);
 
     // Add player car
-    const playerCar = createTestCar(0, '#00ff00', { v: 60, r: 10 });
+    const playerCar = new UserCar(0, '#00ff00', 40, 22);
+    playerCar.v = 60;
+    playerCar.r = 10;
     gameState.addPlayerCar(playerCar);
 
     // Add AI cars
+    const defaultBotConfig = createDefaultBotConfig();
     for (let i = 0; i < numAiCars; i++) {
-        const aiCar = createTestCar(
+        const aiCar = new BotCar(
             -(i + 1) * 50,
             `#ff${(i * 50).toString(16).padStart(4, '0')}`,
-            { v: 55 - i * 5, lapCount: i }
+            40,
+            22,
+            1.0,
+            defaultBotConfig,
+            i + 1
         );
+        // Initialize next answer time
+        aiCar.nextAnswerTime = aiCar.answerSpeed;
+        aiCar.v = 55 - i * 5;
+        aiCar.lapCount = i;
         gameState.addCar(aiCar);
     }
 
@@ -235,9 +248,29 @@ export function createDefaultPhysicsConfig(): PhysicsConfig {
 /**
  * Creates a default race config for testing
  */
+/**
+ * Creates a default bot config for testing
+ */
+export function createDefaultBotConfig(): BotConfig {
+    return {
+        answerSpeedBase: 2.0,
+        answerSpeedStdDev: 0.5,
+        accuracyBase: 0.7,
+        accuracyStdDev: 0,
+        safetyTimeBase: 1.5,
+        safetyTimeStdDev: 0
+    };
+}
+
 export function createDefaultRaceConfig(): RaceConfig {
     return {
         physics: createDefaultPhysicsConfig(),
-        trackFile: 'track1.json'
+        trackFile: 'track1.json',
+        botConfig: createDefaultBotConfig(),
+        botDifficultyRanges: [[1.0, 1.0], [1.0, 1.0], [1.0, 1.0]],
+        initialPositions: [-50, -100, -150],
+        laneIndices: [1, 2, 0],
+        userCarLaneIndex: 1,
+        userCarInitialPosition: 0
     };
 }
