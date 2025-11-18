@@ -12,11 +12,13 @@ import {
     listSaveSlots
 } from '../../src/serialization/game';
 import { GameState } from '../../src/game/models/game-state';
-import { Car } from '../../src/game/models/car';
+import { UserCar } from '../../src/game/models/user-car';
+import { BotCar } from '../../src/game/models/bot-car';
 import { Track, TrackJSON } from '../../src/game/models/track';
 import { Camera } from '../../src/game/types';
 import { RaceController } from '../../src/game/controllers/RaceController';
 import { QuestionTopic, QuestionDifficulty } from '../../src/game/models/question';
+import { createDefaultRaceConfig, createDefaultBotConfig } from '../utils/test-helpers';
 
 describe('GameState Serialization', () => {
     const createTestGameState = (): GameState => {
@@ -35,20 +37,23 @@ describe('GameState Serialization', () => {
         };
         const track = Track.fromJSON(trackJSON);
 
-        const camera: Camera = { pos: { x: 50, y: 50 }, zoom: 1.5 };
+        const camera: Camera = { pos: { x: 50, y: 50 }, zoom: 1.5, rotation: 0 };
         const gameState = new GameState(camera, track);
 
-        const playerCar = new Car(0, '#00ff00', 40, 22);
-        playerCar.vProg = 60;
+        const playerCar = new UserCar(0, '#00ff00', 40, 22);
+        playerCar.v = 60;
         playerCar.r = 10;
 
-        const aiCar1 = new Car(-50, '#ff0000', 35, 20);
-        aiCar1.vProg = 55;
+        const botConfig = createDefaultBotConfig();
+        const aiCar1 = new BotCar(-50, '#ff0000', 35, 20, 1.0, botConfig);
+        aiCar1.v = 55;
         aiCar1.lapCount = 1;
+        aiCar1.nextAnswerTime = aiCar1.answerSpeed;
 
-        const aiCar2 = new Car(-100, '#0000ff', 45, 25);
-        aiCar2.vProg = 50;
+        const aiCar2 = new BotCar(-100, '#0000ff', 45, 25, 1.0, botConfig);
+        aiCar2.v = 50;
         aiCar2.lateral = 5;
+        aiCar2.nextAnswerTime = aiCar2.answerSpeed;
 
         gameState.addPlayerCar(playerCar);
         gameState.addCar(aiCar1);
@@ -77,14 +82,15 @@ describe('GameState Serialization', () => {
 
         it('should include all camera properties', () => {
             const gameState = createTestGameState();
-            gameState.updateCamera({ pos: { x: 123, y: 456 }, zoom: 2.5 });
+            gameState.updateCamera({ pos: { x: 123, y: 456 }, zoom: 2.5, rotation: 0 });
 
             const jsonString = serializeGameState(gameState);
             const parsed = JSON.parse(jsonString);
 
             expect(parsed.camera).toEqual({
                 pos: { x: 123, y: 456 },
-                zoom: 2.5
+                zoom: 2.5,
+                rotation: 0
             });
         });
 
@@ -98,8 +104,8 @@ describe('GameState Serialization', () => {
             expect(parsed.playerCarIndex).toBe(0); // Player car was added first
 
             parsed.cars.forEach((car: any) => {
-                expect(car).toHaveProperty('sProg');
-                expect(car).toHaveProperty('vProg');
+                expect(car).toHaveProperty('s');
+                expect(car).toHaveProperty('v');
                 expect(car).toHaveProperty('r');
                 expect(car).toHaveProperty('color');
                 expect(car).toHaveProperty('lapCount');
@@ -157,8 +163,8 @@ describe('GameState Serialization', () => {
             const deserializedPlayerCar = deserializedGameState.playerCar;
 
             expect(deserializedPlayerCar.color).toBe(originalPlayerCar.color);
-            expect(deserializedPlayerCar.sProg).toBe(originalPlayerCar.sProg);
-            expect(deserializedPlayerCar.vProg).toBe(originalPlayerCar.vProg);
+            expect(deserializedPlayerCar.s).toBe(originalPlayerCar.s);
+            expect(deserializedPlayerCar.v).toBe(originalPlayerCar.v);
         });
 
         it('should preserve AI cars correctly', () => {
@@ -173,7 +179,7 @@ describe('GameState Serialization', () => {
 
             for (let i = 0; i < originalAiCars.length; i++) {
                 expect(deserializedAiCars[i].color).toBe(originalAiCars[i].color);
-                expect(deserializedAiCars[i].sProg).toBe(originalAiCars[i].sProg);
+                expect(deserializedAiCars[i].s).toBe(originalAiCars[i].s);
                 expect(deserializedAiCars[i].lapCount).toBe(originalAiCars[i].lapCount);
             }
         });
@@ -182,7 +188,7 @@ describe('GameState Serialization', () => {
             const invalidJson = JSON.stringify({
                 version: '2.0.0',
                 timestamp: Date.now(),
-                camera: { pos: { x: 0, y: 0 }, zoom: 1 },
+                camera: { pos: { x: 0, y: 0 }, zoom: 1, rotation: 0 },
                 track: { laneWidth: 5, numLanes: 4, samples: [], sTable: [], totalLength: 0 },
                 cars: [],
                 playerCarIndex: 0
@@ -202,7 +208,7 @@ describe('GameState Serialization', () => {
         it('should maintain complete data integrity', () => {
             const originalGameState = createTestGameState();
 
-            originalGameState.updateCamera({ pos: { x: 200, y: 300 }, zoom: 0.8 });
+            originalGameState.updateCamera({ pos: { x: 200, y: 300 }, zoom: 0.8, rotation: 0 });
 
             originalGameState.playerCar.r += 50;
 
@@ -230,11 +236,12 @@ describe('GameState Serialization', () => {
             const originalReward = deserializedPlayerCar.r;
             deserializedPlayerCar.r += 25;
 
-            deserializedGameState.updateCamera({ pos: { x: 100, y: 100 }, zoom: 2.0 });
+            deserializedGameState.updateCamera({ pos: { x: 100, y: 100 }, zoom: 2.0, rotation: 0 });
 
             expect(deserializedPlayerCar.r).toBe(originalReward + 25);
             expect(deserializedGameState.camera.pos.x).toBe(100);
             expect(deserializedGameState.camera.zoom).toBe(2.0);
+            expect(deserializedGameState.camera.rotation).toBe(0);
         });
 
         it('should work with RaceController reward system', () => {
@@ -254,7 +261,7 @@ describe('GameState Serialization', () => {
                 topic: QuestionTopic.MIXED,
                 difficulty: QuestionDifficulty.MEDIUM
             };
-            const raceController = new RaceController(track, questionConfig);
+            const raceController = new RaceController(track, questionConfig, createDefaultRaceConfig());
 
             raceController.queueReward(raceController.getGameState().playerCar, 100);
             raceController.queueRewardByIndex(1, 50); // AI car
@@ -262,7 +269,7 @@ describe('GameState Serialization', () => {
             raceController.step(1 / 60);
 
             const jsonString = raceController.saveToString();
-            const loadedController = RaceController.loadFromString(jsonString, questionConfig);
+            const loadedController = RaceController.loadFromString(jsonString, questionConfig, createDefaultRaceConfig());
 
             const originalPlayerReward = raceController.getGameState().playerCar.r;
             const loadedPlayerReward = loadedController.getGameState().playerCar.r;

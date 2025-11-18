@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { Layer, Line, Group, Shape } from 'react-konva';
 import type { Track } from '../../game/models/track';
 import type { Camera } from '../../game/types';
-import { transformTrackPointsAtOffset } from './utils';
+import { transformTrackPointsAtOffset, worldToScreen } from './utils';
 
 export function TrackLayer({
     track,
@@ -78,6 +78,45 @@ export function TrackLayer({
         }));
     }, [track, laneDividers, camera, stageWidth, stageHeight]);
 
+    const finishLinePoints = useMemo(() => {
+        // Draw a small perpendicular finish line stripe at s = 0
+        const s = 0;
+        const center = track.posAt(s);
+        const normal = track.normalAt(s);
+        const tangent = track.tangentAt(s);
+
+        const halfWidth = track.width * 0.5;
+        const halfThickness = Math.max(track.width / (track.numLanes * 6), 3);
+
+        const cornersWorld = [
+            {
+            x: center.x + normal.x * halfWidth + tangent.x * halfThickness,
+            y: center.y + normal.y * halfWidth + tangent.y * halfThickness,
+            },
+            {
+            x: center.x - normal.x * halfWidth + tangent.x * halfThickness,
+            y: center.y - normal.y * halfWidth + tangent.y * halfThickness,
+            },
+            {
+            x: center.x - normal.x * halfWidth - tangent.x * halfThickness,
+            y: center.y - normal.y * halfWidth - tangent.y * halfThickness,
+            },
+            {
+            x: center.x + normal.x * halfWidth - tangent.x * halfThickness,
+            y: center.y + normal.y * halfWidth - tangent.y * halfThickness,
+            },
+        ];
+
+        const flat: number[] = [];
+        for (const w of cornersWorld) {
+        const p = worldToScreen(w, camera, stageWidth, stageHeight);
+        flat.push(p.x, p.y);
+        }
+
+        return flat;
+    }, [track, camera, stageWidth, stageHeight]);
+
+
     return (
         <Layer listening={false}>
             <Group>
@@ -125,6 +164,16 @@ export function TrackLayer({
                     strokeWidth={4}
                     lineCap="round"
                     lineJoin="round"
+                />
+                {/* Finish Line Stripe */}
+                <Line
+                    points={finishLinePoints}
+                    closed
+                    fill="#ffffff"
+                    opacity={0.9}
+                    shadowColor="black"
+                    shadowBlur={10}
+                    shadowOpacity={0.6}
                 />
             </Group>
         </Layer>

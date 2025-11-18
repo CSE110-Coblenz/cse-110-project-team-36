@@ -1,13 +1,15 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { GameStage } from '../rendering/game/GameStage';
-import { QuestionAnswer } from '../rendering/game/QuestionAnswer';
-import { PauseOverlay } from '../rendering/game/PauseOverlay';
-import { Hud } from '../rendering/game/Hud';
-import { RaceController } from '../game/controllers/RaceController';
-import { PAGE_WIDTH, PAGE_HEIGHT } from '../const';
-import { events } from '../shared/events';
+import React, { useEffect, useRef, useState } from "react";
+import { GameStage } from "../rendering/game/GameStage";
+import { QuestionAnswer } from "../rendering/game/QuestionAnswer";
+import { PauseOverlay } from "../rendering/game/PauseOverlay";
+import { Hud } from "../rendering/game/Hud";
+import { RaceController } from "../game/controllers/RaceController";
+import { PAGE_WIDTH, PAGE_HEIGHT } from "../const";
+import { events } from "../shared/events";
+import { PostRaceStats } from "../rendering/game/RaceFinishedPage";
 import { Button } from '../components/button';
 import styles from './styles/racePage.module.css';
+
 interface RacePageProps {
     raceController: RaceController;
     currentUser: string | null;
@@ -83,6 +85,13 @@ export const RacePage: React.FC<RacePageProps> = ({
                 onSettings={handleSettings}
                 onExit={handleExitToMenu}
             />
+
+            <PostRaceStats
+                statsManager={raceController.getStatsManager()}
+                time={raceController.getElapsedMs() / 1000}
+                onExit={handleExitToMenu}
+            />
+
         </div>
     );
 };

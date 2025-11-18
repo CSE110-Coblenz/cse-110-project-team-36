@@ -84,7 +84,7 @@ export default function App() {
             setIsLoadingRace(true);
             let controller: RaceController | null = null;
 
-            RaceService.initializeRace(selectedTrack, {
+            RaceService.initializeRace('race1.json', {
                 topic: topicStringToEnum(selectedTopic),
                 difficulty: difficultyStringToEnum(selectedDifficulty),
             })

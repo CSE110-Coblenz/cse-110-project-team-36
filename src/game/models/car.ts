@@ -1,4 +1,5 @@
 import type { Track } from "./track";
+import { clamp } from "../../utils/math";
 
 /**
  * Car class
@@ -6,12 +7,10 @@ import type { Track } from "./track";
  * This class represents a car in the game.
  */
 export class Car {
-    public sProg: number = 0;           // along-track position [0, L)
-    public vProg: number = 0;           // progress velocity
     public r: number = 0;               // smoothed reward state
 
-    public sPhys: number = 0;           // physical along-track position
-    public vPhys: number = 0;           // physical velocity
+    public s: number = 0;           // physical along-track position
+    public v: number = 0;           // physical velocity
     public lateral: number = 0;         // lateral offset (world units)
 
     public slipFactor: number = 0;      // slip state [0, 1] for slip effect
@@ -31,8 +30,8 @@ export class Car {
     public crashedThisFrame: boolean = false;  // flag to indicate crash occurred this frame (skip physics smoothing)
 
     public lapCount: number = 0;
-    private lastSProg: number = 0;
-    private crossedFinish: boolean = false;
+    protected lastS: number = 0;
+    protected crossedFinish: boolean = false;
 
     /**
      * Constructor
@@ -50,9 +49,8 @@ export class Car {
         carWidth: number = 22,
         laneIndex?: number
     ) {
-        this.sProg = initialS;
-        this.sPhys = initialS;
-        this.lastSProg = initialS;
+        this.s = initialS;
+        this.lastS = initialS;
         this.color = color;
         this.carLength = carLength;
         this.carWidth = carWidth;
@@ -67,21 +65,24 @@ export class Car {
      * @param vMin - The minimum velocity
      */
     initialize(vMin: number) {
-        this.vProg = vMin;
-        this.vPhys = vMin;
+        this.v = vMin;
     }
 
     /**
      * Check for lap completion based on crossing the finish line (s=0)
      */
     updateLaps() {
-        if (!this.crossedFinish && this.lastSProg > this.sProg) {
+        if (!this.crossedFinish && this.lastS > this.s) {
             this.lapCount++;
             if (this.lapCount >= 3) {
             this.crossedFinish = true;
         }
         }
-        this.lastSProg = this.sProg;
+        this.lastS = this.s;
+    }
+
+    hasFinished(): boolean {
+        return this.crossedFinish;
     }
 
     /**
@@ -91,7 +92,7 @@ export class Car {
      * @returns The total distance traveled
      */
     getTotalDistance(trackLength: number): number {
-        return this.lapCount * trackLength + this.sProg;
+        return this.lapCount * trackLength + this.s;
     }
 
     /**
@@ -115,7 +116,7 @@ export class Car {
         }
         const elapsed = currentGameTime - this.laneChangeStartTime;
         const progress = elapsed / this.laneChangeDuration;
-        return Math.max(0, Math.min(1, progress));
+        return clamp(progress, 0, 1);
     }
 
     /**
@@ -126,9 +127,9 @@ export class Car {
      * @returns Object containing world position (x, y) and rotation angle in degrees
      */
     getWorldPosition(track: Track, lateralOffset: number): { x: number; y: number; angleDeg: number } {
-        const p = track.posAt(this.sPhys);
-        const t = track.tangentAt(this.sPhys);
-        const n = track.normalAt(this.sPhys);
+        const p = track.posAt(this.s);
+        const t = track.tangentAt(this.s);
+        const n = track.normalAt(this.s);
         const wp = { x: p.x + n.x * lateralOffset, y: p.y + n.y * lateralOffset };
         const ang = Math.atan2(t.y, t.x);
         const angleDeg = (ang * 180) / Math.PI;
@@ -144,11 +145,9 @@ export class Car {
      */
     toSerializedData() {
         return {
-            sProg: this.sProg,
-            vProg: this.vProg,
             r: this.r,
-            sPhys: this.sPhys,
-            vPhys: this.vPhys,
+            s: this.s,
+            v: this.v,
             lateral: this.lateral,
             slipFactor: this.slipFactor,
             slipWobble: this.slipWobble,
@@ -162,7 +161,7 @@ export class Car {
             laneChangeStartOffset: this.laneChangeStartOffset,
             laneChangeStartVelocity: this.laneChangeStartVelocity,
             lapCount: this.lapCount,
-            lastSProg: this.lastSProg,
+            lastS: this.lastS,
             crossedFinish: this.crossedFinish,
         };
     }
@@ -174,11 +173,9 @@ export class Car {
      * @returns A new Car instance
      */
     static fromSerializedData(data: {
-        sProg: number;
-        vProg: number;
         r: number;
-        sPhys: number;
-        vPhys: number;
+        s: number;
+        v: number;
         lateral: number;
         slipFactor?: number;
         slipWobble?: number;
@@ -192,15 +189,13 @@ export class Car {
         laneChangeStartOffset?: number | null;
         laneChangeStartVelocity?: number | null;
         lapCount: number;
-        lastSProg: number;
+        lastS: number;
         crossedFinish: boolean;
     }): Car {
-        const car = new Car(data.sProg, data.color, data.carLength, data.carWidth, data.laneIndex);
-        car.sProg = data.sProg;
-        car.vProg = data.vProg;
+        const car = new Car(data.s, data.color, data.carLength, data.carWidth, data.laneIndex);
         car.r = data.r;
-        car.sPhys = data.sPhys;
-        car.vPhys = data.vPhys;
+        car.s = data.s;
+        car.v = data.v;
         car.lateral = data.lateral;
         car.slipFactor = data.slipFactor ?? 0;
         car.slipWobble = data.slipWobble ?? 0;
@@ -211,7 +206,7 @@ export class Car {
         car.laneChangeStartOffset = data.laneChangeStartOffset ?? null;
         car.laneChangeStartVelocity = data.laneChangeStartVelocity ?? null;
         car.lapCount = data.lapCount;
-        car.lastSProg = data.lastSProg;
+        car.lastS = data.lastS;
         car.crossedFinish = data.crossedFinish;
         return car;
     }

@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { Layer, Line } from 'react-konva';
 import type { Camera } from '../../game/types';
 import type { GameState } from '../../game/models/game-state';
+import { worldToScreen } from './utils';
 
 /**
  * Skid mark layer component
@@ -34,12 +35,7 @@ export function SkidMarkLayer({
         for (const car of cars) {
             const skidMark = gs.getSkidMarks(car);
             if (!skidMark || skidMark.isEmpty()) continue;
-
-            // Transform skid mark points to screen coordinates
-            const { pos, zoom } = camera;
-            const tx = (wx: number) => (wx - pos.x) * zoom + stageWidth / 2;
-            const ty = (wy: number) => (wy - pos.y) * zoom + stageHeight / 2;
-
+            
             // Process left skid marks
             const leftPoints = skidMark.getLeftPoints();
             const leftFlatPoints: number[] = [];
@@ -53,9 +49,11 @@ export function SkidMarkLayer({
 
                 // Only render if visible
                 if (alpha > 0.01) {
-                    leftFlatPoints.push(tx(p1.x), ty(p1.y));
+                    const screenP1 = worldToScreen({ x: p1.x, y: p1.y }, camera, stageWidth, stageHeight);
+                    leftFlatPoints.push(screenP1.x, screenP1.y);
                     if (i === leftPoints.length - 2) {
-                        leftFlatPoints.push(tx(p2.x), ty(p2.y));
+                        const screenP2 = worldToScreen({ x: p2.x, y: p2.y }, camera, stageWidth, stageHeight);
+                        leftFlatPoints.push(screenP2.x, screenP2.y);
                     }
                 }
             }
@@ -78,9 +76,11 @@ export function SkidMarkLayer({
                 const alpha = (p1.alpha + p2.alpha) / 2;
 
                 if (alpha > 0.01) {
-                    rightFlatPoints.push(tx(p1.x), ty(p1.y));
+                    const screenP1 = worldToScreen({ x: p1.x, y: p1.y }, camera, stageWidth, stageHeight);
+                    rightFlatPoints.push(screenP1.x, screenP1.y);
                     if (i === rightPoints.length - 2) {
-                        rightFlatPoints.push(tx(p2.x), ty(p2.y));
+                        const screenP2 = worldToScreen({ x: p2.x, y: p2.y }, camera, stageWidth, stageHeight);
+                        rightFlatPoints.push(screenP2.x, screenP2.y);
                     }
                 }
             }
