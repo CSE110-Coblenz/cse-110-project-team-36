@@ -1,12 +1,13 @@
 import type { GameState } from '../game/models/game-state';
 import type { Car } from '../game/models/car';
-import type { Track } from '../game/models/track';
 import type { Camera } from '../game/types';
-import { Track as TrackClass } from '../game/models/track';
-import { Car as CarClass } from '../game/models/car';
+import { Track } from '../game/models/track';
+import { UserCar } from '../game/models/user-car';
+import { BotCar } from '../game/models/bot-car';
 import { GameState as GameStateClass } from '../game/models/game-state';
 
 export interface SerializedCar {
+    type: 'user' | 'bot';
     r: number;
     s: number;
     v: number;
@@ -23,6 +24,13 @@ export interface SerializedCar {
     lapCount: number;
     lastS: number;
     crossedFinish: boolean;
+    // Bot-specific fields (only present for bot cars)
+    difficulty?: number;
+    answerSpeed?: number;
+    answerSpeedStdDev?: number;
+    accuracy?: number;
+    safetyTimeThreshold?: number;
+    nextAnswerTime?: number;
 }
 
 export interface SerializedTrack {
@@ -46,14 +54,83 @@ export interface SerializedGameState {
  * Serialize a car to a plain object
  */
 function serializeCar(car: Car): SerializedCar {
-    return car.toSerializedData();
+    const base = car.toSerializedData();
+    if (car instanceof UserCar) {
+        return { ...base, type: 'user' };
+    } else if (car instanceof BotCar) {
+        return {
+            ...base,
+            type: 'bot',
+            difficulty: car.difficulty,
+            answerSpeed: car.answerSpeed,
+            answerSpeedStdDev: car.answerSpeedStdDev,
+            accuracy: car.accuracy,
+            safetyTimeThreshold: car.safetyTimeThreshold,
+            nextAnswerTime: car.nextAnswerTime
+        };
+    } else {
+        // User car
+        return { ...base, type: 'user' };
+    }
 }
 
 /**
  * Deserialize a car from a plain object
  */
 function deserializeCar(data: SerializedCar): Car {
-    return CarClass.fromSerializedData(data);
+    const baseData = {
+        r: data.r,
+        s: data.s,
+        v: data.v,
+        lateral: data.lateral,
+        color: data.color,
+        carLength: data.carLength,
+        carWidth: data.carWidth,
+        laneIndex: data.laneIndex,
+        targetLaneIndex: data.targetLaneIndex,
+        laneChangeStartTime: data.laneChangeStartTime,
+        pendingLaneChanges: data.pendingLaneChanges,
+        laneChangeStartOffset: data.laneChangeStartOffset,
+        laneChangeStartVelocity: data.laneChangeStartVelocity,
+        lapCount: data.lapCount,
+        lastS: data.lastS,
+        crossedFinish: data.crossedFinish
+    };
+
+    if (data.type === 'bot' && data.difficulty !== undefined) {
+        // For bot cars, we need the config to recreate them properly
+        // Since we don't have access to config here, we'll create a minimal bot car
+        // The config will need to be provided when loading from game state
+        // Use zero stdDev to prevent regeneration of stats
+        const botCar = new BotCar(
+            data.s,
+            data.color,
+            data.carLength,
+            data.carWidth,
+            data.difficulty,
+            {
+                answerSpeedBase: data.answerSpeed || 2.0,
+                answerSpeedStdDev: data.answerSpeedStdDev || 0.5,
+                accuracyBase: data.accuracy || 0.7,
+                accuracyStdDev: 0,
+                safetyTimeBase: data.safetyTimeThreshold || 1.5,
+                safetyTimeStdDev: 0
+            },
+            data.laneIndex
+        );
+        // Override with exact serialized values to preserve round-trip integrity
+        botCar.answerSpeed = data.answerSpeed ?? botCar.answerSpeed;
+        botCar.answerSpeedStdDev = data.answerSpeedStdDev ?? 0.5;
+        botCar.accuracy = data.accuracy ?? botCar.accuracy;
+        botCar.safetyTimeThreshold = data.safetyTimeThreshold ?? botCar.safetyTimeThreshold;
+        botCar.nextAnswerTime = data.nextAnswerTime ?? Infinity;
+        // Restore base state
+        Object.assign(botCar, baseData);
+        return botCar;
+    } else {
+        // User car
+        return UserCar.fromSerializedData(baseData);
+    }
 }
 
 /**
@@ -67,7 +144,7 @@ function serializeTrack(track: Track): SerializedTrack {
  * Deserialize a track from a plain object
  */
 function deserializeTrack(data: SerializedTrack): Track {
-    return TrackClass.fromSerializedData(data);
+    return Track.fromSerializedData(data);
 }
 
 /**
@@ -118,27 +195,14 @@ export function deserializeGameState(jsonString: string): GameState {
         rotation: data.camera.rotation,
     };
     
-    // Create game state
     const gameState = new GameStateClass(camera, track);
+    gameState.addPlayerCar(cars[data.playerCarIndex]);
     
-    // Add cars in the correct order
-    if (data.playerCarIndex >= 0 && data.playerCarIndex < cars.length) {
-        // Add player car first
-        gameState.addPlayerCar(cars[data.playerCarIndex]);
-        
-        // Add other cars
-        cars.forEach((car, index) => {
-            if (index !== data.playerCarIndex) {
-                gameState.addCar(car);
-            }
-        });
-    } else {
-        // Fallback: add all cars, first one as player
-        if (cars.length > 0) {
-            gameState.addPlayerCar(cars[0]);
-            cars.slice(1).forEach(car => gameState.addCar(car));
+    cars.forEach((car, index) => {
+        if (index !== data.playerCarIndex) {
+            gameState.addCar(car as BotCar);
         }
-    }
+    });
     
     return gameState;
 }

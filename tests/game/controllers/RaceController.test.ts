@@ -5,7 +5,7 @@
 import { RaceController } from '../../../src/game/controllers/RaceController';
 import { Track } from '../../../src/game/models/track';
 import { QuestionTopic, QuestionDifficulty } from '../../../src/game/models/question';
-import { createSimpleTestTrack } from '../../utils/test-helpers';
+import { createSimpleTestTrack, createDefaultRaceConfig } from '../../utils/test-helpers';
 
 describe('RaceController', () => {
     let track: Track;
@@ -21,7 +21,7 @@ describe('RaceController', () => {
     describe('Constructor', () => {
         it('should create GameState with camera and track', () => {
             // Arrange & Act
-            const controller = new RaceController(track, defaultQuestionConfig);
+            const controller = new RaceController(track, defaultQuestionConfig, createDefaultRaceConfig());
             const gameState = controller.getGameState();
 
             // Assert
@@ -34,7 +34,7 @@ describe('RaceController', () => {
 
         it('should add 1 player car and 3 AI cars', () => {
             // Arrange & Act
-            const controller = new RaceController(track, defaultQuestionConfig);
+            const controller = new RaceController(track, defaultQuestionConfig, createDefaultRaceConfig());
             const cars = controller.getGameState().getCars();
 
             // Assert
@@ -47,7 +47,7 @@ describe('RaceController', () => {
 
         it('should initialize CarController', () => {
             // Arrange & Act
-            const controller = new RaceController(track, defaultQuestionConfig);
+            const controller = new RaceController(track, defaultQuestionConfig, createDefaultRaceConfig());
 
             // Assert - cars should be initialized with velocities
             const cars = controller.getGameState().getCars();
@@ -58,7 +58,7 @@ describe('RaceController', () => {
 
         it('should call initializeCars', () => {
             // Arrange & Act
-            const controller = new RaceController(track, defaultQuestionConfig);
+            const controller = new RaceController(track, defaultQuestionConfig, createDefaultRaceConfig());
 
             // Assert - all cars should have vMin velocities
             const cars = controller.getGameState().getCars();
@@ -70,14 +70,14 @@ describe('RaceController', () => {
 
     describe('Static Factory', () => {
         it('should create controller from loaded state', () => {
-            const originalController = new RaceController(track, defaultQuestionConfig);
+            const originalController = new RaceController(track, defaultQuestionConfig, createDefaultRaceConfig());
             const originalGameState = originalController.getGameState();
 
             const playerCar = originalGameState.playerCar;
             playerCar.s = 100;
             playerCar.v = 20;
 
-            const loadedController = RaceController.fromGameState(originalGameState, defaultQuestionConfig);
+            const loadedController = RaceController.fromGameState(originalGameState, defaultQuestionConfig, createDefaultRaceConfig());
             const loadedGameState = loadedController.getGameState();
 
             expect(loadedGameState).toBeDefined();
@@ -87,10 +87,10 @@ describe('RaceController', () => {
         });
 
         it('should initialize CarController with provided GameState', () => {
-            const originalController = new RaceController(track, defaultQuestionConfig);
+            const originalController = new RaceController(track, defaultQuestionConfig, createDefaultRaceConfig());
             const originalGameState = originalController.getGameState();
 
-            const loadedController = RaceController.fromGameState(originalGameState, defaultQuestionConfig);
+            const loadedController = RaceController.fromGameState(originalGameState, defaultQuestionConfig, createDefaultRaceConfig());
 
             const cars = loadedController.getGameState().getCars();
             cars.forEach(car => {
@@ -99,7 +99,7 @@ describe('RaceController', () => {
         });
 
         it('should preserve car states from loaded GameState', () => {
-            const originalController = new RaceController(track, defaultQuestionConfig);
+            const originalController = new RaceController(track, defaultQuestionConfig, createDefaultRaceConfig());
             const originalGameState = originalController.getGameState();
 
             const originalCars = originalGameState.getCars();
@@ -107,7 +107,7 @@ describe('RaceController', () => {
             originalCars[0].v = 15;
             originalCars[0].r = 10;
 
-            const loadedController = RaceController.fromGameState(originalGameState, defaultQuestionConfig);
+            const loadedController = RaceController.fromGameState(originalGameState, defaultQuestionConfig, createDefaultRaceConfig());
 
             const loadedCars = loadedController.getGameState().getCars();
             expect(loadedCars[0].s).toBe(50);
@@ -118,7 +118,7 @@ describe('RaceController', () => {
 
     describe('Game Loop', () => {
         it('should call carController.step()', () => {
-            const controller = new RaceController(track, defaultQuestionConfig);
+            const controller = new RaceController(track, defaultQuestionConfig, createDefaultRaceConfig());
             const gameState = controller.getGameState();
             const cars = gameState.getCars();
             const initialPositions = cars.map(c => c.s);
@@ -131,7 +131,7 @@ describe('RaceController', () => {
         });
 
         it('should update camera to follow player car', () => {
-            const controller = new RaceController(track, defaultQuestionConfig);
+            const controller = new RaceController(track, defaultQuestionConfig, createDefaultRaceConfig());
             const gameState = controller.getGameState();
             const playerCar = gameState.playerCar;
 
@@ -143,7 +143,7 @@ describe('RaceController', () => {
         });
 
         it('should preserve camera zoom when updating position', () => {
-            const controller = new RaceController(track, defaultQuestionConfig);
+            const controller = new RaceController(track, defaultQuestionConfig, createDefaultRaceConfig());
             const gameState = controller.getGameState();
             const originalZoom = gameState.camera.zoom;
 
@@ -154,7 +154,7 @@ describe('RaceController', () => {
         });
 
         it('should advance car positions over multiple steps', () => {
-            const controller = new RaceController(track, defaultQuestionConfig);
+            const controller = new RaceController(track, defaultQuestionConfig, createDefaultRaceConfig());
             const gameState = controller.getGameState();
             const initialPositions = gameState.getCars().map(c => c.s);
 
@@ -171,7 +171,7 @@ describe('RaceController', () => {
 
     describe('Reward Delegation', () => {
         it('should delegate queueReward to CarController', () => {
-            const controller = new RaceController(track, defaultQuestionConfig);
+            const controller = new RaceController(track, defaultQuestionConfig, createDefaultRaceConfig());
             const gameState = controller.getGameState();
             const playerCar = gameState.playerCar;
             const initialV = playerCar.v;
@@ -186,7 +186,7 @@ describe('RaceController', () => {
         });
 
         it('should delegate queueRewardByIndex to CarController', () => {
-            const controller = new RaceController(track, defaultQuestionConfig);
+            const controller = new RaceController(track, defaultQuestionConfig, createDefaultRaceConfig());
             const gameState = controller.getGameState();
             const car = gameState.getCars()[2];
             const initialV = car.v;
@@ -201,7 +201,7 @@ describe('RaceController', () => {
         });
 
         it('should handle reward by index correctly', () => {
-            const controller = new RaceController(track, defaultQuestionConfig);
+            const controller = new RaceController(track, defaultQuestionConfig, createDefaultRaceConfig());
             const gameState = controller.getGameState();
             const playerCar = gameState.playerCar;
             const aiCar = gameState.aiCars[0];
@@ -221,7 +221,7 @@ describe('RaceController', () => {
 
     describe('Getter', () => {
         it('should return the GameState', () => {
-            const controller = new RaceController(track, defaultQuestionConfig);
+            const controller = new RaceController(track, defaultQuestionConfig, createDefaultRaceConfig());
 
             const gameState = controller.getGameState();
 
@@ -231,7 +231,7 @@ describe('RaceController', () => {
         });
 
         it('should return the same GameState instance', () => {
-            const controller = new RaceController(track, defaultQuestionConfig);
+            const controller = new RaceController(track, defaultQuestionConfig, createDefaultRaceConfig());
 
             const gameState1 = controller.getGameState();
             const gameState2 = controller.getGameState();
@@ -242,7 +242,7 @@ describe('RaceController', () => {
 
     describe('Integration', () => {
         it('should simulate complete race scenario', () => {
-            const controller = new RaceController(track, defaultQuestionConfig);
+            const controller = new RaceController(track, defaultQuestionConfig, createDefaultRaceConfig());
             const gameState = controller.getGameState();
             const playerCar = gameState.playerCar;
             const initialPlayerPosition = playerCar.s;
@@ -281,7 +281,7 @@ describe('RaceController', () => {
         });
 
         it('should throw error when calling start() twice', () => {
-            const controller = new RaceController(track, defaultQuestionConfig);
+            const controller = new RaceController(track, defaultQuestionConfig, createDefaultRaceConfig());
             const onResize = jest.fn();
             const onFrame = jest.fn();
 
@@ -295,7 +295,7 @@ describe('RaceController', () => {
         });
 
         it('should throw error when calling pause() before start()', () => {
-            const controller = new RaceController(track, defaultQuestionConfig);
+            const controller = new RaceController(track, defaultQuestionConfig, createDefaultRaceConfig());
 
             expect(() => {
                 controller.pause();
@@ -303,7 +303,7 @@ describe('RaceController', () => {
         });
 
         it('should throw error when calling resume() before start()', () => {
-            const controller = new RaceController(track, defaultQuestionConfig);
+            const controller = new RaceController(track, defaultQuestionConfig, createDefaultRaceConfig());
 
             expect(() => {
                 controller.resume();
@@ -311,7 +311,7 @@ describe('RaceController', () => {
         });
 
         it('should throw error when calling togglePause() before start()', () => {
-            const controller = new RaceController(track, defaultQuestionConfig);
+            const controller = new RaceController(track, defaultQuestionConfig, createDefaultRaceConfig());
 
             expect(() => {
                 controller.togglePause();
@@ -319,13 +319,13 @@ describe('RaceController', () => {
         });
 
         it('should return false for isStarted() before start()', () => {
-            const controller = new RaceController(track, defaultQuestionConfig);
+            const controller = new RaceController(track, defaultQuestionConfig, createDefaultRaceConfig());
 
             expect(controller.isStarted()).toBe(false);
         });
 
         it('should return true for isStarted() after start()', () => {
-            const controller = new RaceController(track, defaultQuestionConfig);
+            const controller = new RaceController(track, defaultQuestionConfig, createDefaultRaceConfig());
             const onResize = jest.fn();
             const onFrame = jest.fn();
 
@@ -337,7 +337,7 @@ describe('RaceController', () => {
         });
 
         it('should return false for isStarted() after stop()', () => {
-            const controller = new RaceController(track, defaultQuestionConfig);
+            const controller = new RaceController(track, defaultQuestionConfig, createDefaultRaceConfig());
             const onResize = jest.fn();
             const onFrame = jest.fn();
 
@@ -348,7 +348,7 @@ describe('RaceController', () => {
         });
 
         it('should allow stop() to be called multiple times safely', () => {
-            const controller = new RaceController(track, defaultQuestionConfig);
+            const controller = new RaceController(track, defaultQuestionConfig, createDefaultRaceConfig());
             const onResize = jest.fn();
             const onFrame = jest.fn();
 
@@ -363,7 +363,7 @@ describe('RaceController', () => {
         });
 
         it('should destroy controller when not running', () => {
-            const controller = new RaceController(track, defaultQuestionConfig);
+            const controller = new RaceController(track, defaultQuestionConfig, createDefaultRaceConfig());
 
             expect(() => {
                 controller.destroy();
@@ -371,7 +371,7 @@ describe('RaceController', () => {
         });
 
         it('should destroy controller and stop if running', () => {
-            const controller = new RaceController(track, defaultQuestionConfig);
+            const controller = new RaceController(track, defaultQuestionConfig, createDefaultRaceConfig());
             const onResize = jest.fn();
             const onFrame = jest.fn();
 
@@ -383,7 +383,7 @@ describe('RaceController', () => {
         });
 
         it('should be safe to call destroy() multiple times', () => {
-            const controller = new RaceController(track, defaultQuestionConfig);
+            const controller = new RaceController(track, defaultQuestionConfig, createDefaultRaceConfig());
 
             expect(() => {
                 controller.destroy();
@@ -392,7 +392,7 @@ describe('RaceController', () => {
         });
 
         it('should clean up question controller on destroy', () => {
-            const controller = new RaceController(track, defaultQuestionConfig);
+            const controller = new RaceController(track, defaultQuestionConfig, createDefaultRaceConfig());
             const questionController = controller.getQuestionController();
             const destroySpy = jest.spyOn(questionController, 'destroy');
 

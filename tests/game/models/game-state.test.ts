@@ -3,10 +3,11 @@
  */
 
 import { GameState } from '../../../src/game/models/game-state';
-import { Car } from '../../../src/game/models/car';
+import { UserCar } from '../../../src/game/models/user-car';
+import { BotCar } from '../../../src/game/models/bot-car';
 import { Track } from '../../../src/game/models/track';
 import { Camera } from '../../../src/game/types';
-import { createSimpleTestTrack } from '../../utils/test-helpers';
+import { createSimpleTestTrack, createDefaultBotConfig } from '../../utils/test-helpers';
 
 describe('GameState Model', () => {
     let track: Track;
@@ -31,7 +32,7 @@ describe('GameState Model', () => {
     describe('Car Management', () => {
         it('should add player car and set playerCarIndex correctly', () => {
             const gameState = new GameState(camera, track);
-            const playerCar = new Car(0, '#00ff00');
+            const playerCar = new UserCar(0, '#00ff00');
 
             gameState.addPlayerCar(playerCar);
 
@@ -42,8 +43,11 @@ describe('GameState Model', () => {
 
         it('should add cars to the cars array', () => {
             const gameState = new GameState(camera, track);
-            const aiCar1 = new Car(100, '#ff0000');
-            const aiCar2 = new Car(200, '#0000ff');
+            const botConfig = createDefaultBotConfig();
+            const aiCar1 = new BotCar(100, '#ff0000', 40, 22, 1.0, botConfig);
+            const aiCar2 = new BotCar(200, '#0000ff', 40, 22, 1.0, botConfig);
+            aiCar1.nextAnswerTime = aiCar1.answerSpeed;
+            aiCar2.nextAnswerTime = aiCar2.answerSpeed;
 
             gameState.addCar(aiCar1);
             gameState.addCar(aiCar2);
@@ -55,7 +59,9 @@ describe('GameState Model', () => {
 
     it('should return readonly array of all cars', () => {
       const gameState = new GameState(camera, track);
-      const car = new Car();
+      const botConfig = createDefaultBotConfig();
+      const car = new BotCar(0, '#ff0000', 40, 22, 1.0, botConfig);
+      car.nextAnswerTime = car.answerSpeed;
       gameState.addCar(car);
 
       const cars = gameState.getCars();
@@ -68,7 +74,7 @@ describe('GameState Model', () => {
 
         it('should return correct player car via getter', () => {
             const gameState = new GameState(camera, track);
-            const playerCar = new Car(0, '#00ff00');
+            const playerCar = new UserCar(0, '#00ff00');
 
             gameState.addPlayerCar(playerCar);
 
@@ -77,9 +83,12 @@ describe('GameState Model', () => {
 
         it('should exclude player car from aiCars getter', () => {
             const gameState = new GameState(camera, track);
-            const playerCar = new Car(0, '#00ff00');
-            const aiCar1 = new Car(100, '#ff0000');
-            const aiCar2 = new Car(200, '#0000ff');
+            const botConfig = createDefaultBotConfig();
+            const playerCar = new UserCar(0, '#00ff00');
+            const aiCar1 = new BotCar(100, '#ff0000', 40, 22, 1.0, botConfig);
+            const aiCar2 = new BotCar(200, '#0000ff', 40, 22, 1.0, botConfig);
+            aiCar1.nextAnswerTime = aiCar1.answerSpeed;
+            aiCar2.nextAnswerTime = aiCar2.answerSpeed;
 
             gameState.addPlayerCar(playerCar);
             gameState.addCar(aiCar1);
@@ -94,9 +103,11 @@ describe('GameState Model', () => {
         });
 
         it('should handle multiple cars with player at different indices', () => {
+            const botConfig = createDefaultBotConfig();
             const gameState1 = new GameState(camera, track);
-            const p1 = new Car(0, '#00ff00');
-            const a1 = new Car(100, '#ff0000');
+            const p1 = new UserCar(0, '#00ff00');
+            const a1 = new BotCar(100, '#ff0000', 40, 22, 1.0, botConfig);
+            a1.nextAnswerTime = a1.answerSpeed;
             gameState1.addPlayerCar(p1);
             gameState1.addCar(a1);
             expect(gameState1.playerCar).toBe(p1);
@@ -104,9 +115,11 @@ describe('GameState Model', () => {
             expect(gameState1.aiCars[0]).toBe(a1);
 
             const gameState2 = new GameState(camera, track);
-            const a2a = new Car(200, '#ff0000');
-            const a2b = new Car(300, '#0000ff');
-            const p2 = new Car(0, '#00ff00');
+            const a2a = new BotCar(200, '#ff0000', 40, 22, 1.0, botConfig);
+            const a2b = new BotCar(300, '#0000ff', 40, 22, 1.0, botConfig);
+            const p2 = new UserCar(0, '#00ff00');
+            a2a.nextAnswerTime = a2a.answerSpeed;
+            a2b.nextAnswerTime = a2b.answerSpeed;
             gameState2.addCar(a2a);
             gameState2.addCar(a2b);
             gameState2.addPlayerCar(p2);
@@ -120,11 +133,14 @@ describe('GameState Model', () => {
 
         it('should handle player car being replaced', () => {
             const gameState = new GameState(camera, track);
-            const playerCar1 = new Car(0, '#00ff00');
-            const playerCar2 = new Car(0, '#00ffff');
+            const botConfig = createDefaultBotConfig();
+            const playerCar1 = new UserCar(0, '#00ff00');
+            const playerCar2 = new UserCar(0, '#00ffff');
+            const aiCar = new BotCar(100, '#ff0000', 40, 22, 1.0, botConfig);
+            aiCar.nextAnswerTime = aiCar.answerSpeed;
 
             gameState.addPlayerCar(playerCar1);
-            gameState.addCar(new Car(100, '#ff0000'));
+            gameState.addCar(aiCar);
             gameState.addPlayerCar(playerCar2);
 
             expect(gameState.getCars()).toHaveLength(3);

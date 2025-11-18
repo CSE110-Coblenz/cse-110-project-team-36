@@ -1,4 +1,5 @@
 import type { Track } from "./track";
+import { clamp } from "../../utils/math";
 
 /**
  * Car class
@@ -29,8 +30,8 @@ export class Car {
     public crashedThisFrame: boolean = false;  // flag to indicate crash occurred this frame (skip physics smoothing)
 
     public lapCount: number = 0;
-    private lastS: number = 0;
-    private crossedFinish: boolean = false;
+    protected lastS: number = 0;
+    protected crossedFinish: boolean = false;
 
     /**
      * Constructor
@@ -115,7 +116,7 @@ export class Car {
         }
         const elapsed = currentGameTime - this.laneChangeStartTime;
         const progress = elapsed / this.laneChangeDuration;
-        return Math.max(0, Math.min(1, progress));
+        return clamp(progress, 0, 1);
     }
 
     /**
