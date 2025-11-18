@@ -1,88 +1,88 @@
-import React, { useEffect, useRef, useState } from "react";
-import { GameStage } from "../rendering/game/GameStage";
-import { QuestionAnswer } from "../rendering/game/QuestionAnswer";
-import { PauseOverlay } from "../rendering/game/PauseOverlay";
-import { Hud } from "../rendering/game/Hud";
-import { RaceController } from "../game/controllers/RaceController";
-import { PAGE_WIDTH, PAGE_HEIGHT } from "../const";
-import { events } from "../shared/events";
-import { Button } from "../components/button";
-import styles from "./styles/racePage.module.css";
+import React, { useEffect, useRef, useState } from 'react';
+import { GameStage } from '../rendering/game/GameStage';
+import { QuestionAnswer } from '../rendering/game/QuestionAnswer';
+import { PauseOverlay } from '../rendering/game/PauseOverlay';
+import { Hud } from '../rendering/game/Hud';
+import { RaceController } from '../game/controllers/RaceController';
+import { PAGE_WIDTH, PAGE_HEIGHT } from '../const';
+import { events } from '../shared/events';
+import { Button } from '../components/button';
+import styles from './styles/racePage.module.css';
 interface RacePageProps {
-  raceController: RaceController;
-  currentUser: string | null;
-  onExit: () => void;
+    raceController: RaceController;
+    currentUser: string | null;
+    onExit: () => void;
 }
 
 export const RacePage: React.FC<RacePageProps> = ({
-  raceController,
-  currentUser,
-  onExit,
+    raceController,
+    currentUser,
+    onExit,
 }) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [size, setSize] = useState({ w: PAGE_WIDTH, h: PAGE_HEIGHT });
-  const [, setFrame] = useState(0);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [size, setSize] = useState({ w: PAGE_WIDTH, h: PAGE_HEIGHT });
+    const [, setFrame] = useState(0);
 
-  const paused = raceController.getGameState().paused;
+    const paused = raceController.getGameState().paused;
 
-  useEffect(() => {
-    if (!containerRef.current) return;
+    useEffect(() => {
+        if (!containerRef.current) return;
 
-    raceController.start(
-      containerRef.current,
-      (w, h) => setSize({ w, h }),
-      () => setFrame((f) => f + 1)
-    );
+        raceController.start(
+            containerRef.current,
+            (w, h) => setSize({ w, h }),
+            () => setFrame((f) => f + 1),
+        );
 
-    return () => {
-      raceController.stop();
+        return () => {
+            raceController.stop();
+        };
+    }, [raceController]);
+
+    const gs = raceController.getGameState();
+    const questionController = raceController.getQuestionController();
+    const elapsedMs = raceController.getElapsedMs();
+    const accuracy = raceController.getAccuracy();
+    const correctCount = raceController.getCorrectCount();
+    const incorrectCount = raceController.getIncorrectCount();
+
+    const handleResume = () => raceController.resume();
+    const handleSettings = () => events.emit('SettingsRequested', {});
+    const handleExitToMenu = () => {
+        raceController.exitRace(currentUser);
+        onExit();
     };
-  }, [raceController]);
 
-  const gs = raceController.getGameState();
-  const questionController = raceController.getQuestionController();
-  const elapsedMs = raceController.getElapsedMs();
-  const accuracy = raceController.getAccuracy();
-  const correctCount = raceController.getCorrectCount();
-  const incorrectCount = raceController.getIncorrectCount();
+    return (
+        <div ref={containerRef} className={styles.racePage}>
+            <QuestionAnswer questionController={questionController} />
+            <GameStage gs={gs} width={size.w} height={size.h} />
 
-  const handleResume = () => raceController.resume();
-  const handleSettings = () => events.emit("SettingsRequested", {});
-  const handleExitToMenu = () => {
-    raceController.exitRace(currentUser);
-    onExit();
-  };
+            <div className={styles.pausePlacement}>
+                <Button
+                    onClick={() => raceController.togglePause()}
+                    aria-pressed={paused ? 'true' : 'false'}
+                    title="Pause / Open Menu"
+                    className={styles.pauseButton}
+                >
+                    Pause
+                </Button>
+            </div>
 
-  return (
-    <div ref={containerRef} className={styles.racePage}>
-      <QuestionAnswer questionController={questionController} />
-      <GameStage gs={gs} width={size.w} height={size.h} />
+            <Hud
+                lap={(gs.playerCar?.lapCount ?? 0) + 1}
+                elapsedMs={elapsedMs}
+                accuracy={accuracy}
+                correctCount={correctCount}
+                incorrectCount={incorrectCount}
+            />
 
-      <div className={styles.pausePlacement}>
-        <Button
-          onClick={() => raceController.togglePause()}
-          aria-pressed={paused ? "true" : "false"}
-          title="Pause / Open Menu"
-          className={styles.pauseButton}
-        >
-          Pause
-        </Button>
-      </div>
-
-      <Hud
-        lap={(gs.playerCar?.lapCount ?? 0) + 1}
-        elapsedMs={elapsedMs}
-        accuracy={accuracy}
-        correctCount={correctCount}
-        incorrectCount={incorrectCount}
-      />
-
-      <PauseOverlay
-        visible={paused}
-        onResume={handleResume}
-        onSettings={handleSettings}
-        onExit={handleExitToMenu}
-      />
-    </div>
-  );
+            <PauseOverlay
+                visible={paused}
+                onResume={handleResume}
+                onSettings={handleSettings}
+                onExit={handleExitToMenu}
+            />
+        </div>
+    );
 };

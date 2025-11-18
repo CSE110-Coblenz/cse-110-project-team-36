@@ -8,7 +8,19 @@ import { worldToScreen } from './utils';
 /**
  * Car layer component
  */
-export function CarLayer({ track, cars, stageWidth, stageHeight, camera }: { track: Track; cars: readonly Car[]; stageWidth: number; stageHeight: number; camera: Camera; }) {
+export function CarLayer({
+    track,
+    cars,
+    stageWidth,
+    stageHeight,
+    camera,
+}: {
+    track: Track;
+    cars: readonly Car[];
+    stageWidth: number;
+    stageHeight: number;
+    camera: Camera;
+}) {
     return (
         <Layer listening={false}>
             {cars.map((car, i) => (
@@ -28,11 +40,28 @@ export function CarLayer({ track, cars, stageWidth, stageHeight, camera }: { tra
 /**
  * Car renderer component
  */
-function CarRenderer({ track, car, stageWidth, stageHeight, camera }: { track: Track; car: Car; stageWidth: number; stageHeight: number; camera: Camera; }) {
+function CarRenderer({
+    track,
+    car,
+    stageWidth,
+    stageHeight,
+    camera,
+}: {
+    track: Track;
+    car: Car;
+    stageWidth: number;
+    stageHeight: number;
+    camera: Camera;
+}) {
     const { angleDeg, screen, scale, wobble } = useMemo(() => {
         const lateralOffset = car.lateral;
         const worldPos = car.getWorldPosition(track, lateralOffset);
-        const screenPos = worldToScreen({ x: worldPos.x, y: worldPos.y }, camera, stageWidth, stageHeight);
+        const screenPos = worldToScreen(
+            { x: worldPos.x, y: worldPos.y },
+            camera,
+            stageWidth,
+            stageHeight,
+        );
         return {
             angleDeg: worldPos.angleDeg,
             screen: screenPos,

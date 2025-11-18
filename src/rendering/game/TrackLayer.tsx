@@ -4,15 +4,41 @@ import type { Track } from '../../game/models/track';
 import type { Camera } from '../../game/types';
 import { transformTrackPointsAtOffset } from './utils';
 
-export function TrackLayer({ track, stageWidth, stageHeight, camera, roadColor = '#646b75' }: { track: Track; stageWidth: number; stageHeight: number; camera: Camera; roadColor?: string }) {
+export function TrackLayer({
+    track,
+    stageWidth,
+    stageHeight,
+    camera,
+    roadColor = '#646b75',
+}: {
+    track: Track;
+    stageWidth: number;
+    stageHeight: number;
+    camera: Camera;
+    roadColor?: string;
+}) {
     const worldUnitSpacing = 10; // Fixed world-unit spacing for smooth rendering
-    
+
     const leftEdgePoints = useMemo(() => {
-        return transformTrackPointsAtOffset(track, -track.width / 2, camera, stageWidth, stageHeight, worldUnitSpacing);
+        return transformTrackPointsAtOffset(
+            track,
+            -track.width / 2,
+            camera,
+            stageWidth,
+            stageHeight,
+            worldUnitSpacing,
+        );
     }, [track, camera, stageWidth, stageHeight]);
 
     const rightEdgePoints = useMemo(() => {
-        return transformTrackPointsAtOffset(track, track.width / 2, camera, stageWidth, stageHeight, worldUnitSpacing);
+        return transformTrackPointsAtOffset(
+            track,
+            track.width / 2,
+            camera,
+            stageWidth,
+            stageHeight,
+            worldUnitSpacing,
+        );
     }, [track, camera, stageWidth, stageHeight]);
 
     const trackFillPoints = useMemo(() => {
@@ -30,18 +56,25 @@ export function TrackLayer({ track, stageWidth, stageHeight, camera, roadColor =
         const laneWidth = track.laneWidth;
         const trackWidth = track.width;
         const rightEdge = trackWidth / 2;
-        
+
         for (let i = 0; i < numLanes - 1; i++) {
             const dividerOffset = rightEdge - (i + 1) * laneWidth;
             dividers.push(dividerOffset);
         }
-        
+
         return dividers;
     }, [track]);
 
     const laneDividerPoints = useMemo(() => {
-        return laneDividers.map(offset => ({
-            points: transformTrackPointsAtOffset(track, offset, camera, stageWidth, stageHeight, worldUnitSpacing)
+        return laneDividers.map((offset) => ({
+            points: transformTrackPointsAtOffset(
+                track,
+                offset,
+                camera,
+                stageWidth,
+                stageHeight,
+                worldUnitSpacing,
+            ),
         }));
     }, [track, laneDividers, camera, stageWidth, stageHeight]);
 

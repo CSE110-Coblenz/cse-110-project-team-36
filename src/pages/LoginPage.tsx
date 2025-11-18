@@ -1,127 +1,129 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
-  userExists,
-  getUser,
-  saveUser,
-  hashPassword,
-  verifyPassword,
-} from "../services/localStorage";
-import type { UserProfile } from "../services/localStorage";
-import styles from "./styles/loginPage.module.css";
-import { UsernameStep } from "../components/auth/userNameStep";
-import { LoginStep } from "../components/auth/loginForm";
-import { SignupStep } from "../components/auth/signup";
+    userExists,
+    getUser,
+    saveUser,
+    hashPassword,
+    verifyPassword,
+} from '../services/localStorage';
+import type { UserProfile } from '../services/localStorage';
+import styles from './styles/loginPage.module.css';
+import { UsernameStep } from '../components/auth/userNameStep';
+import { LoginStep } from '../components/auth/loginForm';
+import { SignupStep } from '../components/auth/signup';
 
 export const LoginPage: React.FC<{
-  onPlayGuest: () => void;
-  onLogin: (username: string) => void;
-  onBack: () => void;
+    onPlayGuest: () => void;
+    onLogin: (username: string) => void;
+    onBack: () => void;
 }> = ({ onPlayGuest, onLogin, onBack }) => {
-  const [step, setStep] = useState<"username" | "login" | "signup">("username");
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
+    const [step, setStep] = useState<'username' | 'login' | 'signup'>(
+        'username',
+    );
+    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [error, setError] = useState<string | null>(null);
 
-  const handleContinue = () => {
-    if (!username.trim()) {
-      setError("Username is required");
-      return;
-    }
-    setError(null);
-    setStep(userExists(username) ? "login" : "signup");
-  };
+    const handleContinue = () => {
+        if (!username.trim()) {
+            setError('Username is required');
+            return;
+        }
+        setError(null);
+        setStep(userExists(username) ? 'login' : 'signup');
+    };
 
-  const handleChangeUsername = () => {
-    setStep("username");
-    setPassword("");
-    setConfirmPassword("");
-    setEmail("");
-    setError(null);
-  };
+    const handleChangeUsername = () => {
+        setStep('username');
+        setPassword('');
+        setConfirmPassword('');
+        setEmail('');
+        setError(null);
+    };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        setError(null);
 
-    if (step === "login") {
-      const user = getUser(username);
-      if (!user) return setError("User not found");
-      if (!verifyPassword(password, user.passwordHash))
-        return setError("Incorrect password");
-      onLogin(username);
-    } else if (step === "signup") {
-      if (!email.trim() || !email.includes("@"))
-        return setError("Valid email is required");
-      if (password.length < 3)
-        return setError("Password must be at least 3 characters");
-      if (password !== confirmPassword)
-        return setError("Passwords do not match");
+        if (step === 'login') {
+            const user = getUser(username);
+            if (!user) return setError('User not found');
+            if (!verifyPassword(password, user.passwordHash))
+                return setError('Incorrect password');
+            onLogin(username);
+        } else if (step === 'signup') {
+            if (!email.trim() || !email.includes('@'))
+                return setError('Valid email is required');
+            if (password.length < 3)
+                return setError('Password must be at least 3 characters');
+            if (password !== confirmPassword)
+                return setError('Passwords do not match');
 
-      const newUser: UserProfile = {
-        username: username.trim(),
-        email: email.trim(),
-        passwordHash: hashPassword(password),
-        stats: [],
-        preferences: {},
-        createdAt: Date.now(),
-      };
+            const newUser: UserProfile = {
+                username: username.trim(),
+                email: email.trim(),
+                passwordHash: hashPassword(password),
+                stats: [],
+                preferences: {},
+                createdAt: Date.now(),
+            };
 
-      saveUser(newUser);
-      onLogin(username.trim());
-    }
-  };
+            saveUser(newUser);
+            onLogin(username.trim());
+        }
+    };
 
-  return (
-    <div className={styles.loginPage}>
-      <div className={styles.overlay} />
+    return (
+        <div className={styles.loginPage}>
+            <div className={styles.overlay} />
 
-      <div className={styles.card}>
-        <h1 className={styles.title}>FORMULA FUN 🏁</h1>
-        <p className={styles.subtitle}>
-          {step === "username" && "Welcome!"}
-          {step === "login" && "Welcome Back!"}
-          {step === "signup" && "Join the Math Racers!"}
-        </p>
+            <div className={styles.card}>
+                <h1 className={styles.title}>FORMULA FUN 🏁</h1>
+                <p className={styles.subtitle}>
+                    {step === 'username' && 'Welcome!'}
+                    {step === 'login' && 'Welcome Back!'}
+                    {step === 'signup' && 'Join the Math Racers!'}
+                </p>
 
-        {step === "username" && (
-          <UsernameStep
-            username={username}
-            error={error}
-            onChange={setUsername}
-            onContinue={handleContinue}
-            onPlayGuest={onPlayGuest}
-            onBack={onBack}
-          />
-        )}
+                {step === 'username' && (
+                    <UsernameStep
+                        username={username}
+                        error={error}
+                        onChange={setUsername}
+                        onContinue={handleContinue}
+                        onPlayGuest={onPlayGuest}
+                        onBack={onBack}
+                    />
+                )}
 
-        {step === "login" && (
-          <LoginStep
-            username={username}
-            password={password}
-            error={error}
-            onPasswordChange={setPassword}
-            onSubmit={handleSubmit}
-            onBack={handleChangeUsername}
-          />
-        )}
+                {step === 'login' && (
+                    <LoginStep
+                        username={username}
+                        password={password}
+                        error={error}
+                        onPasswordChange={setPassword}
+                        onSubmit={handleSubmit}
+                        onBack={handleChangeUsername}
+                    />
+                )}
 
-        {step === "signup" && (
-          <SignupStep
-            username={username}
-            email={email}
-            password={password}
-            confirmPassword={confirmPassword}
-            error={error}
-            onEmailChange={setEmail}
-            onPasswordChange={setPassword}
-            onConfirmChange={setConfirmPassword}
-            onSubmit={handleSubmit}
-            onBack={handleChangeUsername}
-          />
-        )}
-      </div>
-    </div>
-  );
+                {step === 'signup' && (
+                    <SignupStep
+                        username={username}
+                        email={email}
+                        password={password}
+                        confirmPassword={confirmPassword}
+                        error={error}
+                        onEmailChange={setEmail}
+                        onPasswordChange={setPassword}
+                        onConfirmChange={setConfirmPassword}
+                        onSubmit={handleSubmit}
+                        onBack={handleChangeUsername}
+                    />
+                )}
+            </div>
+        </div>
+    );
 };

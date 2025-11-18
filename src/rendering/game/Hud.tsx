@@ -1,6 +1,5 @@
-import React from "react";
-import { formatRaceTime } from "../../utils/formatting";
-import styles from "../styles/hud.module.css";
+import { formatRaceTime } from '../../utils/formatting';
+import styles from '../styles/hud.module.css';
 
 /**
  * Minimal HUD overlay: Lap / Time / Accuracy
@@ -13,27 +12,27 @@ import styles from "../styles/hud.module.css";
  * @returns The HUD component
  */
 export function Hud({
-  lap,
-  elapsedMs,
-  accuracy,
-  correctCount,
-  incorrectCount,
+    lap,
+    elapsedMs,
+    accuracy,
+    correctCount,
+    incorrectCount,
 }: {
-  lap: number;
-  elapsedMs: number;
-  accuracy: number;
-  correctCount: number;
-  incorrectCount: number;
+    lap: number;
+    elapsedMs: number;
+    accuracy: number;
+    correctCount: number;
+    incorrectCount: number;
 }) {
-  const time = formatRaceTime(elapsedMs);
+    const time = formatRaceTime(elapsedMs);
 
-  return (
-    <div className={styles.hud} aria-label="HUD">
-      <div>Lap: {lap}</div>
-      <div>Time: {time}</div>
-      <div>Acc: {(accuracy * 100).toFixed(0)}%</div>
-      <div className={styles.hudSubtext}>Correct: {correctCount}</div>
-      <div className={styles.hudSubtext}>Mistakes: {incorrectCount}</div>
-    </div>
-  );
+    return (
+        <div className={styles.hud} aria-label="HUD">
+            <div>Lap: {lap}</div>
+            <div>Time: {time}</div>
+            <div>Acc: {(accuracy * 100).toFixed(0)}%</div>
+            <div className={styles.hudSubtext}>Correct: {correctCount}</div>
+            <div className={styles.hudSubtext}>Mistakes: {incorrectCount}</div>
+        </div>
+    );
 }
