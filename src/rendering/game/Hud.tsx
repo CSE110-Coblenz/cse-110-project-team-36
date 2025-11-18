@@ -1,3 +1,4 @@
+import React from "react";
 import { formatRaceTime } from "../../utils/formatting";
 import styles from "../styles/hud.module.css";
 
