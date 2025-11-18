@@ -7,6 +7,7 @@ import { RaceController } from "../game/controllers/RaceController";
 import { PAGE_WIDTH, PAGE_HEIGHT } from "../const";
 import { events } from "../shared/events";
 import { PostRaceStats } from "../rendering/game/RaceFinishedPage";
+import { MiniMap } from "../rendering/game/MiniMap";
 
 interface RacePageProps {
     raceController: RaceController;
@@ -108,6 +109,12 @@ export const RacePage: React.FC<RacePageProps> = ({
                 accuracy={accuracy}
                 correctCount={correctCount}
                 incorrectCount={incorrectCount}
+            />
+
+            <MiniMap
+                track={gs.track}
+                cars={gs.getCars()}
+                playerCar={gs.playerCar}
             />
 
             <PauseOverlay
