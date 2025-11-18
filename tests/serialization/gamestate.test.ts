@@ -39,15 +39,15 @@ describe('GameState Serialization', () => {
         const gameState = new GameState(camera, track);
 
         const playerCar = new Car(0, '#00ff00', 40, 22);
-        playerCar.vProg = 60;
+        playerCar.v = 60;
         playerCar.r = 10;
 
         const aiCar1 = new Car(-50, '#ff0000', 35, 20);
-        aiCar1.vProg = 55;
+        aiCar1.v = 55;
         aiCar1.lapCount = 1;
 
         const aiCar2 = new Car(-100, '#0000ff', 45, 25);
-        aiCar2.vProg = 50;
+        aiCar2.v = 50;
         aiCar2.lateral = 5;
 
         gameState.addPlayerCar(playerCar);
@@ -99,8 +99,8 @@ describe('GameState Serialization', () => {
             expect(parsed.playerCarIndex).toBe(0); // Player car was added first
 
             parsed.cars.forEach((car: any) => {
-                expect(car).toHaveProperty('sProg');
-                expect(car).toHaveProperty('vProg');
+                expect(car).toHaveProperty('s');
+                expect(car).toHaveProperty('v');
                 expect(car).toHaveProperty('r');
                 expect(car).toHaveProperty('color');
                 expect(car).toHaveProperty('lapCount');
@@ -158,8 +158,8 @@ describe('GameState Serialization', () => {
             const deserializedPlayerCar = deserializedGameState.playerCar;
 
             expect(deserializedPlayerCar.color).toBe(originalPlayerCar.color);
-            expect(deserializedPlayerCar.sProg).toBe(originalPlayerCar.sProg);
-            expect(deserializedPlayerCar.vProg).toBe(originalPlayerCar.vProg);
+            expect(deserializedPlayerCar.s).toBe(originalPlayerCar.s);
+            expect(deserializedPlayerCar.v).toBe(originalPlayerCar.v);
         });
 
         it('should preserve AI cars correctly', () => {
@@ -174,7 +174,7 @@ describe('GameState Serialization', () => {
 
             for (let i = 0; i < originalAiCars.length; i++) {
                 expect(deserializedAiCars[i].color).toBe(originalAiCars[i].color);
-                expect(deserializedAiCars[i].sProg).toBe(originalAiCars[i].sProg);
+                expect(deserializedAiCars[i].s).toBe(originalAiCars[i].s);
                 expect(deserializedAiCars[i].lapCount).toBe(originalAiCars[i].lapCount);
             }
         });

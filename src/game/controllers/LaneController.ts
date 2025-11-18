@@ -99,7 +99,7 @@ export class LaneController {
   }
 
   /**
-   * Get wrapped signed difference between two sPhys positions
+   * Get wrapped signed difference between two s positions
    * Returns positive if s1 is ahead of s2. Normalized to [-trackLength/2, trackLength/2].
    *
    * @param s1 - First position
@@ -119,7 +119,7 @@ export class LaneController {
 
   /**
    * Resolve conflicts for lane change requests
-   * Position (sPhys) is the sole decider
+   * Position (s) is the sole decider
    *
    * @param car - The car attempting to change lanes
    * @param targetLane - The target lane index
@@ -137,8 +137,8 @@ export class LaneController {
       // Also check cars already in the target lane
       if (!otherCar.isChangingLanes() && otherCar.laneIndex === targetLane) {
         const wrappedSDiff = this.getWrappedSDiff(
-          car.sPhys,
-          otherCar.sPhys,
+          car.s,
+          otherCar.s,
           trackLength
         );
         const threshold = ((car.carLength + otherCar.carLength) * 1.5) / 2;
@@ -155,8 +155,8 @@ export class LaneController {
         otherCar.targetLaneIndex === targetLane
       ) {
         const wrappedSDiff = this.getWrappedSDiff(
-          car.sPhys,
-          otherCar.sPhys,
+          car.s,
+          otherCar.s,
           trackLength
         );
 

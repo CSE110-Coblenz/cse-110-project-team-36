@@ -6,6 +6,8 @@ import { Hud } from "../rendering/game/Hud";
 import { RaceController } from "../game/controllers/RaceController";
 import { PAGE_WIDTH, PAGE_HEIGHT } from "../const";
 import { events } from "../shared/events";
+import { PostRaceStats } from "../rendering/game/RaceFinishedPage";
+
 interface RacePageProps {
   raceController: RaceController;
   currentUser: string | null;
@@ -118,6 +120,12 @@ export const RacePage: React.FC<RacePageProps> = ({
         visible={paused}
         onResume={handleResume}
         onSettings={handleSettings}
+        onExit={handleExitToMenu}
+      />
+
+      <PostRaceStats
+        statsManager={raceController.getStatsManager()}
+        time={raceController.getElapsedMs() / 1000}
         onExit={handleExitToMenu}
       />
     </div>
