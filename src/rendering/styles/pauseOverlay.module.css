@@ -1,0 +1,105 @@
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 9999;
+  font-family: var(--font-main);
+}
+
+/* === Popup Card === */
+.card {
+  background: var(--bg-dark-gradient);
+  border: 3px solid var(--color-white);
+  border-radius: 24px;
+  padding: 28px 32px;
+  min-width: 320px;
+  text-align: center;
+  box-shadow: var(--shadow-strong), var(--shadow-glow-white);
+  animation: cardPulse 2s infinite;
+}
+
+/* === Title === */
+.title {
+  margin: 0 0 8px;
+  font-size: 2rem;
+  font-weight: 900;
+  color: var(--color-white);
+  letter-spacing: 0.04em;
+  text-shadow: 0 0 6px var(--color-yellow), 0 0 12px var(--color-orange),
+    0 0 24px var(--color-red-orange), 0 0 36px var(--color-red);
+}
+
+/* === Subtitle === */
+.subtitle {
+  margin: 0 0 20px;
+  color: var(--color-warm-glow);
+  font-weight: 600;
+  text-shadow: 0 0 4px var(--color-black);
+}
+
+/* === Button Layout === */
+.buttonGrid {
+  display: grid;
+  gap: 12px;
+}
+
+/* === Base Button Style === */
+.btnBase {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 16px;
+  border: 2px solid var(--color-white);
+  font-weight: 800;
+  font-size: 1rem;
+  cursor: pointer;
+  text-shadow: 0 0 4px rgba(255, 255, 255, 0.6);
+  transition: transform var(--transition-fast);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Hover & Active (global to all buttons) */
+button:hover {
+  transform: scale(1.05);
+}
+
+button:active {
+  transform: scale(0.95);
+}
+
+/* === Button Variants === */
+
+.btnYellow {
+  background: var(--btn-yellow-gradient);
+  box-shadow: var(--shadow-yellow), var(--shadow-red);
+}
+
+.btnBlue {
+  background: var(--btn-blue-gradient);
+  box-shadow: var(--shadow-blue), var(--shadow-cyan);
+}
+
+.btnGreen {
+  /* There is no dedicated green gradient, so we build one using your neon tokens */
+  background: var(--btn-green-gradient);
+  box-shadow: var(--shadow-green);
+}
+
+.btnGray {
+  background: var(--btn-gray-gradient);
+  color: var(--color-white);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.6);
+}
+
+/* === Animation === */
+@keyframes cardPulse {
+  0%,
+  100% {
+    box-shadow: var(--shadow-strong), 0 0 20px rgba(255, 255, 255, 0.15);
+  }
+  50% {
+    box-shadow: var(--shadow-strong), var(--shadow-glow-white);
+  }
+}

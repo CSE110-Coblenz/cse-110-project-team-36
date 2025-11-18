@@ -53,6 +53,13 @@
   );
   --btn-gray-gradient: linear-gradient(90deg, #555 0%, #333 100%);
 
+  --btn-green-gradient: linear-gradient(
+    90deg,
+    var(--color-neon-green) 0%,
+    var(--color-neon-blue) 50%,
+    var(--color-neon-cyan) 100%
+  );
+
   /* === Shadows === */
   --shadow-strong: 0 20px 40px rgba(0, 0, 0, 0.8);
   --shadow-glow-white: 0 0 35px rgba(255, 255, 255, 0.25);
