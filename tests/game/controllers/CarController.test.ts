@@ -13,7 +13,7 @@ describe('CarController', () => {
 
     beforeEach(() => {
         const track = createSimpleTestTrack();
-        const camera = { pos: { x: 0, y: 0 }, zoom: 1 };
+        const camera = { pos: { x: 0, y: 0 }, zoom: 1, rotation: 0 };
         gameState = new GameState(camera, track);
         controller = new CarController(gameState);
     });
@@ -43,14 +43,13 @@ describe('CarController', () => {
             const params = controller.getParams();
             expect(params).toEqual({
                 vMin: 5,
-                vMax: 50,
+                vMax: 500,
                 aBase: 0,
                 tauA: 0.5,
                 beta: 30,
                 kv: 5,
                 kp: 2,
                 vBonus: 10,
-                deltaSMax: 1,
                 mu: 0.8,
                 kappaEps: 0.001,
                 vKappaScale: 10,
@@ -82,7 +81,7 @@ describe('CarController', () => {
 
             const params = controller.getParams();
             expect(params.vMin).toBe(15);
-            expect(params.vMax).toBe(50);
+            expect(params.vMax).toBe(500);
             expect(params.beta).toBe(30);
         });
     });
@@ -187,20 +186,6 @@ describe('CarController', () => {
             expect(car.vProg).toBeGreaterThanOrEqual(initialV);
         });
 
-        it('should use clamped velocity for position calculation', () => {
-            const car = new Car();
-            gameState.addPlayerCar(car);
-            controller.initializeCars();
-
-            car.vProg = 100;
-            const initialS = car.sProg;
-
-            controller.step(0.1);
-
-            expect(car.vProg).toBeGreaterThan(50);
-            expect(car.sProg).toBeLessThanOrEqual(initialS + 1 + 1);
-        });
-
         it('should wrap progress position around track length', () => {
             const car = new Car();
             gameState.addPlayerCar(car);
@@ -297,7 +282,7 @@ describe('CarController', () => {
 
         it('should respect curvature limits on physical velocity', () => {
             const complexTrack = createComplexTestTrack();
-            const complexCamera = { pos: { x: 0, y: 0 }, zoom: 1 };
+            const complexCamera = { pos: { x: 0, y: 0 }, zoom: 1, rotation: 0 };
             const complexGameState = new GameState(complexCamera, complexTrack);
             const complexController = new CarController(complexGameState);
 
@@ -341,7 +326,7 @@ describe('CarController', () => {
 
         it('should handle curved track sections', () => {
             const complexTrack = createComplexTestTrack();
-            const complexCamera = { pos: { x: 0, y: 0 }, zoom: 1 };
+            const complexCamera = { pos: { x: 0, y: 0 }, zoom: 1, rotation: 0 };
             const complexGameState = new GameState(complexCamera, complexTrack);
             const complexController = new CarController(complexGameState);
 

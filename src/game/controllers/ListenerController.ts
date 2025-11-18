@@ -1,10 +1,12 @@
 import { ResizeListener } from "../listeners/ResizeListener";
+import { VisibilityListener } from "../listeners/VisibilityListener";
 import {
     SpaceRewardListener,
     NumberInputListener,
     DeleteListener,
     EnterSubmitListener,
     SkipQuestionListener,
+    LaneChangeListener,
 } from "../listeners/KeyboardListener";
 
 /**
@@ -20,11 +22,13 @@ export class ListenerController {
 
     private pauseKeyListener: (e: KeyboardEvent) => void;
     private resizeListener: ResizeListener;
+    private visibilityListener: VisibilityListener;
     private spaceRewardListener: SpaceRewardListener;
     private numberInputListener: NumberInputListener;
     private deleteListener: DeleteListener;
     private enterSubmitListener: EnterSubmitListener;
     private skipQuestionListener: SkipQuestionListener;
+    private laneChangeListener: LaneChangeListener;
 
     constructor(
         private onPauseToggle: () => void,
@@ -34,7 +38,12 @@ export class ListenerController {
             onDelete: () => void;
             onEnterSubmit: () => void;
             onSkip: () => void;
-        }
+        },
+        private laneChangeCallbacks: {
+            onLaneChangeLeft: () => void;
+            onLaneChangeRight: () => void;
+        },
+        private onVisibilityLost?: () => void
     ) {
         this.pauseKeyListener = (e: KeyboardEvent) => {
             const k = e.key.toLowerCase();
@@ -43,6 +52,12 @@ export class ListenerController {
                 this.onPauseToggle();
             }
         };
+
+        this.visibilityListener = new VisibilityListener((isVisible: boolean) => {
+            if (!isVisible && this.onVisibilityLost) {
+                this.onVisibilityLost();
+            }
+        });
 
         this.spaceRewardListener = new SpaceRewardListener(() => {
             if (!this.gameInputsPaused) {
@@ -74,6 +89,16 @@ export class ListenerController {
             }
         });
 
+        this.laneChangeListener = new LaneChangeListener((direction: -1 | 1) => {
+            if (!this.gameInputsPaused) {
+                if (direction === -1) {
+                    this.laneChangeCallbacks.onLaneChangeLeft();
+                } else {
+                    this.laneChangeCallbacks.onLaneChangeRight();
+                }
+            }
+        });
+
         this.resizeListener = new ResizeListener(document.body, () => {});
     }
 
@@ -93,6 +118,8 @@ export class ListenerController {
         this.resizeListener = new ResizeListener(containerElement, onResize);
         this.resizeListener.start();
 
+        this.visibilityListener.start();
+
         window.addEventListener("keydown", this.pauseKeyListener);
 
         this.spaceRewardListener.start();
@@ -100,6 +127,7 @@ export class ListenerController {
         this.deleteListener.start();
         this.enterSubmitListener.start();
         this.skipQuestionListener.start();
+        this.laneChangeListener.start();
 
         this.isRunning = true;
     }
@@ -115,11 +143,13 @@ export class ListenerController {
         window.removeEventListener("keydown", this.pauseKeyListener);
 
         this.resizeListener.stop();
+        this.visibilityListener.stop();
         this.spaceRewardListener.stop();
         this.numberInputListener.stop();
         this.deleteListener.stop();
         this.enterSubmitListener.stop();
         this.skipQuestionListener.stop();
+        this.laneChangeListener.stop();
         this.isRunning = false;
         this.gameInputsPaused = false;
     }

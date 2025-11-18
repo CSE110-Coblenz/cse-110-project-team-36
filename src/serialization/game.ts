@@ -16,13 +16,20 @@ export interface SerializedCar {
     color: string;
     carLength: number;
     carWidth: number;
+    laneIndex: number;
+    targetLaneIndex: number | null;
+    laneChangeStartTime: number | null;
+    pendingLaneChanges: number;
+    laneChangeStartOffset: number | null;
+    laneChangeStartVelocity: number | null;
     lapCount: number;
     lastSProg: number;
     crossedFinish: boolean;
 }
 
 export interface SerializedTrack {
-    width: number;
+    laneWidth: number;
+    numLanes: number;
     samples: { x: number; y: number }[];
     sTable: number[];
     totalLength: number;
@@ -79,6 +86,7 @@ export function serializeGameState(gameState: GameState): string {
         camera: {
             pos: { x: gameState.camera.pos.x, y: gameState.camera.pos.y },
             zoom: gameState.camera.zoom,
+            rotation: gameState.camera.rotation,
         },
         track: serializeTrack(gameState.track),
         cars: cars.map(car => serializeCar(car)),
@@ -105,8 +113,15 @@ export function deserializeGameState(jsonString: string): GameState {
     // Reconstruct cars
     const cars = data.cars.map(carData => deserializeCar(carData));
     
+    // Reconstruct camera
+    const camera: Camera = {
+        pos: data.camera.pos,
+        zoom: data.camera.zoom,
+        rotation: data.camera.rotation,
+    };
+    
     // Create game state
-    const gameState = new GameStateClass(data.camera, track);
+    const gameState = new GameStateClass(camera, track);
     
     // Add cars in the correct order
     if (data.playerCarIndex >= 0 && data.playerCarIndex < cars.length) {

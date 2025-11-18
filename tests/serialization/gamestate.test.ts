@@ -22,7 +22,8 @@ describe('GameState Serialization', () => {
     const createTestGameState = (): GameState => {
         const trackJSON: TrackJSON = {
             version: 1,
-            width: 20,
+            numLanes: 4,
+            laneWidth: 5,
             points: [
                 { x: 0, y: 0 },
                 { x: 100, y: 0 },
@@ -34,7 +35,7 @@ describe('GameState Serialization', () => {
         };
         const track = Track.fromJSON(trackJSON);
 
-        const camera: Camera = { pos: { x: 50, y: 50 }, zoom: 1.5 };
+        const camera: Camera = { pos: { x: 50, y: 50 }, zoom: 1.5, rotation: 0 };
         const gameState = new GameState(camera, track);
 
         const playerCar = new Car(0, '#00ff00', 40, 22);
@@ -76,14 +77,15 @@ describe('GameState Serialization', () => {
 
         it('should include all camera properties', () => {
             const gameState = createTestGameState();
-            gameState.updateCamera({ pos: { x: 123, y: 456 }, zoom: 2.5 });
+            gameState.updateCamera({ pos: { x: 123, y: 456 }, zoom: 2.5, rotation: 0 });
 
             const jsonString = serializeGameState(gameState);
             const parsed = JSON.parse(jsonString);
 
             expect(parsed.camera).toEqual({
                 pos: { x: 123, y: 456 },
-                zoom: 2.5
+                zoom: 2.5,
+                rotation: 0
             });
         });
 
@@ -111,7 +113,6 @@ describe('GameState Serialization', () => {
             const jsonString = serializeGameState(gameState);
             const parsed = JSON.parse(jsonString);
 
-            expect(parsed.track).toHaveProperty('width');
             expect(parsed.track).toHaveProperty('samples');
             expect(parsed.track).toHaveProperty('sTable');
             expect(parsed.track).toHaveProperty('totalLength');
@@ -182,8 +183,8 @@ describe('GameState Serialization', () => {
             const invalidJson = JSON.stringify({
                 version: '2.0.0',
                 timestamp: Date.now(),
-                camera: { pos: { x: 0, y: 0 }, zoom: 1 },
-                track: { width: 20, samples: [], sTable: [], totalLength: 0 },
+                camera: { pos: { x: 0, y: 0 }, zoom: 1, rotation: 0 },
+                track: { laneWidth: 5, numLanes: 4, samples: [], sTable: [], totalLength: 0 },
                 cars: [],
                 playerCarIndex: 0
             });
@@ -202,7 +203,7 @@ describe('GameState Serialization', () => {
         it('should maintain complete data integrity', () => {
             const originalGameState = createTestGameState();
 
-            originalGameState.updateCamera({ pos: { x: 200, y: 300 }, zoom: 0.8 });
+            originalGameState.updateCamera({ pos: { x: 200, y: 300 }, zoom: 0.8, rotation: 0 });
 
             originalGameState.playerCar.r += 50;
 
@@ -230,17 +231,19 @@ describe('GameState Serialization', () => {
             const originalReward = deserializedPlayerCar.r;
             deserializedPlayerCar.r += 25;
 
-            deserializedGameState.updateCamera({ pos: { x: 100, y: 100 }, zoom: 2.0 });
+            deserializedGameState.updateCamera({ pos: { x: 100, y: 100 }, zoom: 2.0, rotation: 0 });
 
             expect(deserializedPlayerCar.r).toBe(originalReward + 25);
             expect(deserializedGameState.camera.pos.x).toBe(100);
             expect(deserializedGameState.camera.zoom).toBe(2.0);
+            expect(deserializedGameState.camera.rotation).toBe(0);
         });
 
         it('should work with RaceController reward system', () => {
             const trackJSON: TrackJSON = {
                 version: 1,
-                width: 20,
+                numLanes: 4,
+                laneWidth: 5,
                 points: [
                     { x: 0, y: 0 },
                     { x: 100, y: 0 },

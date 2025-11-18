@@ -12,7 +12,7 @@ import { SkidMarkLayer } from "./SkidMarkLayer";
  * @param height - The height of the game stage
  * @returns The game stage component
  */
-export function GameStage({ gs, width, height }: { gs: GameState; width: number; height: number }) {
+export function GameStage({ gs, width, height }: { gs: GameState; width: number; height: number; }) {
     if (!gs.track) {
         return <Stage width={width} height={height} listening={false} />;
     }

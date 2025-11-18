@@ -15,6 +15,10 @@ describe('ListenerController', () => {
         onEnterSubmit: jest.Mock;
         onSkip: jest.Mock;
     };
+    let laneChangeCallbacks: {
+        onLaneChangeLeft: jest.Mock;
+        onLaneChangeRight: jest.Mock;
+    };
 
     beforeEach(() => {
         containerElement = document.createElement('div');
@@ -29,6 +33,10 @@ describe('ListenerController', () => {
             onEnterSubmit: jest.fn(),
             onSkip: jest.fn(),
         };
+        laneChangeCallbacks = {
+            onLaneChangeLeft: jest.fn(),
+            onLaneChangeRight: jest.fn(),
+        };
     });
 
     afterEach(() => {
@@ -40,7 +48,8 @@ describe('ListenerController', () => {
             const controller = new ListenerController(
                 onPauseToggle,
                 onSpaceReward,
-                questionCallbacks
+                questionCallbacks,
+                laneChangeCallbacks
             );
 
             expect(controller).toBeDefined();
@@ -54,7 +63,8 @@ describe('ListenerController', () => {
             const controller = new ListenerController(
                 onPauseToggle,
                 onSpaceReward,
-                questionCallbacks
+                questionCallbacks,
+                laneChangeCallbacks
             );
 
             controller.start(containerElement, onResize);
@@ -66,21 +76,23 @@ describe('ListenerController', () => {
             const controller = new ListenerController(
                 onPauseToggle,
                 onSpaceReward,
-                questionCallbacks
+                questionCallbacks,
+                laneChangeCallbacks
             );
 
             controller.start(containerElement, onResize);
 
             expect(() => {
                 controller.start(containerElement, onResize);
-            }).toThrow('ListenerController is already started');
+            }).toThrow('ListenerController is already started. Call stop() before starting again.');
         });
 
         it('should stop all listeners', () => {
             const controller = new ListenerController(
                 onPauseToggle,
                 onSpaceReward,
-                questionCallbacks
+                questionCallbacks,
+                laneChangeCallbacks
             );
 
             controller.start(containerElement, onResize);
@@ -93,7 +105,8 @@ describe('ListenerController', () => {
             const controller = new ListenerController(
                 onPauseToggle,
                 onSpaceReward,
-                questionCallbacks
+                questionCallbacks,
+                laneChangeCallbacks
             );
 
             controller.start(containerElement, onResize);
@@ -108,7 +121,8 @@ describe('ListenerController', () => {
             const controller = new ListenerController(
                 onPauseToggle,
                 onSpaceReward,
-                questionCallbacks
+                questionCallbacks,
+                laneChangeCallbacks
             );
 
             controller.start(containerElement, onResize);
@@ -124,7 +138,8 @@ describe('ListenerController', () => {
             const controller = new ListenerController(
                 onPauseToggle,
                 onSpaceReward,
-                questionCallbacks
+                questionCallbacks,
+                laneChangeCallbacks
             );
 
             controller.start(containerElement, onResize);
@@ -140,7 +155,8 @@ describe('ListenerController', () => {
             const controller = new ListenerController(
                 onPauseToggle,
                 onSpaceReward,
-                questionCallbacks
+                questionCallbacks,
+                laneChangeCallbacks
             );
 
             controller.start(containerElement, onResize);
@@ -156,7 +172,8 @@ describe('ListenerController', () => {
             const controller = new ListenerController(
                 onPauseToggle,
                 onSpaceReward,
-                questionCallbacks
+                questionCallbacks,
+                laneChangeCallbacks
             );
 
             controller.start(containerElement, onResize);
@@ -175,7 +192,8 @@ describe('ListenerController', () => {
             const controller = new ListenerController(
                 onPauseToggle,
                 onSpaceReward,
-                questionCallbacks
+                questionCallbacks,
+                laneChangeCallbacks
             );
 
             controller.start(containerElement, onResize);
@@ -191,7 +209,8 @@ describe('ListenerController', () => {
             const controller = new ListenerController(
                 onPauseToggle,
                 onSpaceReward,
-                questionCallbacks
+                questionCallbacks,
+                laneChangeCallbacks
             );
 
             controller.start(containerElement, onResize);
@@ -208,7 +227,8 @@ describe('ListenerController', () => {
             const controller = new ListenerController(
                 onPauseToggle,
                 onSpaceReward,
-                questionCallbacks
+                questionCallbacks,
+                laneChangeCallbacks
             );
 
             controller.start(containerElement, onResize);
@@ -233,31 +253,34 @@ describe('ListenerController', () => {
             const controller = new ListenerController(
                 onPauseToggle,
                 onSpaceReward,
-                questionCallbacks
+                questionCallbacks,
+                laneChangeCallbacks
             );
 
             expect(() => {
                 controller.pause();
-            }).toThrow('Cannot pause: ListenerController is not started');
+            }).toThrow('Cannot pause: ListenerController is not started. Call start() first.');
         });
 
         it('should throw error when resuming before start()', () => {
             const controller = new ListenerController(
                 onPauseToggle,
                 onSpaceReward,
-                questionCallbacks
+                questionCallbacks,
+                laneChangeCallbacks
             );
 
             expect(() => {
                 controller.resume();
-            }).toThrow('Cannot resume: ListenerController is not started');
+            }).toThrow('Cannot resume: ListenerController is not started. Call start() first.');
         });
 
         it('should set paused state correctly', () => {
             const controller = new ListenerController(
                 onPauseToggle,
                 onSpaceReward,
-                questionCallbacks
+                questionCallbacks,
+                laneChangeCallbacks
             );
 
             controller.start(containerElement, onResize);
@@ -276,7 +299,8 @@ describe('ListenerController', () => {
             const controller = new ListenerController(
                 onPauseToggle,
                 onSpaceReward,
-                questionCallbacks
+                questionCallbacks,
+                laneChangeCallbacks
             );
 
             controller.start(containerElement, onResize);
@@ -292,7 +316,8 @@ describe('ListenerController', () => {
             const controller = new ListenerController(
                 onPauseToggle,
                 onSpaceReward,
-                questionCallbacks
+                questionCallbacks,
+                laneChangeCallbacks
             );
 
             expect(() => {
@@ -304,7 +329,8 @@ describe('ListenerController', () => {
             const controller = new ListenerController(
                 onPauseToggle,
                 onSpaceReward,
-                questionCallbacks
+                questionCallbacks,
+                laneChangeCallbacks
             );
 
             controller.start(containerElement, onResize);
@@ -318,7 +344,8 @@ describe('ListenerController', () => {
             const controller = new ListenerController(
                 onPauseToggle,
                 onSpaceReward,
-                questionCallbacks
+                questionCallbacks,
+                laneChangeCallbacks
             );
 
             expect(() => {

@@ -2,6 +2,9 @@ import { GameState } from "../models/game-state";
 import { Track } from "../models/track";
 import { Car } from "../models/car";
 import { CarController } from "./CarController";
+import { CameraController } from "./CameraController";
+import { LaneController } from "./LaneController";
+import { CollisionService } from "../services/CollisionService";
 import { QuestionManager } from "../managers/QuestionManager";
 import type { QuestionConfig } from "../managers/QuestionManager";
 import { QuestionStatsManager } from "../managers/QuestionStatsManager";
@@ -32,6 +35,9 @@ import {
 export class RaceController {
   private gameState: GameState;
   private carController: CarController;
+  private cameraController: CameraController;
+  private laneController: LaneController;
+  private collisionService: CollisionService;
   private questionManager: QuestionManager;
   private statsManager: QuestionStatsManager;
   private questionController: QuestionController;
@@ -41,7 +47,6 @@ export class RaceController {
   private clock: GameClock;
   private listenerController: ListenerController;
   private streakController: StreakController;
-
   /**
    * Constructor
    *
@@ -49,14 +54,27 @@ export class RaceController {
    * @param questionConfig - Configuration for question generation
    */
   constructor(track: Track, questionConfig: QuestionConfig) {
-    const camera = { pos: { x: 0, y: 0 }, zoom: 1 };
+    const camera = { pos: { x: 0, y: 0 }, zoom: 1, rotation: 0 };
     this.gameState = new GameState(camera, track);
-    this.gameState.addPlayerCar(new Car(0, "#22c55e"));
-    this.gameState.addCar(new Car(-100, "#ef4444"));
-    this.gameState.addCar(new Car(-200, "#ef4444"));
-    this.gameState.addCar(new Car(-300, "#ef4444"));
+
+    // Initialize cars on staggered lanes (player in lane 0, AI in lanes 1, 2, 3...)
+    this.gameState.addPlayerCar(new Car(-300, "#22c55e", 40, 22, 0)); // Player in leftmost lane
+    this.gameState.addCar(new Car(0, "#ef4444", 40, 22, 1)); // AI car 1
+    this.gameState.addCar(new Car(-100, "#ef4444", 40, 22, 2)); // AI car 2
+    this.gameState.addCar(new Car(-200, "#ef4444", 40, 22, 3)); // AI car 3
+
     this.carController = new CarController(this.gameState);
     this.carController.initializeCars();
+
+    this.cameraController = new CameraController(this.gameState);
+
+    // Create collision service and lane controller
+    this.collisionService = new CollisionService(this.gameState);
+    this.laneController = new LaneController(
+      this.gameState,
+      this.carController,
+      this.collisionService
+    );
 
     this.questionManager = new QuestionManager(questionConfig);
     this.statsManager = new QuestionStatsManager();
@@ -71,13 +89,36 @@ export class RaceController {
         onDelete: () => this.questionController.deleteChar(),
         onEnterSubmit: () => this.questionController.submitAnswer(),
         onSkip: () => this.questionController.skipQuestion(),
-      }
+      },
+      {
+        onLaneChangeLeft: () => {
+          this.laneController.switchLane(
+            this.gameState.playerCar,
+            -1,
+            this.elapsedMs / 1000
+          );
+        },
+        onLaneChangeRight: () => {
+          this.laneController.switchLane(
+            this.gameState.playerCar,
+            1,
+            this.elapsedMs / 1000
+          );
+        },
+      },
+      () => this.handleVisibilityLost()
     );
 
     this.setupQuestionEventListeners();
     this.clock = new GameClock(ANIMATION_TICK);
 
     this.streakController = new StreakController();
+  }
+
+  private handleVisibilityLost(): void {
+    if (this.isRunning && !this.gameState.paused) {
+      this.pause();
+    }
   }
 
   /**
@@ -136,6 +177,8 @@ export class RaceController {
     // Create a dummy track for the constructor, then replace with loaded state
     const dummyTrack = Track.fromJSON({
       version: 1,
+      numLanes: 4,
+      laneWidth: 10,
       points: [
         { x: 0, y: 0 },
         { x: 1, y: 0 },
@@ -146,8 +189,45 @@ export class RaceController {
 
     // Replace with the loaded game state
     controller.gameState = gameState;
+    controller.cameraController = new CameraController(gameState);
     controller.carController = new CarController(gameState);
     controller.carController.initializeCars();
+
+    // Recreate collision service and lane controller with loaded state
+    controller.collisionService = new CollisionService(gameState);
+    controller.laneController = new LaneController(
+      gameState,
+      controller.carController,
+      controller.collisionService
+    );
+
+    // Recreate listener controller with lane change callbacks
+    controller.listenerController = new ListenerController(
+      () => controller.togglePause(),
+      () => controller.queueReward(gameState.playerCar, 150),
+      {
+        onNumberInput: (char) => controller.questionController.addChar(char),
+        onDelete: () => controller.questionController.deleteChar(),
+        onEnterSubmit: () => controller.questionController.submitAnswer(),
+        onSkip: () => controller.questionController.skipQuestion(),
+      },
+      {
+        onLaneChangeLeft: () => {
+          controller.laneController.switchLane(
+            gameState.playerCar,
+            -1,
+            controller.elapsedMs / 1000
+          );
+        },
+        onLaneChangeRight: () => {
+          controller.laneController.switchLane(
+            gameState.playerCar,
+            1,
+            controller.elapsedMs / 1000
+          );
+        },
+      }
+    );
 
     return controller;
   }
@@ -159,11 +239,26 @@ export class RaceController {
    */
   step(dt: number) {
     if (!this.gameState.paused) {
+      const currentGameTime = this.elapsedMs / 1000;
+
+      this.laneController.updateLaneChanges(currentGameTime);
+
+      const cars = Array.from(this.gameState.getCars());
+      this.collisionService.updateLaneIndex(cars, this.laneController);
+
+      const crashPairs = this.collisionService.scanCollisions(
+        cars,
+        this.laneController
+      );
+      for (const pair of crashPairs) {
+        this.carController.crash(pair);
+      }
+
       this.carController.step(dt);
       this.elapsedMs += dt * 1000;
     }
-    const pos = this.gameState.track.posAt(this.gameState.playerCar.sPhys);
-    this.gameState.updateCamera({ pos, zoom: this.gameState.camera.zoom });
+    const playerCar = this.gameState.playerCar;
+    this.cameraController.update(dt, playerCar, this.gameState.track);
   }
 
   /**
@@ -195,6 +290,15 @@ export class RaceController {
 
   getStreakController(): StreakController {
     return this.streakController;
+  }
+
+  /**
+   * Get the lane controller
+   *
+   * @returns The lane controller
+   */
+  getLaneController(): LaneController {
+    return this.laneController;
   }
 
   /**

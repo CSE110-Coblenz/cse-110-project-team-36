@@ -14,7 +14,7 @@ describe('GameState Model', () => {
 
     beforeEach(() => {
         track = createSimpleTestTrack();
-        camera = { pos: { x: 0, y: 0 }, zoom: 1 };
+        camera = { pos: { x: 0, y: 0 }, zoom: 1, rotation: 0 };
     });
 
     describe('Constructor', () => {
@@ -145,7 +145,7 @@ describe('GameState Model', () => {
     describe('State Updates', () => {
         it('should update camera correctly', () => {
             const gameState = new GameState(camera, track);
-            const newCamera: Camera = { pos: { x: 100, y: 200 }, zoom: 1.5 };
+            const newCamera: Camera = { pos: { x: 100, y: 200 }, zoom: 1.5, rotation: 0 };
 
             gameState.updateCamera(newCamera);
 
@@ -167,8 +167,8 @@ describe('GameState Model', () => {
 
         it('should allow multiple camera updates', () => {
             const gameState = new GameState(camera, track);
-            const camera1: Camera = { pos: { x: 1, y: 2 }, zoom: 1 };
-            const camera2: Camera = { pos: { x: 3, y: 4 }, zoom: 2 };
+            const camera1: Camera = { pos: { x: 1, y: 2 }, zoom: 1, rotation: 0 };
+            const camera2: Camera = { pos: { x: 3, y: 4 }, zoom: 2, rotation: 0 };
 
             gameState.updateCamera(camera1);
             expect(gameState.camera).toBe(camera1);
