@@ -13,7 +13,8 @@ export const MainMenuPage: React.FC<{
   onStart: () => void
   onSignUpClick: () => void
   onLogout: () => void
-}> = ({ currentUser, onStart, onSignUpClick, onLogout }) => {
+  onCampaignClick: () => void
+}> = ({ currentUser, onStart, onSignUpClick, onLogout, onCampaignClick }) => {
   const [soundOn, setSoundOn] = useState(true)
   const [fullscreen, setFullscreen] = useState(false)
 
@@ -154,6 +155,10 @@ export const MainMenuPage: React.FC<{
           ▶ Start Race
         </button>
 
+        <button style={btnPurple} onClick={onCampaignClick}>
+          🏆 Campaign Mode
+        </button>
+
         <button style={btnBlue} onClick={onSignUpClick}>
           {currentUser ? 'Switch Account' : 'Create Account'}
         </button>
@@ -225,6 +230,13 @@ const btnYellow: React.CSSProperties = {
   background:
     'linear-gradient(90deg,#ffef00 0%,#ff9a00 50%,#ff2a00 100%)',
   boxShadow: '0 8px 16px rgba(255,180,0,0.5), 0 0 12px rgba(255,100,0,0.6)',
+}
+
+const btnPurple: React.CSSProperties = {
+  ...btnBase,
+  background:
+    'linear-gradient(90deg,#ff00cc 0%,#cc00ff 50%,#6600ff 100%)',
+  boxShadow: '0 8px 16px rgba(255,0,200,0.5), 0 0 12px rgba(200,0,255,0.6)',
 }
 
 const btnBlue: React.CSSProperties = {
