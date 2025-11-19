@@ -1,8 +1,7 @@
-import type { GameState } from "../models/game-state";
-import type { Car } from "../models/car";
-import type { Track } from "../models/track";
-import { CarController } from "./CarController";
-import { CollisionService } from "../services/CollisionService";
+import type { GameState } from '../models/game-state';
+import type { Car } from '../models/car';
+import type { Track } from '../models/track';
+import { CarController } from './CarController';
 
 /**
  * Ease-in-out cubic interpolation function
@@ -52,129 +51,57 @@ function interpolateLaneChange(params: {
  * Lane controller for managing lane changes
  */
 export class LaneController {
-  constructor(
-    private gameState: GameState,
-    private carController: CarController,
-    private collisionService: CollisionService
-  ) {}
+    constructor(
+        private gameState: GameState,
+        private carController: CarController
+    ) {}
 
-  /**
-   * Attempt to switch lanes for a car using direction-based queue
-   *
-   * @param car - The car to switch lanes
-   * @param direction - -1 for left, 1 for right
-   * @param currentGameTime - Current game time in seconds
-   * @returns True if lane change was initiated, false if blocked
-   */
-  switchLane(car: Car, direction: -1 | 1, currentGameTime: number): boolean {
-    const track = this.gameState.track;
-    car.pendingLaneChanges += direction;
-    const targetLane = car.laneIndex + car.pendingLaneChanges;
-    if (targetLane < 0 || targetLane >= track.numLanes) {
-      // Invalid target - revert change and apply penalty
-      car.pendingLaneChanges -= direction;
-      this.carController.applyPenalty(car, 0.8);
-      return false;
-    }
-    if (this.collisionService.checkSidewaysCollision(car, targetLane)) {
-      // Collision detected - revert change and apply penalty
-      car.pendingLaneChanges -= direction;
-      this.carController.applyPenalty(car, 0.8);
-      return false;
-    }
-    if (!this.resolveLaneChangeConflict(car, targetLane)) {
-      // Conflict detected - revert change (penalty already applied in resolveLaneChangeConflict)
-      car.pendingLaneChanges -= direction;
-      return false;
-    }
-
-    // Capture current state for smooth interruptions
-    const currentState = this.getLaneChangeState(car, track, currentGameTime);
-    car.laneChangeStartOffset = currentState.offset;
-    car.laneChangeStartVelocity = currentState.velocity;
-
-    car.targetLaneIndex = targetLane;
-    car.laneChangeStartTime = currentGameTime;
-    return true;
-  }
-
-  /**
-   * Get wrapped signed difference between two s positions
-   * Returns positive if s1 is ahead of s2. Normalized to [-trackLength/2, trackLength/2].
-   *
-   * @param s1 - First position
-   * @param s2 - Second position
-   * @param trackLength - Total track length
-   * @returns Signed difference accounting for wrapping
-   */
-  public getWrappedSDiff(s1: number, s2: number, trackLength: number): number {
-    const diff = s1 - s2;
-    if (diff > trackLength / 2) {
-      return diff - trackLength;
-    } else if (diff < -trackLength / 2) {
-      return diff + trackLength;
-    }
-    return diff;
-  }
-
-  /**
-   * Resolve conflicts for lane change requests
-   * Position (s) is the sole decider
-   *
-   * @param car - The car attempting to change lanes
-   * @param targetLane - The target lane index
-   * @param currentGameTime - Current game time in seconds
-   * @returns True if lane change should proceed, false if blocked
-   */
-  private resolveLaneChangeConflict(car: Car, targetLane: number): boolean {
-    const cars = this.gameState.getCars();
-    const trackLength = this.gameState.track.length;
-    const positionThreshold = 0.1; // Threshold for considering cars at same position
-
-    for (const otherCar of cars) {
-      if (otherCar === car) continue;
-
-      // Also check cars already in the target lane
-      if (!otherCar.isChangingLanes() && otherCar.laneIndex === targetLane) {
-        const wrappedSDiff = this.getWrappedSDiff(
-          car.s,
-          otherCar.s,
-          trackLength
-        );
-        const threshold = ((car.carLength + otherCar.carLength) * 1.5) / 2;
-
-        if (Math.abs(wrappedSDiff) < threshold) {
-          this.carController.applyPenalty(car, 0.8);
-          return false;
-        }
-      }
-
-      // Check if other car is changing to same target lane
-      if (
-        otherCar.isChangingLanes() &&
-        otherCar.targetLaneIndex === targetLane
-      ) {
-        const wrappedSDiff = this.getWrappedSDiff(
-          car.s,
-          otherCar.s,
-          trackLength
-        );
-
-        // If car is behind other car (wrappedSDiff < -threshold), deny
-        if (wrappedSDiff < -positionThreshold) {
-          this.carController.applyPenalty(car, 0.8);
-          return false;
+    /**
+     * Attempt to switch lanes for a car using direction-based queue
+     * 
+     * @param car - The car to switch lanes
+     * @param direction - -1 for left, 1 for right
+     * @param currentGameTime - Current game time in seconds
+     * @returns True if lane change was initiated, false if blocked
+     */
+    switchLane(car: Car, direction: -1 | 1, currentGameTime: number): boolean {
+        const track = this.gameState.track;
+        car.pendingLaneChanges += direction;
+        const targetLane = car.laneIndex + car.pendingLaneChanges;
+        if (targetLane < 0 || targetLane >= track.numLanes) {
+            // Invalid target - revert change and apply penalty
+            car.pendingLaneChanges -= direction;
+            this.carController.applyPenalty(car, 0.8);
+            return false;
         }
 
-        // If cars are at same position (within threshold), deny later attempt (temporal order)
-        if (Math.abs(wrappedSDiff) <= positionThreshold) {
-          this.carController.applyPenalty(car, 0.8);
-          return false;
-        }
-      }
+        const currentState = this.getLaneChangeState(car, track, currentGameTime);
+        car.laneChangeStartOffset = currentState.offset;
+        car.laneChangeStartVelocity = currentState.velocity;
+        
+        car.targetLaneIndex = targetLane;
+        car.laneChangeStartTime = currentGameTime;
+        return true;
     }
-    return true;
-  }
+
+    /**
+     * Cancel a lane change and boot car back to source lane
+     * 
+     * @param car - The car to cancel lane change for
+     */
+    cancelLaneChange(car: Car): void {
+        const track = this.gameState.track;
+        
+        // Reset lane change state
+        car.targetLaneIndex = null;
+        car.laneChangeStartTime = null;
+        car.pendingLaneChanges = 0;
+        car.laneChangeStartOffset = null;
+        car.laneChangeStartVelocity = null;
+        
+        // Boot back to source lane (current laneIndex is the source)
+        car.lateral = track.getLaneOffset(car.laneIndex);
+    }
 
   /**
    * Update lane changes for all cars (called from RaceController.step)
@@ -206,31 +133,44 @@ export class LaneController {
     }
   }
 
-  /**
-   * Get the effective lane indices a car is currently in
-   * During lane change, car is in both source and target lanes
-   *
-   * @param car - The car to check
-   * @returns Array of lane indices the car is in
-   */
-  getEffectiveLanes(car: Car): number[] {
-    if (!car.isChangingLanes()) {
-      return [car.laneIndex];
+    /**
+     * Get the effective lane indices a car is currently in
+     * During lane change, car is only in the two lanes it's actively transitioning between
+     * 
+     * @param car - The car to check
+     * @param currentGameTime - Current game time in seconds
+     * @returns Array of lane indices the car is in
+     */
+    getEffectiveLanes(car: Car, currentGameTime: number): number[] {
+        if (!car.isChangingLanes()) {
+            return [car.laneIndex];
+        }
+        const sourceLane = car.laneIndex;
+        const targetLane = car.targetLaneIndex!;
+        
+        if (sourceLane === targetLane) {
+            return [sourceLane];
+        }
+        
+        // Calculate which two-lane segment the car is currently in
+        const progress = car.getLaneChangeProgress(currentGameTime);
+        const numLanesToCross = Math.abs(targetLane - sourceLane);
+        
+        // If progress is 1.0, car has completed the change - only in target lane
+        if (progress >= 1.0) {
+            return [targetLane];
+        }
+        
+        // Calculate which segment we're in (0 to numLanesToCross - 1)
+        const segmentIndex = Math.floor(progress * numLanesToCross);
+        
+        // Determine the two lanes for this segment
+        const direction = targetLane > sourceLane ? 1 : -1;
+        const currentSegmentStartLane = sourceLane + segmentIndex * direction;
+        const currentSegmentEndLane = currentSegmentStartLane + direction;
+        
+        return [currentSegmentStartLane, currentSegmentEndLane];
     }
-    const sourceLane = car.laneIndex;
-    const targetLane = car.targetLaneIndex!;
-
-    if (sourceLane === targetLane) {
-      return [sourceLane];
-    }
-    const lanes: number[] = [];
-    const start = Math.min(sourceLane, targetLane);
-    const end = Math.max(sourceLane, targetLane);
-    for (let i = start; i <= end; i++) {
-      lanes.push(i);
-    }
-    return lanes;
-  }
 
   /**
    * Get the current lane change state (position and velocity)

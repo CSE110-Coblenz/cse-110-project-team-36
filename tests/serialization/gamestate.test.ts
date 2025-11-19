@@ -12,11 +12,13 @@ import {
     listSaveSlots
 } from '../../src/serialization/game';
 import { GameState } from '../../src/game/models/game-state';
-import { Car } from '../../src/game/models/car';
+import { UserCar } from '../../src/game/models/user-car';
+import { BotCar } from '../../src/game/models/bot-car';
 import { Track, TrackJSON } from '../../src/game/models/track';
 import { Camera } from '../../src/game/types';
 import { RaceController } from '../../src/game/controllers/RaceController';
 import { QuestionTopic, QuestionDifficulty } from '../../src/game/models/question';
+import { createDefaultRaceConfig, createDefaultBotConfig } from '../utils/test-helpers';
 
 describe('GameState Serialization', () => {
     const createTestGameState = (): GameState => {
@@ -38,17 +40,20 @@ describe('GameState Serialization', () => {
         const camera: Camera = { pos: { x: 50, y: 50 }, zoom: 1.5, rotation: 0 };
         const gameState = new GameState(camera, track);
 
-        const playerCar = new Car(0, '#00ff00', 40, 22);
+        const playerCar = new UserCar(0, '#00ff00', 40, 22);
         playerCar.v = 60;
         playerCar.r = 10;
 
-        const aiCar1 = new Car(-50, '#ff0000', 35, 20);
+        const botConfig = createDefaultBotConfig();
+        const aiCar1 = new BotCar(-50, '#ff0000', 35, 20, 1.0, botConfig);
         aiCar1.v = 55;
         aiCar1.lapCount = 1;
+        aiCar1.nextAnswerTime = aiCar1.answerSpeed;
 
-        const aiCar2 = new Car(-100, '#0000ff', 45, 25);
+        const aiCar2 = new BotCar(-100, '#0000ff', 45, 25, 1.0, botConfig);
         aiCar2.v = 50;
         aiCar2.lateral = 5;
+        aiCar2.nextAnswerTime = aiCar2.answerSpeed;
 
         gameState.addPlayerCar(playerCar);
         gameState.addCar(aiCar1);
@@ -256,7 +261,7 @@ describe('GameState Serialization', () => {
                 topic: QuestionTopic.MIXED,
                 difficulty: QuestionDifficulty.MEDIUM
             };
-            const raceController = new RaceController(track, questionConfig);
+            const raceController = new RaceController(track, questionConfig, createDefaultRaceConfig());
 
             raceController.queueReward(raceController.getGameState().playerCar, 100);
             raceController.queueRewardByIndex(1, 50); // AI car
@@ -264,7 +269,7 @@ describe('GameState Serialization', () => {
             raceController.step(1 / 60);
 
             const jsonString = raceController.saveToString();
-            const loadedController = RaceController.loadFromString(jsonString, questionConfig);
+            const loadedController = RaceController.loadFromString(jsonString, questionConfig, createDefaultRaceConfig());
 
             const originalPlayerReward = raceController.getGameState().playerCar.r;
             const loadedPlayerReward = loadedController.getGameState().playerCar.r;

@@ -2,12 +2,12 @@
  * Unit tests for Car serialization methods
  */
 
-import { Car } from '../../src/game/models/car';
+import { UserCar } from '../../src/game/models/user-car';
 
 describe('Car Serialization', () => {
     describe('toSerializedData', () => {
         it('should serialize all car properties correctly', () => {
-            const car = new Car(100, '#ff0000', 50, 30);
+            const car = new UserCar(100, '#ff0000', 50, 30);
             car.r = 25;
             car.s = 95;
             car.v = 70;
@@ -39,7 +39,7 @@ describe('Car Serialization', () => {
         });
 
         it('should serialize default car correctly', () => {
-            const car = new Car();
+            const car = new UserCar();
 
             const serialized = car.toSerializedData();
 
@@ -89,7 +89,7 @@ describe('Car Serialization', () => {
                 crossedFinish: true,
             };
 
-            const car = Car.fromSerializedData(serializedData);
+            const car = UserCar.fromSerializedData(serializedData);
 
             expect(car.r).toBe(30);
             expect(car.s).toBe(145);
@@ -123,7 +123,7 @@ describe('Car Serialization', () => {
                 crossedFinish: false,
             };
 
-            const car = Car.fromSerializedData(serializedData);
+            const car = UserCar.fromSerializedData(serializedData);
             const reSerialized = car.toSerializedData();
 
             expect(reSerialized.lastS).toBe(45);
@@ -133,7 +133,7 @@ describe('Car Serialization', () => {
 
     describe('Serialization Round-trip', () => {
         it('should maintain data integrity through serialize/deserialize cycle', () => {
-            const originalCar = new Car(200, '#ff00ff', 35, 20);
+            const originalCar = new UserCar(200, '#ff00ff', 35, 20);
             originalCar.r = 15;
             originalCar.s = 195;
             originalCar.v = 85;
@@ -143,14 +143,14 @@ describe('Car Serialization', () => {
             originalCar.updateLaps();
 
             const serialized = originalCar.toSerializedData();
-            const deserializedCar = Car.fromSerializedData(serialized);
+            const deserializedCar = UserCar.fromSerializedData(serialized);
             const reSerializedData = deserializedCar.toSerializedData();
 
             expect(reSerializedData).toEqual(serialized);
         });
 
         it('should handle edge cases correctly', () => {
-            const extremeCar = new Car(-100, '#000000', 1, 1);
+            const extremeCar = new UserCar(-100, '#000000', 1, 1);
             extremeCar.r = 1000;
             extremeCar.s = 999999;
             extremeCar.v = 0;
@@ -158,7 +158,7 @@ describe('Car Serialization', () => {
             extremeCar.lapCount = 100;
 
             const serialized = extremeCar.toSerializedData();
-            const deserialized = Car.fromSerializedData(serialized);
+            const deserialized = UserCar.fromSerializedData(serialized);
 
             expect(deserialized.r).toBe(1000);
             expect(deserialized.s).toBe(999999);
@@ -175,11 +175,11 @@ describe('Car Serialization', () => {
 
     describe('Car Methods After Deserialization', () => {
         it('should maintain functionality after deserialization', () => {
-            const originalCar = new Car(50, '#ffffff', 40, 22);
+            const originalCar = new UserCar(50, '#ffffff', 40, 22);
             originalCar.lapCount = 2;
 
             const serialized = originalCar.toSerializedData();
-            const deserializedCar = Car.fromSerializedData(serialized);
+            const deserializedCar = UserCar.fromSerializedData(serialized);
             const totalDistance = deserializedCar.getTotalDistance(1000);
 
             deserializedCar.initialize(60);
@@ -210,7 +210,7 @@ describe('Car Serialization', () => {
                 crossedFinish: false,
             };
 
-            const car = Car.fromSerializedData(serializedData);
+            const car = UserCar.fromSerializedData(serializedData);
 
             car.s = 10; // Crossed to beginning
             car.updateLaps();
