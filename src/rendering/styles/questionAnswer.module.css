@@ -15,6 +15,14 @@
   animation: cardPulse 2s infinite;
 }
 
+.streakBarPlacement {
+  position: absolute;
+  top: 35px;
+  left: 58%;
+  transform: translateX(-50%);
+  z-index: 20;
+}
+
 /* Halos */
 .haloGreen {
   box-shadow: 0 0 18px rgba(16, 185, 129, 0.85), var(--shadow-strong);

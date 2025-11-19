@@ -1,12 +1,12 @@
-import React, { useEffect, useRef, useState } from "react";
-import { GameStage } from "../rendering/game/GameStage";
-import { QuestionAnswer } from "../rendering/game/QuestionAnswer";
-import { PauseOverlay } from "../rendering/game/PauseOverlay";
-import { Hud } from "../rendering/game/Hud";
-import { RaceController } from "../game/controllers/RaceController";
-import { PAGE_WIDTH, PAGE_HEIGHT } from "../const";
-import { events } from "../shared/events";
-import { PostRaceStats } from "../rendering/game/RaceFinishedPage";
+import React, { useEffect, useRef, useState } from 'react';
+import { GameStage } from '../rendering/game/GameStage';
+import { QuestionAnswer } from '../rendering/game/QuestionAnswer';
+import { PauseOverlay } from '../rendering/game/PauseOverlay';
+import { Hud } from '../rendering/game/Hud';
+import { RaceController } from '../game/controllers/RaceController';
+import { PAGE_WIDTH, PAGE_HEIGHT } from '../const';
+import { events } from '../shared/events';
+import { PostRaceStats } from '../rendering/game/RaceFinishedPage';
 import { Button } from '../components/button';
 import styles from './styles/racePage.module.css';
 
@@ -43,6 +43,7 @@ export const RacePage: React.FC<RacePageProps> = ({
 
     const gs = raceController.getGameState();
     const questionController = raceController.getQuestionController();
+    const streakController = raceController.getStreakController();
     const elapsedMs = raceController.getElapsedMs();
     const accuracy = raceController.getAccuracy();
     const correctCount = raceController.getCorrectCount();
@@ -57,7 +58,10 @@ export const RacePage: React.FC<RacePageProps> = ({
 
     return (
         <div ref={containerRef} className={styles.racePage}>
-            <QuestionAnswer questionController={questionController} />
+            <QuestionAnswer
+                questionController={questionController}
+                streakController={streakController}
+            />
             <GameStage gs={gs} width={size.w} height={size.h} />
 
             <div className={styles.pausePlacement}>
@@ -91,7 +95,6 @@ export const RacePage: React.FC<RacePageProps> = ({
                 time={raceController.getElapsedMs() / 1000}
                 onExit={handleExitToMenu}
             />
-
         </div>
     );
 };

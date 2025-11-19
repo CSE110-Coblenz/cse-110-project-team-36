@@ -90,32 +90,31 @@ export function TrackLayer({
 
         const cornersWorld = [
             {
-            x: center.x + normal.x * halfWidth + tangent.x * halfThickness,
-            y: center.y + normal.y * halfWidth + tangent.y * halfThickness,
+                x: center.x + normal.x * halfWidth + tangent.x * halfThickness,
+                y: center.y + normal.y * halfWidth + tangent.y * halfThickness,
             },
             {
-            x: center.x - normal.x * halfWidth + tangent.x * halfThickness,
-            y: center.y - normal.y * halfWidth + tangent.y * halfThickness,
+                x: center.x - normal.x * halfWidth + tangent.x * halfThickness,
+                y: center.y - normal.y * halfWidth + tangent.y * halfThickness,
             },
             {
-            x: center.x - normal.x * halfWidth - tangent.x * halfThickness,
-            y: center.y - normal.y * halfWidth - tangent.y * halfThickness,
+                x: center.x - normal.x * halfWidth - tangent.x * halfThickness,
+                y: center.y - normal.y * halfWidth - tangent.y * halfThickness,
             },
             {
-            x: center.x + normal.x * halfWidth - tangent.x * halfThickness,
-            y: center.y + normal.y * halfWidth - tangent.y * halfThickness,
+                x: center.x + normal.x * halfWidth - tangent.x * halfThickness,
+                y: center.y + normal.y * halfWidth - tangent.y * halfThickness,
             },
         ];
 
         const flat: number[] = [];
         for (const w of cornersWorld) {
-        const p = worldToScreen(w, camera, stageWidth, stageHeight);
-        flat.push(p.x, p.y);
+            const p = worldToScreen(w, camera, stageWidth, stageHeight);
+            flat.push(p.x, p.y);
         }
 
         return flat;
     }, [track, camera, stageWidth, stageHeight]);
-
 
     return (
         <Layer listening={false}>

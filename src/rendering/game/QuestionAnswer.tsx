@@ -1,14 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { QuestionController } from '../../game/controllers/QuestionController';
+import { StreakController } from '../../game/controllers/StreakController';
+import { StreakBar } from './StreakBar';
 import { events } from '../../shared/events';
 import styles from '../styles/questionAnswer.module.css';
 import { Button } from '../../components/button';
 
 interface QuestionAnswerProps {
     questionController: QuestionController;
+    streakController: StreakController;
 }
 
-export function QuestionAnswer({ questionController }: QuestionAnswerProps) {
+export function QuestionAnswer({
+    questionController,
+    streakController,
+}: QuestionAnswerProps) {
     // Force re-render to sync with controller state
     const [, forceUpdate] = useState(0);
 
@@ -52,6 +58,9 @@ export function QuestionAnswer({ questionController }: QuestionAnswerProps) {
 
     return (
         <div>
+            <div className={styles.streakBarPlacement}>
+                <StreakBar streakController={streakController} />
+            </div>
             <form
                 aria-label="Math question input"
                 className={`${styles.card} ${feedbackClass} ${haloClass}`}
