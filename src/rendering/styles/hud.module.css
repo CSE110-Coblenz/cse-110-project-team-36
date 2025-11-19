@@ -1,0 +1,17 @@
+.hud {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-family: monospace;
+  z-index: 1000;
+  min-width: 140px;
+}
+
+.hudSubtext {
+  opacity: 0.9;
+  margin-top: 2px;
+}

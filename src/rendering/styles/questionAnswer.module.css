@@ -1,0 +1,199 @@
+/* Card container */
+.card {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-dark-gradient);
+  border: 3px solid var(--color-white);
+  border-radius: 24px;
+  color: var(--color-white);
+  z-index: 10;
+  padding: 1.25rem 1.5rem;
+  min-width: 420px;
+  box-shadow: var(--shadow-strong), var(--shadow-glow-white);
+  animation: cardPulse 2s infinite;
+}
+
+/* Halos */
+.haloGreen {
+  box-shadow: 0 0 18px rgba(16, 185, 129, 0.85), var(--shadow-strong);
+}
+
+.haloRed {
+  box-shadow: 0 0 18px rgba(239, 68, 68, 0.85), var(--shadow-strong);
+}
+
+/* Title */
+.title {
+  font-size: 1.1rem;
+  font-weight: 900;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 0 6px var(--color-yellow), 0 0 12px var(--color-orange),
+    0 0 24px var(--color-red-orange), 0 0 36px var(--color-red);
+  letter-spacing: 0.04em;
+}
+
+/* Question text */
+.question {
+  font-size: 1.3rem;
+  font-weight: 800;
+  margin-bottom: 0.75rem;
+  text-shadow: 0 0 4px var(--color-black);
+}
+
+.questionNeutral {
+  color: var(--color-warm-glow);
+}
+
+.questionActive {
+  color: var(--color-white);
+}
+
+/* Input container */
+.answerInput {
+  width: 90%;
+  padding: 12px 14px;
+  font-size: 1.25rem;
+  border-radius: 12px;
+  border: 2px solid rgba(148, 163, 184, 0.35);
+  background: rgba(30, 41, 59, 0.9);
+  color: var(--color-white);
+  min-height: 1.4em;
+  display: flex;
+  align-items: center;
+  letter-spacing: 0.02em;
+  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.3);
+}
+
+.answerPlaceholder {
+  color: var(--color-gray-light);
+}
+
+/* Cursor */
+.cursor {
+  display: inline-block;
+  width: 1px;
+  height: 1.2em;
+  margin-left: 2px;
+  background-color: var(--color-white);
+  animation: blink 1s step-start infinite;
+}
+
+/* Grid row */
+.row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 12px;
+  align-items: center;
+}
+
+/* Buttons */
+.btn {
+  padding: 10px 18px;
+  border-radius: 16px;
+  border: 2px solid var(--color-white);
+  font-weight: 800;
+  font-size: 1rem;
+  cursor: pointer;
+  color: var(--color-black);
+
+  text-shadow: 0 0 4px rgba(255, 255, 255, 0.6);
+  transition: transform var(--transition-fast),
+    box-shadow var(--transition-fast), filter var(--transition-fast);
+
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btnGreen {
+  background: var(--btn-yellow-gradient);
+  box-shadow: var(--shadow-yellow), var(--shadow-red);
+}
+
+.btnGreen:hover {
+  transform: scale(1.05);
+  box-shadow: 0 10px 18px rgba(231, 255, 12, 0.9),
+    0 0 16px rgba(229, 226, 68, 0.9);
+}
+
+.btnGray {
+  background: var(--btn-gray-gradient);
+  color: var(--color-white);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.6);
+}
+
+.btnGray:hover {
+  transform: scale(1.05);
+  filter: brightness(1.1);
+}
+
+/* Hint text */
+.hint {
+  margin-top: 10px;
+  font-size: 0.85rem;
+  color: var(--color-gray-light);
+  text-shadow: 0 0 4px var(--color-black);
+}
+
+/* Animations */
+@keyframes cardPulse {
+  0%,
+  100% {
+    box-shadow: var(--shadow-strong), 0 0 20px rgba(255, 255, 255, 0.15);
+  }
+  50% {
+    box-shadow: var(--shadow-strong), 0 0 35px rgba(255, 255, 255, 0.35);
+  }
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* Feedback animations */
+.qaPulse {
+  animation: qa-correct 0.35s ease-out, cardPulse 2s infinite !important;
+}
+
+@keyframes qa-correct {
+  0% {
+    transform: translateX(-50%) scale(1);
+  }
+  50% {
+    transform: translateX(-50%) scale(1.03);
+  }
+  100% {
+    transform: translateX(-50%) scale(1);
+  }
+}
+
+.qaShake {
+  animation: qa-incorrect 0.26s ease-in-out, cardPulse 2s infinite !important;
+}
+
+@keyframes qa-incorrect {
+  0% {
+    transform: translateX(calc(-50% - 2px));
+  }
+  25% {
+    transform: translateX(calc(-50% + 4px));
+  }
+  50% {
+    transform: translateX(calc(-50% - 4px));
+  }
+  75% {
+    transform: translateX(calc(-50% + 2px));
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
