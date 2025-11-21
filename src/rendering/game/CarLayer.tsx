@@ -8,7 +8,19 @@ import { worldToScreen } from './utils';
 /**
  * Car layer component
  */
-export function CarLayer({ track, cars, stageWidth, stageHeight, camera }: { track: Track; cars: readonly Car[]; stageWidth: number; stageHeight: number; camera: Camera; }) {
+export function CarLayer({
+    track,
+    cars,
+    stageWidth,
+    stageHeight,
+    camera,
+}: {
+    track: Track;
+    cars: readonly Car[];
+    stageWidth: number;
+    stageHeight: number;
+    camera: Camera;
+}) {
     return (
         <Layer listening={false}>
             {cars.map((car, i) => (

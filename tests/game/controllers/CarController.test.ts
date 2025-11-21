@@ -3,9 +3,10 @@
  */
 
 import { CarController } from '../../../src/game/controllers/CarController';
-import { Car } from '../../../src/game/models/car';
+import { UserCar } from '../../../src/game/models/user-car';
+import { BotCar } from '../../../src/game/models/bot-car';
 import { GameState } from '../../../src/game/models/game-state';
-import { createSimpleTestTrack, createComplexTestTrack } from '../../utils/test-helpers';
+import { createSimpleTestTrack, createComplexTestTrack, createDefaultPhysicsConfig, createDefaultBotConfig } from '../../utils/test-helpers';
 
 describe('CarController', () => {
     let gameState: GameState;
@@ -15,20 +16,21 @@ describe('CarController', () => {
         const track = createSimpleTestTrack();
         const camera = { pos: { x: 0, y: 0 }, zoom: 1, rotation: 0 };
         gameState = new GameState(camera, track);
-        controller = new CarController(gameState);
+        controller = new CarController(gameState, createDefaultPhysicsConfig());
     });
 
     describe('Initialization', () => {
-        it('should accept GameState in constructor', () => {
-            const newController = new CarController(gameState);
+        it('should accept GameState and PhysicsConfig in constructor', () => {
+            const newController = new CarController(gameState, createDefaultPhysicsConfig());
             expect(newController).toBeDefined();
             expect(newController.getParams()).toBeDefined();
         });
 
         it('should initialize all cars when initializeCars is called', () => {
-            gameState.addPlayerCar(new Car(0, '#00ff00'));
-            gameState.addCar(new Car(100, '#ff0000'));
-            gameState.addCar(new Car(200, '#0000ff'));
+            gameState.addPlayerCar(new UserCar(0, '#00ff00'));
+            const botConfig = createDefaultBotConfig();
+            gameState.addCar(new BotCar(100, '#ff0000', 40, 22, 1.0, botConfig, 1));
+            gameState.addCar(new BotCar(200, '#0000ff', 40, 22, 1.0, botConfig, 2));
 
             controller.initializeCars();
             const cars = gameState.getCars();
@@ -46,12 +48,16 @@ describe('CarController', () => {
                 aBase: 0,
                 tauA: 0.5,
                 beta: 30,
-                kv: 5,
-                kp: 2,
                 vBonus: 10,
-                mu: 0.8,
                 kappaEps: 0.001,
                 vKappaScale: 10,
+                slipDecay: 0.5,
+                slipWobbleAmp: 25,
+                slipWobbleFreq: 2,
+                baseMu: 0.8,
+                slipVelocityDecay: 8,
+                momentumTransfer: 0.3,
+                kKappaBrake: 10,
             });
         });
 
@@ -60,7 +66,13 @@ describe('CarController', () => {
                 vMin: 10,
                 vMax: 60,
                 beta: 40,
-                kv: 7,
+                slipDecay: 0.2,
+                slipWobbleAmp: 15,
+                slipWobbleFreq: 1.5,
+                baseMu: 0.7,
+                slipVelocityDecay: 6,
+                momentumTransfer: 0.25,
+                kKappaBrake: 8,
             };
 
             controller.setParams(newParams);
@@ -69,9 +81,7 @@ describe('CarController', () => {
             expect(params.vMin).toBe(10);
             expect(params.vMax).toBe(60);
             expect(params.beta).toBe(40);
-            expect(params.kv).toBe(7);
             expect(params.tauA).toBe(0.5);
-            expect(params.kp).toBe(2);
         });
 
         it('should handle partial parameter updates', () => {
@@ -82,19 +92,28 @@ describe('CarController', () => {
             expect(params.vMin).toBe(15);
             expect(params.vMax).toBe(500);
             expect(params.beta).toBe(30);
+            expect(params.slipDecay).toBe(0.5);
+            expect(params.slipWobbleAmp).toBe(25);
+            expect(params.slipWobbleFreq).toBe(2);
+            expect(params.baseMu).toBe(0.8);
+            expect(params.slipVelocityDecay).toBe(8);
+            expect(params.momentumTransfer).toBe(0.3);
+            expect(params.kKappaBrake).toBe(10);
         });
     });
 
     describe('Reward Queue System', () => {
         it('should add reward to pendingRewards map', () => {
-            const car = new Car();
+            const botConfig = createDefaultBotConfig();
+            const car = new BotCar(0, '#ff0000', 40, 22, 1.0, botConfig);
+            car.nextAnswerTime = car.answerSpeed;
             gameState.addCar(car);
             controller.queueReward(car, 100);
             expect(car.r).toBe(0);
         });
 
         it('should accumulate multiple rewards for same car', () => {
-            const car = new Car();
+            const car = new UserCar();
             gameState.addPlayerCar(car);
             controller.initializeCars();
             controller.queueReward(car, 50);
@@ -105,8 +124,10 @@ describe('CarController', () => {
         });
 
         it('should queue reward for correct car by index', () => {
-            const car1 = new Car(0, '#00ff00');
-            const car2 = new Car(100, '#ff0000');
+            const botConfig = createDefaultBotConfig();
+            const car1 = new UserCar(0, '#00ff00');
+            const car2 = new BotCar(100, '#ff0000', 40, 22, 1.0, botConfig);
+            car2.nextAnswerTime = car2.answerSpeed;
             gameState.addPlayerCar(car1);
             gameState.addCar(car2);
             controller.initializeCars();
@@ -119,7 +140,7 @@ describe('CarController', () => {
         });
 
         it('should handle invalid index gracefully', () => {
-            const car = new Car();
+            const car = new UserCar();
             gameState.addPlayerCar(car);
 
             expect(() => controller.queueRewardByIndex(-1, 100)).not.toThrow();
@@ -130,8 +151,10 @@ describe('CarController', () => {
 
     describe('Physics Step - Progress State', () => {
         it('should update all cars in GameState', () => {
-            const car1 = new Car();
-            const car2 = new Car();
+            const botConfig = createDefaultBotConfig();
+            const car1 = new UserCar();
+            const car2 = new BotCar(0, '#ff0000', 40, 22, 1.0, botConfig);
+            car2.nextAnswerTime = car2.answerSpeed;
             gameState.addPlayerCar(car1);
             gameState.addCar(car2);
             controller.initializeCars();
@@ -144,7 +167,7 @@ describe('CarController', () => {
         });
 
         it('should increase progress velocity with positive reward', () => {
-            const car = new Car();
+            const car = new UserCar();
             gameState.addPlayerCar(car);
             controller.initializeCars();
             const initialV = car.v;
@@ -158,7 +181,7 @@ describe('CarController', () => {
         });
 
         it('should decrease progress velocity with decay when v > vMin', () => {
-            const car = new Car();
+            const car = new UserCar();
             gameState.addPlayerCar(car);
             controller.initializeCars();
 
@@ -172,7 +195,7 @@ describe('CarController', () => {
         });
 
         it('should not decay progress velocity when v <= vMin', () => {
-            const car = new Car();
+            const car = new UserCar();
             gameState.addPlayerCar(car);
             controller.initializeCars();
 
@@ -185,7 +208,7 @@ describe('CarController', () => {
         });
 
         it('should wrap progress position around track length', () => {
-            const car = new Car();
+            const car = new UserCar();
             gameState.addPlayerCar(car);
             controller.initializeCars();
 
@@ -206,7 +229,7 @@ describe('CarController', () => {
         });
 
         it('should decay reward state exponentially', () => {
-            const car = new Car();
+            const car = new UserCar();
             gameState.addPlayerCar(car);
             controller.initializeCars();
 
@@ -221,7 +244,7 @@ describe('CarController', () => {
         });
 
         it('should apply pending reward and clear it', () => {
-            const car = new Car();
+            const car = new UserCar();
             gameState.addPlayerCar(car);
             controller.initializeCars();
 
@@ -239,7 +262,7 @@ describe('CarController', () => {
 
     describe('Physics Step - Physical State', () => {
         it('should never allow physical velocity to go negative', () => {
-            const car = new Car();
+            const car = new UserCar();
             gameState.addPlayerCar(car);
             controller.initializeCars();
 
@@ -251,7 +274,7 @@ describe('CarController', () => {
         });
 
         it('should wrap physical position around track', () => {
-            const car = new Car();
+            const car = new UserCar();
             gameState.addPlayerCar(car);
             controller.initializeCars();
 
@@ -268,9 +291,9 @@ describe('CarController', () => {
             const complexTrack = createComplexTestTrack();
             const complexCamera = { pos: { x: 0, y: 0 }, zoom: 1, rotation: 0 };
             const complexGameState = new GameState(complexCamera, complexTrack);
-            const complexController = new CarController(complexGameState);
+            const complexController = new CarController(complexGameState, createDefaultPhysicsConfig());
 
-            const car = new Car();
+            const car = new UserCar();
             complexGameState.addPlayerCar(car);
             complexController.initializeCars();
 
@@ -285,7 +308,7 @@ describe('CarController', () => {
 
     describe('Curvature Estimation', () => {
         it('should handle straight track sections with low curvature', () => {
-            const car = new Car();
+            const car = new UserCar();
             gameState.addPlayerCar(car);
             controller.initializeCars();
 
@@ -298,9 +321,9 @@ describe('CarController', () => {
             const complexTrack = createComplexTestTrack();
             const complexCamera = { pos: { x: 0, y: 0 }, zoom: 1, rotation: 0 };
             const complexGameState = new GameState(complexCamera, complexTrack);
-            const complexController = new CarController(complexGameState);
+            const complexController = new CarController(complexGameState, createDefaultPhysicsConfig());
 
-            const car = new Car();
+            const car = new UserCar();
             complexGameState.addPlayerCar(car);
             complexController.initializeCars();
 
@@ -319,7 +342,7 @@ describe('CarController', () => {
 
     describe('Multiple Steps', () => {
         it('should handle continuous simulation over multiple steps', () => {
-            const car = new Car();
+            const car = new UserCar();
             gameState.addPlayerCar(car);
             controller.initializeCars();
 
@@ -335,7 +358,7 @@ describe('CarController', () => {
         });
 
         it('should maintain physics consistency over time', () => {
-            const car = new Car();
+            const car = new UserCar();
             gameState.addPlayerCar(car);
             controller.initializeCars();
 

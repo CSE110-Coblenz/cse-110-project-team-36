@@ -1,6 +1,8 @@
 import type { Track } from './track';
 import type { Camera } from '../types';
 import { Car } from './car';
+import { UserCar } from './user-car';
+import { BotCar } from './bot-car';
 import { SkidMark } from './skid-mark';
 
 /**
@@ -30,9 +32,9 @@ export class GameState {
     /**
      * Add a player car to the game state
      * 
-     * @param car - The car to add
+     * @param car - The user car to add
      */
-    addPlayerCar(car: Car) {
+    addPlayerCar(car: UserCar) {
         this.playerCarIndex = this.cars.length;
         this.cars.push(car);
         this.skidMarks.set(car, new SkidMark());
@@ -41,9 +43,9 @@ export class GameState {
     /**
      * Add a car to the game state
      * 
-     * @param car - The car to add
+     * @param car - The bot car to add
      */
-    addCar(car: Car) {
+    addCar(car: BotCar) {
         this.cars.push(car);
         this.skidMarks.set(car, new SkidMark());
     }
@@ -62,8 +64,8 @@ export class GameState {
      * 
      * @returns The player car
      */
-    get playerCar(): Car {
-        return this.cars[this.playerCarIndex];
+    get playerCar(): UserCar {
+        return this.cars[this.playerCarIndex] as UserCar;
     }
 
     /**
@@ -71,8 +73,8 @@ export class GameState {
      * 
      * @returns The AI cars
      */
-    get aiCars(): Car[] {
-        return this.cars.filter((_, i) => i !== this.playerCarIndex);
+    get aiCars(): BotCar[] {
+        return this.cars.filter((_, i) => i !== this.playerCarIndex) as BotCar[];
     }
 
     /**
