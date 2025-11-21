@@ -11,13 +11,14 @@ import styles from './styles/mainMenuPage.module.css';
 import { Button } from '../components/button';
 
 export const MainMenuPage: React.FC<{
-    currentUser: string | null;
-    onStart: () => void;
-    onSignUpClick: () => void;
-    onLogout: () => void;
-}> = ({ currentUser, onStart, onSignUpClick, onLogout }) => {
-    const [soundOn, setSoundOn] = useState(true);
-    const [fullscreen, setFullscreen] = useState(false);
+  currentUser: string | null;
+  onStart: () => void;
+  onSignUpClick: () => void;
+  onLogout: () => void;
+  onCampaignClick: () => void;
+}> = ({ currentUser, onStart, onSignUpClick, onLogout, onCampaignClick }) => {
+  const [soundOn, setSoundOn] = useState(true);
+  const [fullscreen, setFullscreen] = useState(false);
 
     const toggleSound = () => setSoundOn(!soundOn);
 
@@ -56,6 +57,13 @@ export const MainMenuPage: React.FC<{
                     ▶ Start Race
                 </Button>
 
+                <Button 
+                    className={`${styles.button} ${styles.btnYellow}`}
+                    onClick={onCampaignClick}>
+                  
+                    🏆 Campaign Mode
+                </Button>
+                
                 <Button
                     className={`${styles.button} ${styles.btnBlue}`}
                     onClick={onSignUpClick}
