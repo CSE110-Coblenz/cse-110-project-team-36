@@ -4,8 +4,8 @@
 export interface SkidMarkPoint {
     x: number;
     y: number;
-    alpha: number;  // 0 to 1, for fading out
-    age: number;    // time since creation in seconds
+    alpha: number; // 0 to 1, for fading out
+    age: number; // time since creation in seconds
 }
 
 /**
@@ -20,20 +20,25 @@ export class SkidMark {
 
     /**
      * Add double skid mark points (left and right tire)
-     * 
+     *
      * @param leftX - Left tire X position
      * @param leftY - Left tire Y position
      * @param rightX - Right tire X position
      * @param rightY - Right tire Y position
      */
-    addPoints(leftX: number, leftY: number, rightX: number, rightY: number): void {
+    addPoints(
+        leftX: number,
+        leftY: number,
+        rightX: number,
+        rightY: number,
+    ): void {
         this.leftPoints.push({
             x: leftX,
             y: leftY,
             alpha: 1.0,
             age: 0,
         });
-        
+
         this.rightPoints.push({
             x: rightX,
             y: rightY,
@@ -52,7 +57,7 @@ export class SkidMark {
 
     /**
      * Update skid mark aging and fading
-     * 
+     *
      * @param dt - Time step in seconds
      */
     update(dt: number): void {
@@ -60,15 +65,15 @@ export class SkidMark {
             point.age += dt;
             point.alpha = Math.max(0, point.alpha - this.fadeRate * dt);
         }
-        
+
         for (const point of this.rightPoints) {
             point.age += dt;
             point.alpha = Math.max(0, point.alpha - this.fadeRate * dt);
         }
 
         // Remove faded points
-        this.leftPoints = this.leftPoints.filter(p => p.alpha > 0.01);
-        this.rightPoints = this.rightPoints.filter(p => p.alpha > 0.01);
+        this.leftPoints = this.leftPoints.filter((p) => p.alpha > 0.01);
+        this.rightPoints = this.rightPoints.filter((p) => p.alpha > 0.01);
     }
 
     /**

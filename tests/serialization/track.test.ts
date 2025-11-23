@@ -14,10 +14,10 @@ describe('Track Serialization', () => {
                 { x: 0, y: 0 },
                 { x: 100, y: 0 },
                 { x: 100, y: 100 },
-                { x: 0, y: 100 }
+                { x: 0, y: 100 },
             ],
             smoothIterations: 1,
-            sampleSpacing: 10
+            sampleSpacing: 10,
         };
         return Track.fromJSON(trackJSON);
     };
@@ -52,7 +52,7 @@ describe('Track Serialization', () => {
 
             const serialized = track.toSerializedData();
 
-            serialized.samples.forEach(sample => {
+            serialized.samples.forEach((sample) => {
                 expect(sample).toHaveProperty('x');
                 expect(sample).toHaveProperty('y');
                 expect(typeof sample.x).toBe('number');
@@ -65,19 +65,38 @@ describe('Track Serialization', () => {
 
             const serialized = track.toSerializedData();
 
-            expect(serialized.sTable.every(s => typeof s === 'number')).toBe(true);
+            expect(serialized.sTable.every((s) => typeof s === 'number')).toBe(
+                true,
+            );
             expect(serialized.sTable[0]).toBe(0);
-            expect(serialized.sTable[serialized.sTable.length - 1]).toBe(serialized.totalLength);
+            expect(serialized.sTable[serialized.sTable.length - 1]).toBe(
+                serialized.totalLength,
+            );
         });
 
         it('should handle different track configurations', () => {
             const configs = [
-                { numLanes: 4, laneWidth: 2.5, smoothIterations: 0, sampleSpacing: 5 },
-                { numLanes: 4, laneWidth: 12.5, smoothIterations: 3, sampleSpacing: 1 },
-                { numLanes: 4, laneWidth: 25, smoothIterations: 5, sampleSpacing: 20 }
+                {
+                    numLanes: 4,
+                    laneWidth: 2.5,
+                    smoothIterations: 0,
+                    sampleSpacing: 5,
+                },
+                {
+                    numLanes: 4,
+                    laneWidth: 12.5,
+                    smoothIterations: 3,
+                    sampleSpacing: 1,
+                },
+                {
+                    numLanes: 4,
+                    laneWidth: 25,
+                    smoothIterations: 5,
+                    sampleSpacing: 20,
+                },
             ];
 
-            configs.forEach(config => {
+            configs.forEach((config) => {
                 const trackJSON: TrackJSON = {
                     version: 1,
                     numLanes: config.numLanes,
@@ -86,10 +105,10 @@ describe('Track Serialization', () => {
                         { x: 0, y: 0 },
                         { x: 50, y: 0 },
                         { x: 50, y: 50 },
-                        { x: 0, y: 50 }
+                        { x: 0, y: 50 },
                     ],
                     smoothIterations: config.smoothIterations,
-                    sampleSpacing: config.sampleSpacing
+                    sampleSpacing: config.sampleSpacing,
                 };
                 const track = Track.fromJSON(trackJSON);
 
@@ -112,7 +131,9 @@ describe('Track Serialization', () => {
 
             expect(deserializedTrack.width).toBe(originalTrack.width);
             expect(deserializedTrack.length).toBe(originalTrack.length);
-            expect(deserializedTrack.getSamples()).toHaveLength(originalTrack.getSamples().length);
+            expect(deserializedTrack.getSamples()).toHaveLength(
+                originalTrack.getSamples().length,
+            );
         });
 
         it('should preserve exact sample data', () => {
@@ -127,8 +148,14 @@ describe('Track Serialization', () => {
             expect(deserializedSamples).toHaveLength(originalSamples.length);
 
             for (let i = 0; i < originalSamples.length; i++) {
-                expect(deserializedSamples[i].x).toBeCloseTo(originalSamples[i].x, 10);
-                expect(deserializedSamples[i].y).toBeCloseTo(originalSamples[i].y, 10);
+                expect(deserializedSamples[i].x).toBeCloseTo(
+                    originalSamples[i].x,
+                    10,
+                );
+                expect(deserializedSamples[i].y).toBeCloseTo(
+                    originalSamples[i].y,
+                    10,
+                );
             }
         });
 
@@ -141,10 +168,10 @@ describe('Track Serialization', () => {
                     { x: 10, y: 0 },
                     { x: 10, y: 10 },
                     { x: 0, y: 10 },
-                    { x: 0, y: 0 }
+                    { x: 0, y: 0 },
                 ],
                 sTable: [0, 10, 20, 30, 40],
-                totalLength: 40
+                totalLength: 40,
             };
 
             const track = Track.fromSerializedData(minimalData);
@@ -165,17 +192,31 @@ describe('Track Serialization', () => {
 
             expect(reSerialized.laneWidth).toBe(serialized.laneWidth);
             expect(reSerialized.numLanes).toBe(serialized.numLanes);
-            expect(reSerialized.totalLength).toBeCloseTo(serialized.totalLength, 10);
-            expect(reSerialized.samples).toHaveLength(serialized.samples.length);
+            expect(reSerialized.totalLength).toBeCloseTo(
+                serialized.totalLength,
+                10,
+            );
+            expect(reSerialized.samples).toHaveLength(
+                serialized.samples.length,
+            );
             expect(reSerialized.sTable).toHaveLength(serialized.sTable.length);
 
             for (let i = 0; i < serialized.samples.length; i++) {
-                expect(reSerialized.samples[i].x).toBeCloseTo(serialized.samples[i].x, 10);
-                expect(reSerialized.samples[i].y).toBeCloseTo(serialized.samples[i].y, 10);
+                expect(reSerialized.samples[i].x).toBeCloseTo(
+                    serialized.samples[i].x,
+                    10,
+                );
+                expect(reSerialized.samples[i].y).toBeCloseTo(
+                    serialized.samples[i].y,
+                    10,
+                );
             }
 
             for (let i = 0; i < serialized.sTable.length; i++) {
-                expect(reSerialized.sTable[i]).toBeCloseTo(serialized.sTable[i], 10);
+                expect(reSerialized.sTable[i]).toBeCloseTo(
+                    serialized.sTable[i],
+                    10,
+                );
             }
         });
 
@@ -191,10 +232,10 @@ describe('Track Serialization', () => {
                     { x: 100, y: 100 },
                     { x: 50, y: 150 },
                     { x: 0, y: 100 },
-                    { x: -50, y: 50 }
+                    { x: -50, y: 50 },
                 ],
                 smoothIterations: 2,
-                sampleSpacing: 5
+                sampleSpacing: 5,
             };
             const originalTrack = Track.fromJSON(complexTrackJSON);
 
@@ -202,7 +243,10 @@ describe('Track Serialization', () => {
             const deserializedTrack = Track.fromSerializedData(serialized);
 
             expect(deserializedTrack.width).toBe(originalTrack.width);
-            expect(deserializedTrack.length).toBeCloseTo(originalTrack.length, 5);
+            expect(deserializedTrack.length).toBeCloseTo(
+                originalTrack.length,
+                5,
+            );
         });
     });
 
@@ -230,7 +274,9 @@ describe('Track Serialization', () => {
             expect(normal).toHaveProperty('y');
             expect(Math.hypot(normal.x, normal.y)).toBeCloseTo(1, 5); // Should be normalized
 
-            const wrappedS = deserializedTrack.wrapS(deserializedTrack.length + 10);
+            const wrappedS = deserializedTrack.wrapS(
+                deserializedTrack.length + 10,
+            );
             expect(wrappedS).toBeCloseTo(10, 5);
         });
 
@@ -241,7 +287,7 @@ describe('Track Serialization', () => {
 
             const testPositions = [0, 0.25, 0.5, 0.75, 1.0];
 
-            testPositions.forEach(fraction => {
+            testPositions.forEach((fraction) => {
                 const s = fraction * originalTrack.length;
 
                 const originalPos = originalTrack.posAt(s);

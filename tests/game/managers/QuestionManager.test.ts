@@ -3,16 +3,19 @@
  */
 
 import { QuestionManager } from '../../../src/game/managers/QuestionManager';
-import { QuestionTopic, QuestionDifficulty } from '../../../src/game/models/question';
+import {
+    QuestionTopic,
+    QuestionDifficulty,
+} from '../../../src/game/models/question';
 import { events } from '../../../src/shared/events';
 
 describe('QuestionManager', () => {
     const defaultQuestionConfig = {
         topic: QuestionTopic.MIXED,
-        difficulty: QuestionDifficulty.MEDIUM
+        difficulty: QuestionDifficulty.MEDIUM,
     };
     beforeEach(() => {
-        jest.spyOn(console, 'log').mockImplementation(() => { });
+        jest.spyOn(console, 'log').mockImplementation(() => {});
     });
 
     afterEach(() => {
@@ -94,7 +97,8 @@ describe('QuestionManager', () => {
                 if (match) {
                     const a = parseInt(match[1]);
                     const b = parseInt(match[2]);
-                    const correctAnswer = manager.getCurrentQuestionModel().correctAnswer;
+                    const correctAnswer =
+                        manager.getCurrentQuestionModel().correctAnswer;
                     const expectedAnswer = parseFloat((a / b).toFixed(2));
                     expect(correctAnswer).toBe(expectedAnswer);
                     const answerStr = correctAnswer.toString();
@@ -124,8 +128,14 @@ describe('QuestionManager', () => {
             // Test with multiple configurations to ensure it works across different settings
             const configs = [
                 defaultQuestionConfig,
-                { topic: QuestionTopic.ADDITION, difficulty: QuestionDifficulty.EASY },
-                { topic: QuestionTopic.MULTIPLICATION, difficulty: QuestionDifficulty.HARD },
+                {
+                    topic: QuestionTopic.ADDITION,
+                    difficulty: QuestionDifficulty.EASY,
+                },
+                {
+                    topic: QuestionTopic.MULTIPLICATION,
+                    difficulty: QuestionDifficulty.HARD,
+                },
             ];
 
             for (const config of configs) {
@@ -152,7 +162,10 @@ describe('QuestionManager', () => {
             const correctAnswer = 8;
 
             let attempts = 0;
-            while (manager.getCurrentQuestion() !== question && attempts < 1000) {
+            while (
+                manager.getCurrentQuestion() !== question &&
+                attempts < 1000
+            ) {
                 manager.generateQuestion();
                 attempts++;
             }
@@ -315,7 +328,9 @@ describe('QuestionManager', () => {
 
             manager.submitAnswer(wrongAnswer);
 
-            const call = emitSpy.mock.calls.find(c => c[0] === 'AnsweredIncorrectly');
+            const call = emitSpy.mock.calls.find(
+                (c) => c[0] === 'AnsweredIncorrectly',
+            );
             expect(call).toBeDefined();
             if (call) {
                 const payload = call[1] as { question: string; answer: number };
@@ -375,7 +390,8 @@ describe('QuestionManager', () => {
 
                         if (a % b !== 0) {
                             const result = parseFloat((a / b).toFixed(2));
-                            const submissionResult = manager.submitAnswer(result);
+                            const submissionResult =
+                                manager.submitAnswer(result);
                             expect(submissionResult).toBe(true);
                             break;
                         }
@@ -403,4 +419,3 @@ describe('QuestionManager', () => {
         });
     });
 });
-

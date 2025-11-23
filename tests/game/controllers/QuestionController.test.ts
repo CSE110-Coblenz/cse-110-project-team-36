@@ -4,7 +4,10 @@
 
 import { QuestionController } from '../../../src/game/controllers/QuestionController';
 import { QuestionManager } from '../../../src/game/managers/QuestionManager';
-import { QuestionTopic, QuestionDifficulty } from '../../../src/game/models/question';
+import {
+    QuestionTopic,
+    QuestionDifficulty,
+} from '../../../src/game/models/question';
 
 describe('QuestionController', () => {
     let questionManager: QuestionManager;
@@ -13,7 +16,7 @@ describe('QuestionController', () => {
     beforeEach(() => {
         questionManager = new QuestionManager({
             topic: QuestionTopic.ADDITION,
-            difficulty: QuestionDifficulty.EASY
+            difficulty: QuestionDifficulty.EASY,
         });
         controller = new QuestionController(questionManager);
     });
@@ -77,7 +80,8 @@ describe('QuestionController', () => {
     describe('Answer Submission', () => {
         it('should submit correct answer and show correct feedback', () => {
             const question = questionManager.getCurrentQuestion();
-            const answer = questionManager.getCurrentQuestionModel()?.correctAnswer || 0;
+            const answer =
+                questionManager.getCurrentQuestionModel()?.correctAnswer || 0;
 
             controller.addChar(answer.toString());
             controller.submitAnswer();
@@ -131,7 +135,8 @@ describe('QuestionController', () => {
         });
 
         it('should clear feedback after timeout', (done) => {
-            const answer = questionManager.getCurrentQuestionModel()?.correctAnswer || 0;
+            const answer =
+                questionManager.getCurrentQuestionModel()?.correctAnswer || 0;
             controller.addChar(answer.toString());
             controller.submitAnswer();
 
@@ -179,7 +184,8 @@ describe('QuestionController', () => {
         });
 
         it('should clear feedback when skipping', () => {
-            const answer = questionManager.getCurrentQuestionModel()?.correctAnswer || 0;
+            const answer =
+                questionManager.getCurrentQuestionModel()?.correctAnswer || 0;
             controller.addChar(answer.toString());
             controller.submitAnswer();
 
@@ -199,7 +205,8 @@ describe('QuestionController', () => {
         });
 
         it('should get current feedback', () => {
-            const answer = questionManager.getCurrentQuestionModel()?.correctAnswer || 0;
+            const answer =
+                questionManager.getCurrentQuestionModel()?.correctAnswer || 0;
             controller.addChar(answer.toString());
             controller.submitAnswer();
             expect(controller.getFeedback()).toBe('correct');
@@ -213,7 +220,8 @@ describe('QuestionController', () => {
 
     describe('Cleanup', () => {
         it('should destroy and clear timeouts', (done) => {
-            const answer = questionManager.getCurrentQuestionModel()?.correctAnswer || 0;
+            const answer =
+                questionManager.getCurrentQuestionModel()?.correctAnswer || 0;
             controller.addChar(answer.toString());
             controller.submitAnswer();
 

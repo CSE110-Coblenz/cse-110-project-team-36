@@ -8,13 +8,13 @@ import { clamp } from '../../utils/math';
  * Reward event interface
  */
 export interface RewardEvent {
-    magnitude: number;  // A_k acceleration weight (A_k > 0 for acceleration, A_k < 0 for deceleration)
-    timestamp: number;  // t_k timestamp (seconds)
+    magnitude: number; // A_k acceleration weight (A_k > 0 for acceleration, A_k < 0 for deceleration)
+    timestamp: number; // t_k timestamp (seconds)
 }
 
 /**
  * Car controller class
- * 
+ *
  * This class is responsible for updating the physical state of all cars in the game state.
  * It also handles rewards and pending rewards. See the specification for more details on the math.
  */
@@ -30,7 +30,7 @@ export class CarController {
 
     /**
      * Get the physics configuration
-     * 
+     *
      * @returns The physics configuration
      */
     public getConfig(): PhysicsConfig {
@@ -49,7 +49,7 @@ export class CarController {
 
     /**
      * Step physics for all cars in the game state
-     * 
+     *
      * @param dt - Time step in seconds
      */
     step(dt: number): void {
@@ -73,7 +73,7 @@ export class CarController {
 
     /**
      * Car position updating
-     * 
+     *
      * @param car - The car to update
      * @param dt - The time step in seconds
      * @param track - The track to update the car on
@@ -98,20 +98,23 @@ export class CarController {
         const aDecay = v > this.config.vMin ? -this.config.beta : 0;
 
         // Slip extra deceleration toward vMin
-        const slipDecel = car.slipFactor > 0 ? -this.config.slipVelocityDecay * (v - this.config.vMin) : 0;
+        const slipDecel =
+            car.slipFactor > 0
+                ? -this.config.slipVelocityDecay * (v - this.config.vMin)
+                : 0;
 
         // Unconstrained acceleration
         const aUn =
-            this.config.aBase +       // baseline
-            car.r +            // smoothed reward
-            aDecay +           // decay toward vMin
-            slipDecel;         // slip penalties
+            this.config.aBase + // baseline
+            car.r + // smoothed reward
+            aDecay + // decay toward vMin
+            slipDecel; // slip penalties
 
         // 4. Curvature-based speed cap with effective friction depending on slip
         const kappa = track.curvatureAt(s);
         const muEffective = this.config.baseMu * (1 - car.slipFactor * 0.6);
         const vKappaRaw = Math.sqrt(
-            (muEffective * 9.81) / (Math.abs(kappa) + this.config.kappaEps)
+            (muEffective * 9.81) / (Math.abs(kappa) + this.config.kappaEps),
         );
         const vKappaMax = this.config.vKappaScale * vKappaRaw;
         const vCap = vKappaMax + this.config.vBonus;
@@ -139,17 +142,20 @@ export class CarController {
 
     /**
      * Queue a reward for a car
-     * 
+     *
      * @param car - The car to queue the reward for
      * @param magnitude - The magnitude of the reward
      */
     queueReward(car: Car, magnitude: number): void {
-        this.pendingRewards.set(car, (this.pendingRewards.get(car) ?? 0) + magnitude);
+        this.pendingRewards.set(
+            car,
+            (this.pendingRewards.get(car) ?? 0) + magnitude,
+        );
     }
 
     /**
      * Queue a reward for a car by index
-     * 
+     *
      * @param index - The index of the car to queue the reward for
      * @param magnitude - The magnitude of the reward
      */
@@ -162,7 +168,7 @@ export class CarController {
 
     /**
      * Get the parameters for the car controller
-     * 
+     *
      * @returns The parameters for the car controller
      */
     getParams(): PhysicsConfig {
@@ -171,17 +177,16 @@ export class CarController {
 
     /**
      * Set the parameters for the car controller
-     * 
+     *
      * @param params - The parameters to set
      */
     setParams(params: Partial<PhysicsConfig>): void {
         this.config = { ...this.config, ...params };
     }
 
-
     /**
      * Apply penalty/slip to a car
-     * 
+     *
      * @param car - The car to apply penalty to
      * @param magnitude - The penalty magnitude (0-1, affects slipFactor)
      */
@@ -191,11 +196,10 @@ export class CarController {
 
     /**
      * Reset pending rewards for a car
-     * 
+     *
      * @param car - The car to reset pending rewards for
      */
     public resetPendingRewards(car: Car): void {
         this.pendingRewards.set(car, 0);
     }
-
 }

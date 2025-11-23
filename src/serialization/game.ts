@@ -66,7 +66,7 @@ function serializeCar(car: Car): SerializedCar {
             answerSpeedStdDev: car.answerSpeedStdDev,
             accuracy: car.accuracy,
             safetyTimeThreshold: car.safetyTimeThreshold,
-            nextAnswerTime: car.nextAnswerTime
+            nextAnswerTime: car.nextAnswerTime,
         };
     } else {
         // User car
@@ -94,7 +94,7 @@ function deserializeCar(data: SerializedCar): Car {
         laneChangeStartVelocity: data.laneChangeStartVelocity,
         lapCount: data.lapCount,
         lastS: data.lastS,
-        crossedFinish: data.crossedFinish
+        crossedFinish: data.crossedFinish,
     };
 
     if (data.type === 'bot' && data.difficulty !== undefined) {
@@ -114,15 +114,16 @@ function deserializeCar(data: SerializedCar): Car {
                 accuracyBase: data.accuracy || 0.7,
                 accuracyStdDev: 0,
                 safetyTimeBase: data.safetyTimeThreshold || 1.5,
-                safetyTimeStdDev: 0
+                safetyTimeStdDev: 0,
             },
-            data.laneIndex
+            data.laneIndex,
         );
         // Override with exact serialized values to preserve round-trip integrity
         botCar.answerSpeed = data.answerSpeed ?? botCar.answerSpeed;
         botCar.answerSpeedStdDev = data.answerSpeedStdDev ?? 0.5;
         botCar.accuracy = data.accuracy ?? botCar.accuracy;
-        botCar.safetyTimeThreshold = data.safetyTimeThreshold ?? botCar.safetyTimeThreshold;
+        botCar.safetyTimeThreshold =
+            data.safetyTimeThreshold ?? botCar.safetyTimeThreshold;
         botCar.nextAnswerTime = data.nextAnswerTime ?? Infinity;
         // Restore base state
         Object.assign(botCar, baseData);
@@ -154,9 +155,9 @@ export function serializeGameState(gameState: GameState): string {
     const cars = gameState.getCars();
     const playerCar = gameState.playerCar;
     const playerCarIndex = cars.indexOf(playerCar);
-    
+
     const serialized: SerializedGameState = {
-        version: "1.0.0",
+        version: '1.0.0',
         timestamp: Date.now(),
         camera: {
             pos: { x: gameState.camera.pos.x, y: gameState.camera.pos.y },
@@ -164,10 +165,10 @@ export function serializeGameState(gameState: GameState): string {
             rotation: gameState.camera.rotation,
         },
         track: serializeTrack(gameState.track),
-        cars: cars.map(car => serializeCar(car)),
+        cars: cars.map((car) => serializeCar(car)),
         playerCarIndex: playerCarIndex,
     };
-    
+
     return JSON.stringify(serialized, null, 2);
 }
 
@@ -176,41 +177,44 @@ export function serializeGameState(gameState: GameState): string {
  */
 export function deserializeGameState(jsonString: string): GameState {
     const data: SerializedGameState = JSON.parse(jsonString);
-    
+
     // Validate version
-    if (!data.version || data.version !== "1.0.0") {
+    if (!data.version || data.version !== '1.0.0') {
         throw new Error(`Unsupported save file version: ${data.version}`);
     }
-    
+
     // Reconstruct track
     const track = deserializeTrack(data.track);
-    
+
     // Reconstruct cars
-    const cars = data.cars.map(carData => deserializeCar(carData));
-    
+    const cars = data.cars.map((carData) => deserializeCar(carData));
+
     // Reconstruct camera
     const camera: Camera = {
         pos: data.camera.pos,
         zoom: data.camera.zoom,
         rotation: data.camera.rotation,
     };
-    
+
     const gameState = new GameStateClass(camera, track);
     gameState.addPlayerCar(cars[data.playerCarIndex]);
-    
+
     cars.forEach((car, index) => {
         if (index !== data.playerCarIndex) {
             gameState.addCar(car as BotCar);
         }
     });
-    
+
     return gameState;
 }
 
 /**
  * Save game state to localStorage
  */
-export function saveGameToLocalStorage(gameState: GameState, slotName: string = 'default'): void {
+export function saveGameToLocalStorage(
+    gameState: GameState,
+    slotName: string = 'default',
+): void {
     try {
         const serialized = serializeGameState(gameState);
         localStorage.setItem(`formulafun_save_${slotName}`, serialized);
@@ -222,12 +226,14 @@ export function saveGameToLocalStorage(gameState: GameState, slotName: string = 
 /**
  * Load game state from localStorage
  */
-export function loadGameFromLocalStorage(slotName: string = 'default'): GameState | null {
+export function loadGameFromLocalStorage(
+    slotName: string = 'default',
+): GameState | null {
     const serialized = localStorage.getItem(`formulafun_save_${slotName}`);
     if (!serialized) {
         return null;
     }
-    
+
     try {
         return deserializeGameState(serialized);
     } catch (error) {

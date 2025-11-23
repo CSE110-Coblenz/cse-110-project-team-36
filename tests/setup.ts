@@ -27,10 +27,10 @@ beforeEach(() => {
 
 // Mock ResizeObserver for testing
 global.ResizeObserver = class ResizeObserver {
-    observe() { }
-    unobserve() { }
-    disconnect() { }
-    constructor(public callback: ResizeObserverCallback) { }
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+    constructor(public callback: ResizeObserverCallback) {}
 } as any;
 
 // Global test utilities

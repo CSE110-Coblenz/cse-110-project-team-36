@@ -6,7 +6,12 @@ import { CarController } from '../../../src/game/controllers/CarController';
 import { UserCar } from '../../../src/game/models/user-car';
 import { BotCar } from '../../../src/game/models/bot-car';
 import { GameState } from '../../../src/game/models/game-state';
-import { createSimpleTestTrack, createComplexTestTrack, createDefaultPhysicsConfig, createDefaultBotConfig } from '../../utils/test-helpers';
+import {
+    createSimpleTestTrack,
+    createComplexTestTrack,
+    createDefaultPhysicsConfig,
+    createDefaultBotConfig,
+} from '../../utils/test-helpers';
 
 describe('CarController', () => {
     let gameState: GameState;
@@ -21,7 +26,10 @@ describe('CarController', () => {
 
     describe('Initialization', () => {
         it('should accept GameState and PhysicsConfig in constructor', () => {
-            const newController = new CarController(gameState, createDefaultPhysicsConfig());
+            const newController = new CarController(
+                gameState,
+                createDefaultPhysicsConfig(),
+            );
             expect(newController).toBeDefined();
             expect(newController.getParams()).toBeDefined();
         });
@@ -29,13 +37,17 @@ describe('CarController', () => {
         it('should initialize all cars when initializeCars is called', () => {
             gameState.addPlayerCar(new UserCar(0, '#00ff00'));
             const botConfig = createDefaultBotConfig();
-            gameState.addCar(new BotCar(100, '#ff0000', 40, 22, 1.0, botConfig, 1));
-            gameState.addCar(new BotCar(200, '#0000ff', 40, 22, 1.0, botConfig, 2));
+            gameState.addCar(
+                new BotCar(100, '#ff0000', 40, 22, 1.0, botConfig, 1),
+            );
+            gameState.addCar(
+                new BotCar(200, '#0000ff', 40, 22, 1.0, botConfig, 2),
+            );
 
             controller.initializeCars();
             const cars = gameState.getCars();
             expect(cars).toHaveLength(3);
-            cars.forEach(car => {
+            cars.forEach((car) => {
                 expect(car.v).toBe(5);
             });
         });
@@ -145,7 +157,9 @@ describe('CarController', () => {
 
             expect(() => controller.queueRewardByIndex(-1, 100)).not.toThrow();
             expect(() => controller.queueRewardByIndex(10, 100)).not.toThrow();
-            expect(() => controller.queueRewardByIndex(1000, 100)).not.toThrow();
+            expect(() =>
+                controller.queueRewardByIndex(1000, 100),
+            ).not.toThrow();
         });
     });
 
@@ -190,7 +204,7 @@ describe('CarController', () => {
 
             controller.step(0.1);
 
-            const expectedDecay = initialV + (-30) * 0.1; // v += aDecay * dt
+            const expectedDecay = initialV + -30 * 0.1; // v += aDecay * dt
             expect(car.v).toBeCloseTo(expectedDecay, 2);
         });
 
@@ -291,7 +305,10 @@ describe('CarController', () => {
             const complexTrack = createComplexTestTrack();
             const complexCamera = { pos: { x: 0, y: 0 }, zoom: 1, rotation: 0 };
             const complexGameState = new GameState(complexCamera, complexTrack);
-            const complexController = new CarController(complexGameState, createDefaultPhysicsConfig());
+            const complexController = new CarController(
+                complexGameState,
+                createDefaultPhysicsConfig(),
+            );
 
             const car = new UserCar();
             complexGameState.addPlayerCar(car);
@@ -321,7 +338,10 @@ describe('CarController', () => {
             const complexTrack = createComplexTestTrack();
             const complexCamera = { pos: { x: 0, y: 0 }, zoom: 1, rotation: 0 };
             const complexGameState = new GameState(complexCamera, complexTrack);
-            const complexController = new CarController(complexGameState, createDefaultPhysicsConfig());
+            const complexController = new CarController(
+                complexGameState,
+                createDefaultPhysicsConfig(),
+            );
 
             const car = new UserCar();
             complexGameState.addPlayerCar(car);
@@ -333,7 +353,7 @@ describe('CarController', () => {
                 (3 * complexTrack.length) / 4,
             ];
 
-            testPoints.forEach(s => {
+            testPoints.forEach((s) => {
                 car.s = s;
                 expect(() => complexController.step(0.1)).not.toThrow();
             });
@@ -373,4 +393,3 @@ describe('CarController', () => {
         });
     });
 });
-

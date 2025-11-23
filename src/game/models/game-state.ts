@@ -7,7 +7,7 @@ import { SkidMark } from './skid-mark';
 
 /**
  * Game state class
- * 
+ *
  * This class represents the game state.
  */
 export class GameState {
@@ -20,7 +20,7 @@ export class GameState {
 
     /**
      * Constructor
-     * 
+     *
      * @param camera - The camera
      * @param track - The track
      */
@@ -31,7 +31,7 @@ export class GameState {
 
     /**
      * Add a player car to the game state
-     * 
+     *
      * @param car - The user car to add
      */
     addPlayerCar(car: UserCar) {
@@ -42,7 +42,7 @@ export class GameState {
 
     /**
      * Add a car to the game state
-     * 
+     *
      * @param car - The bot car to add
      */
     addCar(car: BotCar) {
@@ -52,7 +52,7 @@ export class GameState {
 
     /**
      * Get all cars in the game state
-     * 
+     *
      * @returns The cars
      */
     getCars(): readonly Car[] {
@@ -61,7 +61,7 @@ export class GameState {
 
     /**
      * Get the player car
-     * 
+     *
      * @returns The player car
      */
     get playerCar(): UserCar {
@@ -70,16 +70,18 @@ export class GameState {
 
     /**
      * Get all AI cars
-     * 
+     *
      * @returns The AI cars
      */
     get aiCars(): BotCar[] {
-        return this.cars.filter((_, i) => i !== this.playerCarIndex) as BotCar[];
+        return this.cars.filter(
+            (_, i) => i !== this.playerCarIndex,
+        ) as BotCar[];
     }
 
     /**
      * Update the camera
-     * 
+     *
      * @param camera - The camera to update
      */
     updateCamera(camera: Camera) {
@@ -88,7 +90,7 @@ export class GameState {
 
     /**
      * Update the track
-     * 
+     *
      * @param track - The track to update
      */
     updateTrack(track: Track) {
@@ -97,7 +99,7 @@ export class GameState {
 
     /**
      * Get skid marks for a car
-     * 
+     *
      * @param car - The car to get skid marks for
      * @returns The skid marks for the car
      */
@@ -107,7 +109,7 @@ export class GameState {
 
     /**
      * Update all skid marks
-     * 
+     *
      * @param dt - Time step in seconds
      */
     updateSkidMarks(dt: number): void {
@@ -115,5 +117,4 @@ export class GameState {
             skidMark.update(dt);
         }
     }
-
 }
