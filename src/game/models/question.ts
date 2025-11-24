@@ -2,35 +2,35 @@
  * Question topic/category enum
  */
 export enum QuestionTopic {
-    ADDITION = "addition",
-    SUBTRACTION = "subtraction",
-    MULTIPLICATION = "multiplication",
-    DIVISION = "division",
-    MIXED = "mixed"
+    ADDITION = 'addition',
+    SUBTRACTION = 'subtraction',
+    MULTIPLICATION = 'multiplication',
+    DIVISION = 'division',
+    MIXED = 'mixed',
 }
 
 /**
  * Question difficulty level
  */
 export enum QuestionDifficulty {
-    EASY = "easy",
-    MEDIUM = "medium",
-    HARD = "hard"
+    EASY = 'easy',
+    MEDIUM = 'medium',
+    HARD = 'hard',
 }
 
 /**
  * Question outcome
  */
 export enum QuestionOutcome {
-    PENDING = "pending",
-    CORRECT = "correct",
-    INCORRECT = "incorrect",
-    SKIPPED = "skipped"
+    PENDING = 'pending',
+    CORRECT = 'correct',
+    INCORRECT = 'incorrect',
+    SKIPPED = 'skipped',
 }
 
 /**
  * Question model
- * 
+ *
  * Represents a math question with metadata for statistics
  */
 export class Question {
@@ -38,15 +38,15 @@ export class Question {
     public readonly correctAnswer: number;
     public readonly topic: QuestionTopic;
     public readonly difficulty: QuestionDifficulty;
-    public readonly generatedAt: number;  // timestamp
+    public readonly generatedAt: number; // timestamp
 
     public userAnswer?: number;
     public outcome: QuestionOutcome = QuestionOutcome.PENDING;
-    public answeredAt?: number;  // timestamp when answered/skipped
+    public answeredAt?: number; // timestamp when answered/skipped
 
     /**
      * Constructor
-     * 
+     *
      * @param questionText - The question text (e.g., "5 + 3")
      * @param correctAnswer - The correct answer
      * @param topic - The question topic
@@ -56,7 +56,7 @@ export class Question {
         questionText: string,
         correctAnswer: number,
         topic: QuestionTopic,
-        difficulty: QuestionDifficulty
+        difficulty: QuestionDifficulty,
     ) {
         this.questionText = questionText;
         this.correctAnswer = correctAnswer;
@@ -123,4 +123,3 @@ export class Question {
         };
     }
 }
-

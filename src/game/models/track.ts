@@ -2,29 +2,30 @@ export type Vec2 = { x: number; y: number };
 
 export type TrackJSON = {
     version: 1;
-    numLanes: number;               // number of lanes (required)
-    laneWidth: number;              // width of each lane (required)
-    points: Vec2[];                 // coarse polygon; loop auto-closed
-    smoothIterations?: number;      // Chaikin rounds (default 3)
-    sampleSpacing?: number;         // desired spacing along the arc (default 1.0)
+    numLanes: number; // number of lanes (required)
+    laneWidth: number; // width of each lane (required)
+    points: Vec2[]; // coarse polygon; loop auto-closed
+    smoothIterations?: number; // Chaikin rounds (default 3)
+    sampleSpacing?: number; // desired spacing along the arc (default 1.0)
 };
 
 /**
  * Close a loop of points
- * 
+ *
  * @param pts - The points to close
  * @returns The closed points
  */
 function closeLoop(pts: Vec2[]): Vec2[] {
     if (pts.length === 0) return [];
-    const first = pts[0], last = pts[pts.length - 1];
-    const close = (Math.hypot(first.x - last.x, first.y - last.y) < 1e-6);
+    const first = pts[0],
+        last = pts[pts.length - 1];
+    const close = Math.hypot(first.x - last.x, first.y - last.y) < 1e-6;
     return close ? pts.slice() : [...pts, { ...first }];
 }
 
 /**
  * Chaikin closed points
- * 
+ *
  * @param points - The points to close
  * @param iterations - The number of iterations to close
  * @returns The closed points
@@ -36,9 +37,16 @@ function chaikinClosed(points: Vec2[], iterations: number): Vec2[] {
         const out: Vec2[] = [];
         const n = pts.length - 1; // last == first
         for (let i = 0; i < n; i++) {
-            const a = pts[i], b = pts[(i + 1) % n];
-            const Q = { x: 0.75 * a.x + 0.25 * b.x, y: 0.75 * a.y + 0.25 * b.y };
-            const R = { x: 0.25 * a.x + 0.75 * b.x, y: 0.25 * a.y + 0.75 * b.y };
+            const a = pts[i],
+                b = pts[(i + 1) % n];
+            const Q = {
+                x: 0.75 * a.x + 0.25 * b.x,
+                y: 0.75 * a.y + 0.25 * b.y,
+            };
+            const R = {
+                x: 0.25 * a.x + 0.75 * b.x,
+                y: 0.25 * a.y + 0.75 * b.y,
+            };
             out.push(Q, R);
         }
         pts = closeLoop(out);
@@ -46,24 +54,33 @@ function chaikinClosed(points: Vec2[], iterations: number): Vec2[] {
     return pts;
 }
 
-function vSub(a: Vec2, b: Vec2): Vec2 { return { x: a.x - b.x, y: a.y - b.y }; }
-function vLen(a: Vec2): number { return Math.hypot(a.x, a.y); }
-function vNorm(a: Vec2): Vec2 { const L = vLen(a) || 1; return { x: a.x / L, y: a.y / L }; }
-function vPerp(a: Vec2): Vec2 { return { x: -a.y, y: a.x }; }
+function vSub(a: Vec2, b: Vec2): Vec2 {
+    return { x: a.x - b.x, y: a.y - b.y };
+}
+function vLen(a: Vec2): number {
+    return Math.hypot(a.x, a.y);
+}
+function vNorm(a: Vec2): Vec2 {
+    const L = vLen(a) || 1;
+    return { x: a.x / L, y: a.y / L };
+}
+function vPerp(a: Vec2): Vec2 {
+    return { x: -a.y, y: a.x };
+}
 
 /**
  * Track class
- * 
+ *
  * This class represents a track in the game.
  */
 export class Track {
-    private _laneWidth: number;       // Width of each lane (world units)
-    readonly numLanes: number;      // Number of lanes
-    private samples: Vec2[] = [];   // Dense, closed centerline samples; last === first
-    private sTable: number[] = [];  // Cumulative arc-length table (same length as samples)
+    private _laneWidth: number; // Width of each lane (world units)
+    readonly numLanes: number; // Number of lanes
+    private samples: Vec2[] = []; // Dense, closed centerline samples; last === first
+    private sTable: number[] = []; // Cumulative arc-length table (same length as samples)
     private kappaTable: number[] = []; // curvature per sample (approximate)
 
-    private totalLength = 0;        // Total length of the track
+    private totalLength = 0; // Total length of the track
 
     /**
      * Get total track width (computed from laneWidth * numLanes)
@@ -81,7 +98,7 @@ export class Track {
 
     /**
      * Constructor
-     * 
+     *
      * @param laneWidth - The width of each lane
      * @param numLanes - The number of lanes
      */
@@ -92,7 +109,7 @@ export class Track {
 
     /**
      * Create a track from a JSON object
-     * 
+     *
      * @param j - The JSON object
      * @returns The track
      */
@@ -101,10 +118,14 @@ export class Track {
             throw new Error('TrackJSON.points must have at least 3 points');
         }
         if (j.numLanes === undefined || j.numLanes < 1) {
-            throw new Error('TrackJSON.numLanes is required and must be at least 1');
+            throw new Error(
+                'TrackJSON.numLanes is required and must be at least 1',
+            );
         }
         if (j.laneWidth === undefined || j.laneWidth <= 0) {
-            throw new Error('TrackJSON.laneWidth is required and must be positive');
+            throw new Error(
+                'TrackJSON.laneWidth is required and must be positive',
+            );
         }
         const t = new Track(j.laneWidth, j.numLanes);
 
@@ -118,7 +139,7 @@ export class Track {
 
     /**
      * Build uniform samples
-     * 
+     *
      * @param loopPts - The points to build samples from
      * @param spacing - The spacing of the samples
      */
@@ -137,10 +158,15 @@ export class Track {
             const s = (k / steps) * L;
             let i = 1;
             while (i < cum.length && cum[i] < s) i++;
-            const s0 = cum[i - 1], s1 = cum[i];
+            const s0 = cum[i - 1],
+                s1 = cum[i];
             const t = (s - s0) / Math.max(1e-6, s1 - s0);
-            const p0 = loopPts[i - 1], p1 = loopPts[i];
-            samples.push({ x: p0.x * (1 - t) + p1.x * t, y: p0.y * (1 - t) + p1.y * t });
+            const p0 = loopPts[i - 1],
+                p1 = loopPts[i];
+            samples.push({
+                x: p0.x * (1 - t) + p1.x * t,
+                y: p0.y * (1 - t) + p1.y * t,
+            });
             sTable.push(s);
         }
         samples.push(samples[0]);
@@ -153,14 +179,16 @@ export class Track {
 
     /**
      * Get the total length of the track
-     * 
+     *
      * @returns The total length of the track
      */
-    get length(): number { return this.totalLength; }
+    get length(): number {
+        return this.totalLength;
+    }
 
     /**
      * Wrap the track position into the closed interval [0, L)
-     * 
+     *
      * @param s - The position to wrap
      * @returns The wrapped position
      */
@@ -170,7 +198,7 @@ export class Track {
 
     /**
      * Get the position at a given track position
-     * 
+     *
      * @param sRaw - The raw track position
      * @returns The position at the given track position
      */
@@ -180,22 +208,25 @@ export class Track {
             s += this.totalLength;
         }
         // binary search
-        let lo = 0, hi = this.sTable.length - 1;
+        let lo = 0,
+            hi = this.sTable.length - 1;
         while (lo <= hi) {
             const mid = (lo + hi) >> 1;
             if (this.sTable[mid] < s) lo = mid + 1;
             else hi = mid - 1;
         }
         const i = Math.max(1, lo);
-        const s0 = this.sTable[i - 1], s1 = this.sTable[i];
+        const s0 = this.sTable[i - 1],
+            s1 = this.sTable[i];
         const t = (s - s0) / Math.max(1e-6, s1 - s0);
-        const p0 = this.samples[i - 1], p1 = this.samples[i];
+        const p0 = this.samples[i - 1],
+            p1 = this.samples[i];
         return { x: p0.x * (1 - t) + p1.x * t, y: p0.y * (1 - t) + p1.y * t };
     }
 
     /**
      * Get the tangent at a given track position
-     * 
+     *
      * @param sRaw - The raw track position
      * @returns The tangent at the given track position
      */
@@ -208,7 +239,7 @@ export class Track {
 
     /**
      * Get the normal at a given track position
-     * 
+     *
      * @param sRaw - The raw track position
      * @returns The normal at the given track position
      */
@@ -219,14 +250,16 @@ export class Track {
 
     /**
      * Get the samples of the track
-     * 
+     *
      * @returns The samples of the track
      */
-    getSamples(): readonly Vec2[] { return this.samples; }
+    getSamples(): readonly Vec2[] {
+        return this.samples;
+    }
 
     /**
      * Get the lateral offset from centerline for a given lane index
-     * 
+     *
      * @param laneIndex - The lane index (0 = leftmost, numLanes-1 = rightmost)
      * @returns The lateral offset from centerline in world units
      */
@@ -236,7 +269,7 @@ export class Track {
         // Rightmost lane (numLanes-1): width/2 - 0.5*laneWidth
         // Leftmost lane (0): width/2 - (numLanes - 0.5)*laneWidth
         const trackWidth = this.width; // numLanes * laneWidth
-        return (trackWidth / 2) - (laneIndex + 0.5) * this._laneWidth;
+        return trackWidth / 2 - (laneIndex + 0.5) * this._laneWidth;
     }
 
     /**
@@ -247,14 +280,16 @@ export class Track {
         if (s < 0) {
             s += this.totalLength;
         }
-        let lo = 0, hi = this.sTable.length - 1;
+        let lo = 0,
+            hi = this.sTable.length - 1;
         while (lo <= hi) {
             const mid = (lo + hi) >> 1;
             if (this.sTable[mid] < s) lo = mid + 1;
             else hi = mid - 1;
         }
         const i = Math.max(1, lo);
-        const s0 = this.sTable[i - 1], s1 = this.sTable[i];
+        const s0 = this.sTable[i - 1],
+            s1 = this.sTable[i];
         const t = (s - s0) / Math.max(1e-6, s1 - s0);
         const k0 = this.kappaTable[i - 1];
         const k1 = this.kappaTable[i];
@@ -265,14 +300,14 @@ export class Track {
 
     /**
      * Export track data for serialization
-     * 
+     *
      * @returns Serializable track data
      */
     toSerializedData() {
         return {
             laneWidth: this._laneWidth,
             numLanes: this.numLanes,
-            samples: this.samples.map(s => ({ x: s.x, y: s.y })),
+            samples: this.samples.map((s) => ({ x: s.x, y: s.y })),
             sTable: [...this.sTable],
             totalLength: this.totalLength,
         };
@@ -280,11 +315,17 @@ export class Track {
 
     /**
      * Create a track from serialized data (for loading saves)
-     * 
+     *
      * @param data - The serialized track data
      * @returns A new Track instance
      */
-    static fromSerializedData(data: { laneWidth: number; numLanes: number; samples: Vec2[]; sTable: number[]; totalLength: number }): Track {
+    static fromSerializedData(data: {
+        laneWidth: number;
+        numLanes: number;
+        samples: Vec2[];
+        sTable: number[];
+        totalLength: number;
+    }): Track {
         const track = new Track(data.laneWidth, data.numLanes);
         track.samples = [...data.samples];
         track.sTable = [...data.sTable];
@@ -303,7 +344,8 @@ export class Track {
             headings.push(Math.atan2(dy, dx));
         }
         headings.push(headings[0]);
-        const ds = (track.sTable.length > 1) ? (track.sTable[1] - track.sTable[0]) : 1.0;
+        const ds =
+            track.sTable.length > 1 ? track.sTable[1] - track.sTable[0] : 1.0;
         const kappa: number[] = new Array(track.samples.length).fill(0);
         for (let i = 0; i < headings.length - 1; i++) {
             let dTheta = headings[i + 1] - headings[i];

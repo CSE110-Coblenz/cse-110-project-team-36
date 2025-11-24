@@ -45,11 +45,9 @@ describe('Car Model', () => {
 
             expect(car.v).toBe(vMin);
         });
-
     });
 
     describe('Lap Tracking', () => {
-
         it('should increment lapCount when crossing finish line (from >90% to <10%)', () => {
             const car = UserCar.fromSerializedData({
                 r: 0,
@@ -230,4 +228,3 @@ describe('Car Model', () => {
         });
     });
 });
-

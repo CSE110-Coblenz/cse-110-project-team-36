@@ -1,200 +1,208 @@
 .difficultyScreen {
-  height: 100vh;
-  display: grid;
-  place-items: center;
-  background: url("/backgrounds/race-track-bg.jpg") center/cover no-repeat;
-  position: relative;
-  font-family: var(--font-main);
-  overflow: hidden;
+    height: 100vh;
+    display: grid;
+    place-items: center;
+    background: url('/backgrounds/race-track-bg.jpg') center/cover no-repeat;
+    position: relative;
+    font-family: var(--font-main);
+    overflow: hidden;
 }
 
 .overlay {
-  position: absolute;
-  inset: 0;
-  background: var(--bg-overlay-gradient);
-  z-index: 0;
+    position: absolute;
+    inset: 0;
+    background: var(--bg-overlay-gradient);
+    z-index: 0;
 }
 
 .container {
-  z-index: 1;
-  background: var(--bg-dark-gradient);
-  border: 3px solid var(--color-white);
-  border-radius: 24px;
-  box-shadow: var(--shadow-strong), var(--shadow-glow-white);
-  padding: 32px;
-  width: 90%;
-  max-width: 700px;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  text-align: center;
-  animation: cardPulse 2s infinite;
-  max-height: 90vh;
-  overflow-y: auto;
+    z-index: 1;
+    background: var(--bg-dark-gradient);
+    border: 3px solid var(--color-white);
+    border-radius: 24px;
+    box-shadow: var(--shadow-strong), var(--shadow-glow-white);
+    padding: 32px;
+    width: 90%;
+    max-width: 700px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    text-align: center;
+    animation: cardPulse 2s infinite;
+    max-height: 90vh;
+    overflow-y: auto;
 }
 
 /* === Header === */
 .header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .backButton {
-  padding: 8px 16px;
-  border-radius: 12px;
-  border: 2px solid var(--color-white);
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--color-white);
-  font-size: 1rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all var(--transition-medium);
+    padding: 8px 16px;
+    border-radius: 12px;
+    border: 2px solid var(--color-white);
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--color-white);
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all var(--transition-medium);
 }
 
 .backButton:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: scale(1.05);
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.05);
 }
 
 .title {
-  font-size: 2rem;
-  font-weight: 900;
-  color: var(--color-white);
-  text-shadow: 0 0 6px var(--color-yellow), 0 0 12px var(--color-orange),
-    0 0 24px var(--color-red-orange), 0 0 36px var(--color-red);
-  letter-spacing: 0.05em;
+    font-size: 2rem;
+    font-weight: 900;
+    color: var(--color-white);
+    text-shadow:
+        0 0 6px var(--color-yellow),
+        0 0 12px var(--color-orange),
+        0 0 24px var(--color-red-orange),
+        0 0 36px var(--color-red);
+    letter-spacing: 0.05em;
 }
 
 /* === Section Headings === */
 .sectionTitle {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--color-warm-glow);
-  margin-bottom: 12px;
-  text-shadow: 0 0 4px var(--color-black);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-warm-glow);
+    margin-bottom: 12px;
+    text-shadow: 0 0 4px var(--color-black);
 }
 
 /* === Option Buttons === */
 .optionGrid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  justify-content: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
 }
 
 .optionButton {
-  padding: 12px 24px;
-  border-radius: 16px;
-  font-size: 1.1rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all var(--transition-medium);
+    padding: 12px 24px;
+    border-radius: 16px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all var(--transition-medium);
 }
 
 /* --- Topic (Blue/Cyan) --- */
 .topicButton {
-  border: 2px solid var(--color-neon-cyan);
-  background: rgba(0, 255, 213, 0.1);
-  color: var(--color-neon-cyan);
-  box-shadow: 0 4px 8px rgba(0, 255, 213, 0.3);
+    border: 2px solid var(--color-neon-cyan);
+    background: rgba(0, 255, 213, 0.1);
+    color: var(--color-neon-cyan);
+    box-shadow: 0 4px 8px rgba(0, 255, 213, 0.3);
 }
 
 .topicButton:hover {
-  background: rgba(0, 255, 213, 0.2);
-  transform: scale(1.05);
+    background: rgba(0, 255, 213, 0.2);
+    transform: scale(1.05);
 }
 
 .topicButtonActive {
-  border: 3px solid var(--color-neon-cyan);
-  background: var(--btn-blue-gradient);
-  color: var(--color-black);
-  box-shadow: var(--shadow-blue), var(--shadow-cyan);
+    border: 3px solid var(--color-neon-cyan);
+    background: var(--btn-blue-gradient);
+    color: var(--color-black);
+    box-shadow: var(--shadow-blue), var(--shadow-cyan);
 }
 
 /* --- Difficulty (Green) --- */
 .difficultyButton {
-  border: 2px solid var(--color-neon-green);
-  background: rgba(168, 255, 0, 0.1);
-  color: var(--color-neon-green);
-  box-shadow: 0 4px 8px rgba(168, 255, 0, 0.3);
+    border: 2px solid var(--color-neon-green);
+    background: rgba(168, 255, 0, 0.1);
+    color: var(--color-neon-green);
+    box-shadow: 0 4px 8px rgba(168, 255, 0, 0.3);
 }
 
 .difficultyButton:hover {
-  background: rgba(168, 255, 0, 0.2);
-  transform: scale(1.05);
+    background: rgba(168, 255, 0, 0.2);
+    transform: scale(1.05);
 }
 
 .difficultyButtonActive {
-  border: 3px solid var(--color-neon-green);
-  background: linear-gradient(90deg, #a8ff00 0%, #5cff00 50%, #00ff88 100%);
-  color: var(--color-black);
-  box-shadow: 0 8px 16px rgba(100, 255, 100, 0.5),
-    0 0 12px rgba(0, 255, 150, 0.5);
+    border: 3px solid var(--color-neon-green);
+    background: linear-gradient(90deg, #a8ff00 0%, #5cff00 50%, #00ff88 100%);
+    color: var(--color-black);
+    box-shadow:
+        0 8px 16px rgba(100, 255, 100, 0.5),
+        0 0 12px rgba(0, 255, 150, 0.5);
 }
 
 /* --- Track (Yellow/Red) --- */
 .trackButton {
-  border: 2px solid var(--color-yellow);
-  background: rgba(255, 239, 0, 0.1);
-  color: var(--color-yellow);
-  box-shadow: 0 4px 8px rgba(255, 239, 0, 0.3);
+    border: 2px solid var(--color-yellow);
+    background: rgba(255, 239, 0, 0.1);
+    color: var(--color-yellow);
+    box-shadow: 0 4px 8px rgba(255, 239, 0, 0.3);
 }
 
 .trackButton:hover {
-  background: rgba(255, 239, 0, 0.2);
-  transform: scale(1.05);
+    background: rgba(255, 239, 0, 0.2);
+    transform: scale(1.05);
 }
 
 .trackButtonActive {
-  border: 3px solid var(--color-yellow);
-  background: var(--btn-yellow-gradient);
-  color: var(--color-black);
-  box-shadow: var(--shadow-yellow), var(--shadow-red);
+    border: 3px solid var(--color-yellow);
+    background: var(--btn-yellow-gradient);
+    color: var(--color-black);
+    box-shadow: var(--shadow-yellow), var(--shadow-red);
 }
 
 /* === Start Button === */
 .startButton {
-  padding: 16px 32px;
-  border-radius: 16px;
-  font-size: 1.3rem;
-  font-weight: 900;
-  transition: all var(--transition-medium);
+    padding: 16px 32px;
+    border-radius: 16px;
+    font-size: 1.3rem;
+    font-weight: 900;
+    transition: all var(--transition-medium);
 }
 
 .startButtonEnabled {
-  border: 3px solid var(--color-white);
-  background: var(--btn-yellow-gradient);
-  color: var(--color-black);
-  cursor: pointer;
-  box-shadow: var(--shadow-yellow), var(--shadow-red);
+    border: 3px solid var(--color-white);
+    background: var(--btn-yellow-gradient);
+    color: var(--color-black);
+    cursor: pointer;
+    box-shadow: var(--shadow-yellow), var(--shadow-red);
 }
 
 .startButtonEnabled:hover {
-  transform: scale(1.05);
+    transform: scale(1.05);
 }
 
 .startButtonDisabled {
-  border: 2px solid var(--color-gray-light);
-  background: rgba(100, 100, 100, 0.3);
-  color: var(--color-gray-light);
-  cursor: not-allowed;
+    border: 2px solid var(--color-gray-light);
+    background: rgba(100, 100, 100, 0.3);
+    color: var(--color-gray-light);
+    cursor: not-allowed;
 }
 
 /* === Description Text === */
 .trackDescription {
-  font-size: 0.85rem;
-  color: var(--color-gray-light);
-  margin-top: 8px;
+    font-size: 0.85rem;
+    color: var(--color-gray-light);
+    margin-top: 8px;
 }
 
 /* === Animations === */
 @keyframes cardPulse {
-  0%,
-  100% {
-    box-shadow: var(--shadow-strong), 0 0 20px rgba(255, 255, 255, 0.15);
-  }
-  50% {
-    box-shadow: var(--shadow-strong), 0 0 35px rgba(255, 255, 255, 0.35);
-  }
+    0%,
+    100% {
+        box-shadow:
+            var(--shadow-strong),
+            0 0 20px rgba(255, 255, 255, 0.15);
+    }
+    50% {
+        box-shadow:
+            var(--shadow-strong),
+            0 0 35px rgba(255, 255, 255, 0.35);
+    }
 }

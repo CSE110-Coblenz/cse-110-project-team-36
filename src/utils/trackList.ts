@@ -1,4 +1,4 @@
-import type { TrackJSON } from "../game/models/track";
+import type { TrackJSON } from '../game/models/track';
 
 /**
  * Track metadata
@@ -15,23 +15,24 @@ export interface TrackMetadata {
  */
 export const AVAILABLE_TRACKS: TrackMetadata[] = [
     {
-        id: "track1",
-        name: "Circuit Alpha",
-        description: "Basic loop track",
-        file: "track1.json"
-    }
+        id: 'track1',
+        name: 'Circuit Alpha',
+        description: 'Basic loop track',
+        file: 'track1.json',
+    },
 ];
 
 /**
  * Load track data by ID
  */
 export async function loadTrack(trackId: string): Promise<TrackJSON> {
-    const track = AVAILABLE_TRACKS.find(t => t.id === trackId);
+    const track = AVAILABLE_TRACKS.find((t) => t.id === trackId);
     if (!track) {
         throw new Error(`Track not found: ${trackId}`);
     }
-    
-    const trackModule = await import(/* @vite-ignore */ `../assets/tracks/${track.file}`);
+
+    const trackModule = await import(
+        /* @vite-ignore */ `../assets/tracks/${track.file}`
+    );
     return trackModule.default as TrackJSON;
 }
-

@@ -1,29 +1,29 @@
 /**
  * GameClock implements a fixed-timestep game loop with interpolation.
- * 
+ *
  * The `step` callback is called at a fixed rate (stepsPerSecond) with a fixed
  * delta time in seconds. The `render` callback is called every frame with an
  * alpha value in [0, 1] representing how far we are between the last and next
  * physics step; this can be used for interpolation.
  */
 export class GameClock {
-    private last = performance.now();   // timestamp of last frame
-    private acc = 0;                    // accumulated time in ms
-    private readonly dtMs: number;      // fixed timestep in ms
-    private animationFrameId: number | null = null;  // track animation frame for cleanup
+    private last = performance.now(); // timestamp of last frame
+    private acc = 0; // accumulated time in ms
+    private readonly dtMs: number; // fixed timestep in ms
+    private animationFrameId: number | null = null; // track animation frame for cleanup
 
     constructor(stepsPerSecond = 60) {
         this.dtMs = 1000 / stepsPerSecond;
     }
 
-    /** Start the game loop. 
+    /** Start the game loop.
      * @param step Called at fixed intervals with dt in seconds
      * @param render Called every frame with alpha in [0, 1]
-    */
+     */
     start(step: (dtSec: number) => void, render: (alpha: number) => void) {
         // Stop any existing loop first
         this.stop();
-        
+
         const loop = () => {
             const now = performance.now();
             let frame = now - this.last;
@@ -40,7 +40,7 @@ export class GameClock {
         };
         this.animationFrameId = requestAnimationFrame(loop);
     }
-    
+
     /** Stop the game loop */
     stop(): void {
         if (this.animationFrameId !== null) {

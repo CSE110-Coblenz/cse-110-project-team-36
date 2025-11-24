@@ -15,8 +15,7 @@ const config: PhysicsConfig = {
     baseMu: 0.8,
     slipVelocityDecay: 8,
     momentumTransfer: 0.3,
-    kKappaBrake: 10
+    kKappaBrake: 10,
 };
 
 export default config;
-

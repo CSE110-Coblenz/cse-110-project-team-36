@@ -103,7 +103,9 @@ describe('GameClock', () => {
             jest.advanceTimersByTime(1000); // 1 second
 
             // Assert - render should be called more frequently than step
-            expect(renderFn.mock.calls.length).toBeGreaterThan(stepFn.mock.calls.length);
+            expect(renderFn.mock.calls.length).toBeGreaterThan(
+                stepFn.mock.calls.length,
+            );
 
             // Clean up
             jest.advanceTimersByTime(10000);
@@ -183,7 +185,7 @@ describe('GameClock', () => {
 
             // Act
             clock.start(stepFn, renderFn);
-            
+
             // Simulate a very long frame (e.g., tab was inactive)
             jest.advanceTimersByTime(500); // 500ms frame
 
@@ -228,7 +230,9 @@ describe('GameClock', () => {
             jest.advanceTimersByTime(1000); // 1 second
 
             // Assert - render should be called more than step
-            expect(renderFn.mock.calls.length).toBeGreaterThan(stepFn.mock.calls.length);
+            expect(renderFn.mock.calls.length).toBeGreaterThan(
+                stepFn.mock.calls.length,
+            );
 
             // Step should be called roughly 30 times
             expect(stepFn.mock.calls.length).toBeGreaterThanOrEqual(20);
@@ -269,7 +273,7 @@ describe('GameClock', () => {
 
             // Simulate variable frame times
             const frameTimes = [8, 16, 24, 12, 20, 16]; // Varying frame rates
-            frameTimes.forEach(time => {
+            frameTimes.forEach((time) => {
                 jest.advanceTimersByTime(time);
             });
 
@@ -286,7 +290,9 @@ describe('GameClock', () => {
     describe('Stop Method', () => {
         it('should stop the game loop when stop() is called', () => {
             // Arrange - mock cancelAnimationFrame to track cancellations
-            const cancelSpy = jest.spyOn(global, 'cancelAnimationFrame').mockImplementation(() => {});
+            const cancelSpy = jest
+                .spyOn(global, 'cancelAnimationFrame')
+                .mockImplementation(() => {});
             const clock = new GameClock(60);
             const stepFn = jest.fn();
             const renderFn = jest.fn();
@@ -346,7 +352,9 @@ describe('GameClock', () => {
 
         it('should stop immediately without waiting for current frame', () => {
             // Arrange - mock cancelAnimationFrame
-            const cancelSpy = jest.spyOn(global, 'cancelAnimationFrame').mockImplementation(() => {});
+            const cancelSpy = jest
+                .spyOn(global, 'cancelAnimationFrame')
+                .mockImplementation(() => {});
             const clock = new GameClock(60);
             const stepFn = jest.fn();
             const renderFn = jest.fn();
@@ -368,4 +376,3 @@ describe('GameClock', () => {
         });
     });
 });
-
