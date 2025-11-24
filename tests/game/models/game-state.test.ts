@@ -7,7 +7,10 @@ import { UserCar } from '../../../src/game/models/user-car';
 import { BotCar } from '../../../src/game/models/bot-car';
 import { Track } from '../../../src/game/models/track';
 import { Camera } from '../../../src/game/types';
-import { createSimpleTestTrack, createDefaultBotConfig } from '../../utils/test-helpers';
+import {
+    createSimpleTestTrack,
+    createDefaultBotConfig,
+} from '../../utils/test-helpers';
 
 describe('GameState Model', () => {
     let track: Track;
@@ -57,20 +60,20 @@ describe('GameState Model', () => {
             expect(gameState.getCars()[1]).toBe(aiCar2);
         });
 
-    it('should return readonly array of all cars', () => {
-      const gameState = new GameState(camera, track);
-      const botConfig = createDefaultBotConfig();
-      const car = new BotCar(0, '#ff0000', 40, 22, 1.0, botConfig);
-      car.nextAnswerTime = car.answerSpeed;
-      gameState.addCar(car);
+        it('should return readonly array of all cars', () => {
+            const gameState = new GameState(camera, track);
+            const botConfig = createDefaultBotConfig();
+            const car = new BotCar(0, '#ff0000', 40, 22, 1.0, botConfig);
+            car.nextAnswerTime = car.answerSpeed;
+            gameState.addCar(car);
 
-      const cars = gameState.getCars();
+            const cars = gameState.getCars();
 
-      expect(cars).toBeDefined();
-      expect(cars).toHaveLength(1);
-      
-      expect(Array.isArray(cars)).toBe(true);
-    });
+            expect(cars).toBeDefined();
+            expect(cars).toHaveLength(1);
+
+            expect(Array.isArray(cars)).toBe(true);
+        });
 
         it('should return correct player car via getter', () => {
             const gameState = new GameState(camera, track);
@@ -161,7 +164,11 @@ describe('GameState Model', () => {
     describe('State Updates', () => {
         it('should update camera correctly', () => {
             const gameState = new GameState(camera, track);
-            const newCamera: Camera = { pos: { x: 100, y: 200 }, zoom: 1.5, rotation: 0 };
+            const newCamera: Camera = {
+                pos: { x: 100, y: 200 },
+                zoom: 1.5,
+                rotation: 0,
+            };
 
             gameState.updateCamera(newCamera);
 
@@ -183,8 +190,16 @@ describe('GameState Model', () => {
 
         it('should allow multiple camera updates', () => {
             const gameState = new GameState(camera, track);
-            const camera1: Camera = { pos: { x: 1, y: 2 }, zoom: 1, rotation: 0 };
-            const camera2: Camera = { pos: { x: 3, y: 4 }, zoom: 2, rotation: 0 };
+            const camera1: Camera = {
+                pos: { x: 1, y: 2 },
+                zoom: 1,
+                rotation: 0,
+            };
+            const camera2: Camera = {
+                pos: { x: 3, y: 4 },
+                zoom: 2,
+                rotation: 0,
+            };
 
             gameState.updateCamera(camera1);
             expect(gameState.camera).toBe(camera1);
@@ -213,4 +228,3 @@ describe('GameState Model', () => {
         });
     });
 });
-

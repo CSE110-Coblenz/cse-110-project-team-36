@@ -1,4 +1,4 @@
-import type { QuestionStats } from "../game/managers/QuestionStatsManager";
+import type { QuestionStats } from '../game/managers/QuestionStatsManager';
 
 /**
  * User profile stored in localStorage
@@ -16,8 +16,8 @@ export interface UserProfile {
     createdAt: number;
 }
 
-const USERS_KEY = "formula_fun_users";
-const CURRENT_USER_KEY = "formula_fun_current_user";
+const USERS_KEY = 'formula_fun_users';
+const CURRENT_USER_KEY = 'formula_fun_current_user';
 
 /**
  * Hash password using base64 encoding (for demo purposes)
@@ -38,14 +38,16 @@ export function verifyPassword(password: string, hash: string): boolean {
  */
 export function saveUser(profile: UserProfile): void {
     const users = getAllUsers();
-    const existingIndex = users.findIndex(u => u.username === profile.username);
-    
+    const existingIndex = users.findIndex(
+        (u) => u.username === profile.username,
+    );
+
     if (existingIndex >= 0) {
         users[existingIndex] = profile;
     } else {
         users.push(profile);
     }
-    
+
     localStorage.setItem(USERS_KEY, JSON.stringify(users));
 }
 
@@ -54,7 +56,7 @@ export function saveUser(profile: UserProfile): void {
  */
 export function getUser(username: string): UserProfile | null {
     const users = getAllUsers();
-    return users.find(u => u.username === username) || null;
+    return users.find((u) => u.username === username) || null;
 }
 
 /**
@@ -101,10 +103,13 @@ export function logout(): void {
 /**
  * Update user statistics
  */
-export function updateUserStats(username: string, newStats: QuestionStats[]): void {
+export function updateUserStats(
+    username: string,
+    newStats: QuestionStats[],
+): void {
     const user = getUser(username);
     if (!user) return;
-    
+
     user.stats = newStats;
     saveUser(user);
 }
@@ -112,11 +117,13 @@ export function updateUserStats(username: string, newStats: QuestionStats[]): vo
 /**
  * Update user preferences
  */
-export function updateUserPreferences(username: string, preferences: Partial<UserProfile['preferences']>): void {
+export function updateUserPreferences(
+    username: string,
+    preferences: Partial<UserProfile['preferences']>,
+): void {
     const user = getUser(username);
     if (!user) return;
-    
+
     user.preferences = { ...user.preferences, ...preferences };
     saveUser(user);
 }
-

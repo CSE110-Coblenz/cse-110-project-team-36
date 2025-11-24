@@ -1,19 +1,19 @@
-import { QuestionManager } from "../managers/QuestionManager";
-import { events } from "../../shared/events";
+import { QuestionManager } from '../managers/QuestionManager';
+import { events } from '../../shared/events';
 
-export type FeedbackState = "none" | "correct" | "incorrect";
+export type FeedbackState = 'none' | 'correct' | 'incorrect';
 
 /**
  * Question controller class
- * 
+ *
  * Manages question-related state and logic:
  * - Answer input state
  * - Feedback state and timing
  * - Question submission and validation
  */
 export class QuestionController {
-    private answer: string = "";
-    private feedback: FeedbackState = "none";
+    private answer: string = '';
+    private feedback: FeedbackState = 'none';
     private feedbackTimeoutId: number | null = null;
     private currentQuestion: string;
 
@@ -25,12 +25,12 @@ export class QuestionController {
      * Emit state change event
      */
     private emitStateChange(): void {
-        events.emit("QuestionStateChanged", {});
+        events.emit('QuestionStateChanged', {});
     }
 
     /**
      * Add a character to the answer
-     * 
+     *
      * @param char - Character to add
      */
     addChar(char: string): void {
@@ -51,28 +51,33 @@ export class QuestionController {
      */
     submitAnswer(): void {
         if (!this.questionManager) return;
-        
-        if (this.answer.trim() === "" || this.answer === "-" || this.answer === "." || this.answer === "-.") {
+
+        if (
+            this.answer.trim() === '' ||
+            this.answer === '-' ||
+            this.answer === '.' ||
+            this.answer === '-.'
+        ) {
             return;
         }
 
         const numAnswer = Number(this.answer);
         const wasCorrect = this.questionManager.submitAnswer(numAnswer);
 
-        this.feedback = wasCorrect ? "correct" : "incorrect";
+        this.feedback = wasCorrect ? 'correct' : 'incorrect';
 
         if (this.feedbackTimeoutId !== null) {
             clearTimeout(this.feedbackTimeoutId);
         }
 
         this.feedbackTimeoutId = window.setTimeout(() => {
-            this.feedback = "none";
+            this.feedback = 'none';
             this.feedbackTimeoutId = null;
             this.emitStateChange();
         }, 900);
 
         this.currentQuestion = this.questionManager.getCurrentQuestion();
-        this.answer = "";
+        this.answer = '';
         this.emitStateChange();
     }
 
@@ -82,9 +87,9 @@ export class QuestionController {
     skipQuestion(): void {
         this.questionManager.skipQuestion();
         this.currentQuestion = this.questionManager.getCurrentQuestion();
-        this.answer = "";
-        this.feedback = "none";
-        
+        this.answer = '';
+        this.feedback = 'none';
+
         if (this.feedbackTimeoutId !== null) {
             clearTimeout(this.feedbackTimeoutId);
             this.feedbackTimeoutId = null;
@@ -94,7 +99,7 @@ export class QuestionController {
 
     /**
      * Get the current answer string
-     * 
+     *
      * @returns Current answer
      */
     getAnswer(): string {
@@ -103,7 +108,7 @@ export class QuestionController {
 
     /**
      * Get the current feedback state
-     * 
+     *
      * @returns Current feedback state
      */
     getFeedback(): FeedbackState {
@@ -112,7 +117,7 @@ export class QuestionController {
 
     /**
      * Get the current question text
-     * 
+     *
      * @returns Current question text
      */
     getCurrentQuestion(): string {
@@ -121,7 +126,7 @@ export class QuestionController {
 
     /**
      * Destroy the controller and clean up all resources
-     * 
+     *
      * This should be called when the controller is no longer needed (e.g., when exiting the game).
      */
     destroy(): void {

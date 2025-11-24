@@ -4,7 +4,7 @@
 
 /**
  * Generate a random number from a Gaussian (normal) distribution using Box-Muller transform
- * 
+ *
  * @param mean - The mean of the distribution
  * @param stdDev - The standard deviation of the distribution
  * @returns A random number from the Gaussian distribution
@@ -18,7 +18,7 @@ export function gaussian(mean: number, stdDev: number): number {
 
 /**
  * Clamp a value between a minimum and maximum
- * 
+ *
  * @param value - The value to clamp
  * @param min - The minimum value
  * @param max - The maximum value
@@ -27,4 +27,3 @@ export function gaussian(mean: number, stdDev: number): number {
 export function clamp(value: number, min: number, max: number): number {
     return Math.max(min, Math.min(max, value));
 }
-

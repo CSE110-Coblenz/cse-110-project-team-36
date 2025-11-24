@@ -1,78 +1,78 @@
 :root {
-  /* === Core Colors === */
-  --color-white: #ffffff;
-  --color-black: #000000;
-  --color-gray-light: #9ca3af;
-  --color-gray-dark: #333333;
-  --color-gray-darker: #0f172a;
+    /* === Core Colors === */
+    --color-white: #ffffff;
+    --color-black: #000000;
+    --color-gray-light: #9ca3af;
+    --color-gray-dark: #333333;
+    --color-gray-darker: #0f172a;
 
-  /* === Neon / Accent Colors === */
-  --color-neon-blue: #00ffd5;
-  --color-neon-cyan: #00d4ff;
-  --color-neon-green: #00ff95;
-  --color-neon-deep-blue: #0077ff;
+    /* === Neon / Accent Colors === */
+    --color-neon-blue: #00ffd5;
+    --color-neon-cyan: #00d4ff;
+    --color-neon-green: #00ff95;
+    --color-neon-deep-blue: #0077ff;
 
-  /* === Warm / Racing Colors === */
-  --color-yellow: #ffef00;
-  --color-orange: #ff9a00;
-  --color-red-orange: #ff2a00;
-  --color-red: #ff0000;
-  --color-warm-glow: #ffd6a8;
+    /* === Warm / Racing Colors === */
+    --color-yellow: #ffef00;
+    --color-orange: #ff9a00;
+    --color-red-orange: #ff2a00;
+    --color-red: #ff0000;
+    --color-warm-glow: #ffd6a8;
 
-  /* === Error Colors === */
-  --color-error: #ff4444;
-  --color-error-bg: rgba(255, 68, 68, 0.2);
-  --color-error-border: rgba(255, 68, 68, 0.5);
+    /* === Error Colors === */
+    --color-error: #ff4444;
+    --color-error-bg: rgba(255, 68, 68, 0.2);
+    --color-error-border: rgba(255, 68, 68, 0.5);
 
-  /* === Backgrounds === */
-  --bg-dark-gradient: linear-gradient(
-    180deg,
-    rgba(15, 15, 30, 0.9) 0%,
-    rgba(30, 30, 60, 0.9) 100%
-  );
-  --bg-overlay-gradient: radial-gradient(
-    circle at 20% 20%,
-    #fffb9e 0%,
-    #ff6b00 30%,
-    #1a0033 70%,
-    #000 100%
-  );
+    /* === Backgrounds === */
+    --bg-dark-gradient: linear-gradient(
+        180deg,
+        rgba(15, 15, 30, 0.9) 0%,
+        rgba(30, 30, 60, 0.9) 100%
+    );
+    --bg-overlay-gradient: radial-gradient(
+        circle at 20% 20%,
+        #fffb9e 0%,
+        #ff6b00 30%,
+        #1a0033 70%,
+        #000 100%
+    );
 
-  /* === Button Gradients === */
-  --btn-yellow-gradient: linear-gradient(
-    90deg,
-    var(--color-yellow) 0%,
-    var(--color-orange) 50%,
-    var(--color-red-orange) 100%
-  );
-  --btn-blue-gradient: linear-gradient(
-    90deg,
-    var(--color-neon-green) 0%,
-    var(--color-neon-cyan) 50%,
-    var(--color-neon-deep-blue) 100%
-  );
-  --btn-gray-gradient: linear-gradient(90deg, #555 0%, #333 100%);
+    /* === Button Gradients === */
+    --btn-yellow-gradient: linear-gradient(
+        90deg,
+        var(--color-yellow) 0%,
+        var(--color-orange) 50%,
+        var(--color-red-orange) 100%
+    );
+    --btn-blue-gradient: linear-gradient(
+        90deg,
+        var(--color-neon-green) 0%,
+        var(--color-neon-cyan) 50%,
+        var(--color-neon-deep-blue) 100%
+    );
+    --btn-gray-gradient: linear-gradient(90deg, #555 0%, #333 100%);
 
-  --btn-green-gradient: linear-gradient(
-    90deg,
-    var(--color-neon-green) 0%,
-    var(--color-neon-blue) 50%,
-    var(--color-neon-cyan) 100%
-  );
+    --btn-green-gradient: linear-gradient(
+        90deg,
+        var(--color-neon-green) 0%,
+        var(--color-neon-blue) 50%,
+        var(--color-neon-cyan) 100%
+    );
 
-  /* === Shadows === */
-  --shadow-strong: 0 20px 40px rgba(0, 0, 0, 0.8);
-  --shadow-glow-white: 0 0 35px rgba(255, 255, 255, 0.25);
-  --shadow-neon-blue: 0 0 6px rgba(0, 255, 255, 0.4);
-  --shadow-yellow: 0 8px 16px rgba(255, 180, 0, 0.5);
-  --shadow-red: 0 0 12px rgba(255, 100, 0, 0.6);
-  --shadow-blue: 0 8px 16px rgba(0, 255, 200, 0.4);
-  --shadow-cyan: 0 0 12px rgba(0, 255, 255, 0.6);
+    /* === Shadows === */
+    --shadow-strong: 0 20px 40px rgba(0, 0, 0, 0.8);
+    --shadow-glow-white: 0 0 35px rgba(255, 255, 255, 0.25);
+    --shadow-neon-blue: 0 0 6px rgba(0, 255, 255, 0.4);
+    --shadow-yellow: 0 8px 16px rgba(255, 180, 0, 0.5);
+    --shadow-red: 0 0 12px rgba(255, 100, 0, 0.6);
+    --shadow-blue: 0 8px 16px rgba(0, 255, 200, 0.4);
+    --shadow-cyan: 0 0 12px rgba(0, 255, 255, 0.6);
 
-  /* === Transitions === */
-  --transition-fast: 0.12s ease;
-  --transition-medium: 0.2s ease;
+    /* === Transitions === */
+    --transition-fast: 0.12s ease;
+    --transition-medium: 0.2s ease;
 
-  /* === Typography === */
-  --font-main: "Comic Sans MS", "Baloo 2", system-ui, sans-serif;
+    /* === Typography === */
+    --font-main: 'Comic Sans MS', 'Baloo 2', system-ui, sans-serif;
 }

@@ -1,8 +1,8 @@
-import { Car } from "./car";
+import { Car } from './car';
 
 /**
  * UserCar class
- * 
+ *
  * Represents the player's car. Extends Car for type differentiation.
  */
 export class UserCar extends Car {
@@ -11,14 +11,14 @@ export class UserCar extends Car {
         color: string = '#22c55e',
         carLength: number = 40,
         carWidth: number = 22,
-        laneIndex?: number
+        laneIndex?: number,
     ) {
         super(initialS, color, carLength, carWidth, laneIndex);
     }
 
     /**
      * Create a UserCar from serialized data (for loading saves)
-     * 
+     *
      * @param data - The serialized car data
      * @returns A new UserCar instance
      */
@@ -42,7 +42,13 @@ export class UserCar extends Car {
         lastS: number;
         crossedFinish: boolean;
     }): UserCar {
-        const car = new UserCar(data.s, data.color, data.carLength, data.carWidth, data.laneIndex);
+        const car = new UserCar(
+            data.s,
+            data.color,
+            data.carLength,
+            data.carWidth,
+            data.laneIndex,
+        );
         car.r = data.r;
         car.s = data.s;
         car.v = data.v;
@@ -61,4 +67,3 @@ export class UserCar extends Car {
         return car;
     }
 }
-
