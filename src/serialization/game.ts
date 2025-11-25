@@ -27,7 +27,7 @@ export interface SerializedCar {
     crossedFinish: boolean;
     // Bot-specific fields (only present for bot cars)
     difficulty?: number;
-    botDifficulty?: Difficulty | undefined;
+    gameDifficulty?: Difficulty | undefined;
     answerSpeed?: number;
     answerSpeedStdDev?: number;
     accuracy?: number;
@@ -64,7 +64,7 @@ function serializeCar(car: Car): SerializedCar {
             ...base,
             type: 'bot',
             difficulty: car.difficulty,
-            botDifficulty: car.botDifficulty,
+            gameDifficulty: car.gameDifficulty,
             answerSpeed: car.answerSpeed,
             answerSpeedStdDev: car.answerSpeedStdDev,
             accuracy: car.accuracy,
@@ -111,7 +111,7 @@ function deserializeCar(data: SerializedCar): Car {
             data.carLength,
             data.carWidth,
             data.difficulty,
-            data.botDifficulty,
+            data.gameDifficulty,
             {
                 answerSpeedBase: data.answerSpeed || 2.0,
                 answerSpeedStdDev: data.answerSpeedStdDev || 0.5,

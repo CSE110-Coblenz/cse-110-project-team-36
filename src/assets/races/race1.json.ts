@@ -1,4 +1,4 @@
-import type { RaceConfig } from '../../game/config/types';
+import { type RaceConfig } from '../../game/config/types';
 import config1 from '../physics/config1.json';
 
 const race: RaceConfig = {

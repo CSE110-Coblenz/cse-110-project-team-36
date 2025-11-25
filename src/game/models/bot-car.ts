@@ -37,7 +37,7 @@ export const GameDifficultyScaling: Record<Difficulty, BotStats> = {
  */
 export class BotCar extends Car {
     public difficulty: number; // Master difficulty scalar [a, b]
-    public botDifficulty: Difficulty; // Difficulty from selection screen scalar
+    public gameDifficulty: Difficulty; // Difficulty from selection screen scalar
     public answerSpeed: number; // Mean time to answer questions (seconds)
     public answerSpeedStdDev: number; // Standard deviation for answer speed variation
     public accuracy: number; // Probability of answering correctly [0, 1]
@@ -56,7 +56,7 @@ export class BotCar extends Car {
     ) {
         super(initialS, color, carLength, carWidth, laneIndex);
         this.difficulty = difficulty;
-        this.botDifficulty = gameDifficulty;
+        this.gameDifficulty = gameDifficulty;
 
         // Generate bot statistics based on difficulty and config
         const stats = BotCar.generateBotStats(
