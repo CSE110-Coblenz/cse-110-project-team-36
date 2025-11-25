@@ -1,4 +1,5 @@
-import { QuestionTopic, QuestionDifficulty } from '../game/models/question';
+import { QuestionTopic } from '../game/models/question';
+import { Difficulty } from '../game/config/types';
 
 /**
  * Question-related utility functions
@@ -20,6 +21,6 @@ export function topicStringToEnum(topic: string): QuestionTopic {
  * @param difficulty - The difficulty string
  * @returns The QuestionDifficulty enum value
  */
-export function difficultyStringToEnum(difficulty: string): QuestionDifficulty {
-    return difficulty.toLowerCase() as QuestionDifficulty;
+export function difficultyStringToEnum(difficulty: string): Difficulty {
+    return difficulty.toLowerCase() as Difficulty;
 }
