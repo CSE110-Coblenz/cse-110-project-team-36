@@ -86,6 +86,7 @@ export class RaceController {
         const difficultyRanges = raceConfig.botDifficultyRanges;
         const initialPositions = raceConfig.initialPositions;
         const laneIndices = raceConfig.laneIndices;
+        const gameDifficulty = questionConfig.difficulty;
 
         for (let i = 0; i < difficultyRanges.length; i++) {
             const [minDifficulty, maxDifficulty] = difficultyRanges[i];
@@ -99,6 +100,7 @@ export class RaceController {
                 40,
                 22,
                 difficulty,
+                gameDifficulty,
                 botConfig,
                 laneIndices[i],
             );
