@@ -41,6 +41,7 @@ export type EventMap = {
     PausedSet: { value: boolean };
     SettingsRequested: Record<string, never>;
     QuestionStateChanged: Record<string, never>;
+    StreakActivated: { value: boolean };
     RaceFinished: Record<string, never>;
 };
 

@@ -1,5 +1,5 @@
-import { ResizeListener } from "../listeners/ResizeListener";
-import { VisibilityListener } from "../listeners/VisibilityListener";
+import { ResizeListener } from '../listeners/ResizeListener';
+import { VisibilityListener } from '../listeners/VisibilityListener';
 import {
     SpaceRewardListener,
     NumberInputListener,
@@ -7,11 +7,11 @@ import {
     EnterSubmitListener,
     SkipQuestionListener,
     LaneChangeListener,
-} from "../listeners/KeyboardListener";
+} from '../listeners/KeyboardListener';
 
 /**
  * Listener controller class
- * 
+ *
  * Manages all input listeners with pause-aware behavior:
  * - Always active: pause/resume listeners (Escape/P keys), resize observer
  * - Pause-aware: game input listeners (space for rewards, question input)
@@ -43,21 +43,23 @@ export class ListenerController {
             onLaneChangeLeft: () => void;
             onLaneChangeRight: () => void;
         },
-        private onVisibilityLost?: () => void
+        private onVisibilityLost?: () => void,
     ) {
         this.pauseKeyListener = (e: KeyboardEvent) => {
             const k = e.key.toLowerCase();
-            if (k === "escape" || k === "p") {
+            if (k === 'escape' || k === 'p') {
                 e.preventDefault();
                 this.onPauseToggle();
             }
         };
 
-        this.visibilityListener = new VisibilityListener((isVisible: boolean) => {
-            if (!isVisible && this.onVisibilityLost) {
-                this.onVisibilityLost();
-            }
-        });
+        this.visibilityListener = new VisibilityListener(
+            (isVisible: boolean) => {
+                if (!isVisible && this.onVisibilityLost) {
+                    this.onVisibilityLost();
+                }
+            },
+        );
 
         this.spaceRewardListener = new SpaceRewardListener(() => {
             if (!this.gameInputsPaused) {
@@ -89,29 +91,36 @@ export class ListenerController {
             }
         });
 
-        this.laneChangeListener = new LaneChangeListener((direction: -1 | 1) => {
-            if (!this.gameInputsPaused) {
-                if (direction === -1) {
-                    this.laneChangeCallbacks.onLaneChangeLeft();
-                } else {
-                    this.laneChangeCallbacks.onLaneChangeRight();
+        this.laneChangeListener = new LaneChangeListener(
+            (direction: -1 | 1) => {
+                if (!this.gameInputsPaused) {
+                    if (direction === -1) {
+                        this.laneChangeCallbacks.onLaneChangeLeft();
+                    } else {
+                        this.laneChangeCallbacks.onLaneChangeRight();
+                    }
                 }
-            }
-        });
+            },
+        );
 
         this.resizeListener = new ResizeListener(document.body, () => {});
     }
 
     /**
      * Start all listeners
-     * 
+     *
      * @param containerElement - The container element for resize listener
      * @param onResize - Callback for resize events
      * @throws Error if already started
      */
-    start(containerElement: HTMLElement, onResize: (w: number, h: number) => void): void {
+    start(
+        containerElement: HTMLElement,
+        onResize: (w: number, h: number) => void,
+    ): void {
         if (this.isRunning) {
-            throw new Error("ListenerController is already started. Call stop() before starting again.");
+            throw new Error(
+                'ListenerController is already started. Call stop() before starting again.',
+            );
         }
 
         this.resizeListener.stop();
@@ -120,7 +129,7 @@ export class ListenerController {
 
         this.visibilityListener.start();
 
-        window.addEventListener("keydown", this.pauseKeyListener);
+        window.addEventListener('keydown', this.pauseKeyListener);
 
         this.spaceRewardListener.start();
         this.numberInputListener.start();
@@ -140,7 +149,7 @@ export class ListenerController {
             return;
         }
 
-        window.removeEventListener("keydown", this.pauseKeyListener);
+        window.removeEventListener('keydown', this.pauseKeyListener);
 
         this.resizeListener.stop();
         this.visibilityListener.stop();
@@ -159,7 +168,9 @@ export class ListenerController {
      */
     pause(): void {
         if (!this.isRunning) {
-            throw new Error("Cannot pause: ListenerController is not started. Call start() first.");
+            throw new Error(
+                'Cannot pause: ListenerController is not started. Call start() first.',
+            );
         }
         this.gameInputsPaused = true;
     }
@@ -169,14 +180,16 @@ export class ListenerController {
      */
     resume(): void {
         if (!this.isRunning) {
-            throw new Error("Cannot resume: ListenerController is not started. Call start() first.");
+            throw new Error(
+                'Cannot resume: ListenerController is not started. Call start() first.',
+            );
         }
         this.gameInputsPaused = false;
     }
 
     /**
      * Check if the controller is started
-     * 
+     *
      * @returns True if started, false otherwise
      */
     isStarted(): boolean {
@@ -185,7 +198,7 @@ export class ListenerController {
 
     /**
      * Check if game inputs are paused
-     * 
+     *
      * @returns True if game inputs are paused, false otherwise
      */
     isPaused(): boolean {
@@ -194,7 +207,7 @@ export class ListenerController {
 
     /**
      * Destroy the controller and clean up all resources
-     * 
+     *
      * This should be called when the controller is no longer needed (e.g., when exiting the game).
      * It stops the controller if running. References will be garbage collected when the controller
      * is no longer referenced.

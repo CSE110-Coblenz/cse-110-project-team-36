@@ -34,7 +34,10 @@ export class VisibilityListener {
         if (!this.isActive) return;
 
         if (this.visibilityHandler) {
-            document.removeEventListener('visibilitychange', this.visibilityHandler);
+            document.removeEventListener(
+                'visibilitychange',
+                this.visibilityHandler,
+            );
             this.visibilityHandler = null;
         }
         if (this.blurHandler) {

@@ -49,7 +49,7 @@ describe('ListenerController', () => {
                 onPauseToggle,
                 onSpaceReward,
                 questionCallbacks,
-                laneChangeCallbacks
+                laneChangeCallbacks,
             );
 
             expect(controller).toBeDefined();
@@ -64,7 +64,7 @@ describe('ListenerController', () => {
                 onPauseToggle,
                 onSpaceReward,
                 questionCallbacks,
-                laneChangeCallbacks
+                laneChangeCallbacks,
             );
 
             controller.start(containerElement, onResize);
@@ -77,14 +77,16 @@ describe('ListenerController', () => {
                 onPauseToggle,
                 onSpaceReward,
                 questionCallbacks,
-                laneChangeCallbacks
+                laneChangeCallbacks,
             );
 
             controller.start(containerElement, onResize);
 
             expect(() => {
                 controller.start(containerElement, onResize);
-            }).toThrow('ListenerController is already started. Call stop() before starting again.');
+            }).toThrow(
+                'ListenerController is already started. Call stop() before starting again.',
+            );
         });
 
         it('should stop all listeners', () => {
@@ -92,7 +94,7 @@ describe('ListenerController', () => {
                 onPauseToggle,
                 onSpaceReward,
                 questionCallbacks,
-                laneChangeCallbacks
+                laneChangeCallbacks,
             );
 
             controller.start(containerElement, onResize);
@@ -106,7 +108,7 @@ describe('ListenerController', () => {
                 onPauseToggle,
                 onSpaceReward,
                 questionCallbacks,
-                laneChangeCallbacks
+                laneChangeCallbacks,
             );
 
             controller.start(containerElement, onResize);
@@ -122,7 +124,7 @@ describe('ListenerController', () => {
                 onPauseToggle,
                 onSpaceReward,
                 questionCallbacks,
-                laneChangeCallbacks
+                laneChangeCallbacks,
             );
 
             controller.start(containerElement, onResize);
@@ -139,7 +141,7 @@ describe('ListenerController', () => {
                 onPauseToggle,
                 onSpaceReward,
                 questionCallbacks,
-                laneChangeCallbacks
+                laneChangeCallbacks,
             );
 
             controller.start(containerElement, onResize);
@@ -156,7 +158,7 @@ describe('ListenerController', () => {
                 onPauseToggle,
                 onSpaceReward,
                 questionCallbacks,
-                laneChangeCallbacks
+                laneChangeCallbacks,
             );
 
             controller.start(containerElement, onResize);
@@ -173,7 +175,7 @@ describe('ListenerController', () => {
                 onPauseToggle,
                 onSpaceReward,
                 questionCallbacks,
-                laneChangeCallbacks
+                laneChangeCallbacks,
             );
 
             controller.start(containerElement, onResize);
@@ -193,7 +195,7 @@ describe('ListenerController', () => {
                 onPauseToggle,
                 onSpaceReward,
                 questionCallbacks,
-                laneChangeCallbacks
+                laneChangeCallbacks,
             );
 
             controller.start(containerElement, onResize);
@@ -210,7 +212,7 @@ describe('ListenerController', () => {
                 onPauseToggle,
                 onSpaceReward,
                 questionCallbacks,
-                laneChangeCallbacks
+                laneChangeCallbacks,
             );
 
             controller.start(containerElement, onResize);
@@ -228,7 +230,7 @@ describe('ListenerController', () => {
                 onPauseToggle,
                 onSpaceReward,
                 questionCallbacks,
-                laneChangeCallbacks
+                laneChangeCallbacks,
             );
 
             controller.start(containerElement, onResize);
@@ -254,12 +256,14 @@ describe('ListenerController', () => {
                 onPauseToggle,
                 onSpaceReward,
                 questionCallbacks,
-                laneChangeCallbacks
+                laneChangeCallbacks,
             );
 
             expect(() => {
                 controller.pause();
-            }).toThrow('Cannot pause: ListenerController is not started. Call start() first.');
+            }).toThrow(
+                'Cannot pause: ListenerController is not started. Call start() first.',
+            );
         });
 
         it('should throw error when resuming before start()', () => {
@@ -267,12 +271,14 @@ describe('ListenerController', () => {
                 onPauseToggle,
                 onSpaceReward,
                 questionCallbacks,
-                laneChangeCallbacks
+                laneChangeCallbacks,
             );
 
             expect(() => {
                 controller.resume();
-            }).toThrow('Cannot resume: ListenerController is not started. Call start() first.');
+            }).toThrow(
+                'Cannot resume: ListenerController is not started. Call start() first.',
+            );
         });
 
         it('should set paused state correctly', () => {
@@ -280,7 +286,7 @@ describe('ListenerController', () => {
                 onPauseToggle,
                 onSpaceReward,
                 questionCallbacks,
-                laneChangeCallbacks
+                laneChangeCallbacks,
             );
 
             controller.start(containerElement, onResize);
@@ -300,7 +306,7 @@ describe('ListenerController', () => {
                 onPauseToggle,
                 onSpaceReward,
                 questionCallbacks,
-                laneChangeCallbacks
+                laneChangeCallbacks,
             );
 
             controller.start(containerElement, onResize);
@@ -317,7 +323,7 @@ describe('ListenerController', () => {
                 onPauseToggle,
                 onSpaceReward,
                 questionCallbacks,
-                laneChangeCallbacks
+                laneChangeCallbacks,
             );
 
             expect(() => {
@@ -330,7 +336,7 @@ describe('ListenerController', () => {
                 onPauseToggle,
                 onSpaceReward,
                 questionCallbacks,
-                laneChangeCallbacks
+                laneChangeCallbacks,
             );
 
             controller.start(containerElement, onResize);
@@ -345,7 +351,7 @@ describe('ListenerController', () => {
                 onPauseToggle,
                 onSpaceReward,
                 questionCallbacks,
-                laneChangeCallbacks
+                laneChangeCallbacks,
             );
 
             expect(() => {

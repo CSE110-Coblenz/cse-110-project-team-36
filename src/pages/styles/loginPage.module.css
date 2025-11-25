@@ -2,153 +2,159 @@
 
 /* === Page Layout === */
 .loginPage {
-  height: 100vh;
-  display: grid;
-  place-items: center;
-  background-image: url("/backgrounds/race-track-bg.jpg");
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  position: relative;
-  font-family: var(--font-main);
-  color: var(--color-white);
-  overflow: hidden;
+    height: 100vh;
+    display: grid;
+    place-items: center;
+    background-image: url('/backgrounds/race-track-bg.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    position: relative;
+    font-family: var(--font-main);
+    color: var(--color-white);
+    overflow: hidden;
 }
 
 .overlay {
-  position: absolute;
-  inset: 0;
-  background: var(--bg-overlay-gradient);
-  z-index: 0;
+    position: absolute;
+    inset: 0;
+    background: var(--bg-overlay-gradient);
+    z-index: 0;
 }
 
 /* === Card === */
 .card {
-  z-index: 1;
-  background: var(--bg-dark-gradient);
-  border: 3px solid var(--color-white);
-  border-radius: 24px;
-  box-shadow: var(--shadow-strong), var(--shadow-glow-white);
-  padding: 28px;
-  width: 90%;
-  max-width: 380px;
-  display: grid;
-  gap: 18px;
-  text-align: center;
-  animation: cardPulse 2s infinite;
+    z-index: 1;
+    background: var(--bg-dark-gradient);
+    border: 3px solid var(--color-white);
+    border-radius: 24px;
+    box-shadow: var(--shadow-strong), var(--shadow-glow-white);
+    padding: 28px;
+    width: 90%;
+    max-width: 380px;
+    display: grid;
+    gap: 18px;
+    text-align: center;
+    animation: cardPulse 2s infinite;
 }
 
 .formContainer {
-  display: grid;
-  gap: 14px; /* vertical spacing between input, error, buttons, text */
-  text-align: left;
-  margin-bottom: 0px;
+    display: grid;
+    gap: 14px; /* vertical spacing between input, error, buttons, text */
+    text-align: left;
+    margin-bottom: 0px;
 }
 
 /* === Titles === */
 .title {
-  margin: 0;
-  font-size: 2.2rem;
-  font-weight: 900;
-  color: var(--color-white);
-  text-shadow: 0 0 6px var(--color-yellow), 0 0 12px var(--color-orange),
-    0 0 24px var(--color-red-orange), 0 0 36px var(--color-red);
-  animation: bounceTitle 1.2s infinite;
-  letter-spacing: 0.05em;
+    margin: 0;
+    font-size: 2.2rem;
+    font-weight: 900;
+    color: var(--color-white);
+    text-shadow:
+        0 0 6px var(--color-yellow),
+        0 0 12px var(--color-orange),
+        0 0 24px var(--color-red-orange),
+        0 0 36px var(--color-red);
+    animation: bounceTitle 1.2s infinite;
+    letter-spacing: 0.05em;
 }
 
 .subtitle {
-  color: var(--color-warm-glow);
-  font-weight: 600;
-  font-size: 1rem;
-  margin: -6px 0 6px 0;
-  text-shadow: 0 0 4px var(--color-black);
+    color: var(--color-warm-glow);
+    font-weight: 600;
+    font-size: 1rem;
+    margin: -6px 0 6px 0;
+    text-shadow: 0 0 4px var(--color-black);
 }
 
 /* === Form Inputs === */
 .input {
-  padding: 10px 12px;
-  border-radius: 12px;
-  border: 2px solid var(--color-neon-blue);
-  background-color: var(--color-gray-darker);
-  color: var(--color-white);
-  font-weight: 600;
-  font-size: 0.9rem;
-  box-shadow: var(--shadow-neon-blue);
+    padding: 10px 12px;
+    border-radius: 12px;
+    border: 2px solid var(--color-neon-blue);
+    background-color: var(--color-gray-darker);
+    color: var(--color-white);
+    font-weight: 600;
+    font-size: 0.9rem;
+    box-shadow: var(--shadow-neon-blue);
 }
 
 .input:focus {
-  outline: none;
-  box-shadow: 0 0 8px 2px var(--color-neon-cyan),
-    0 0 24px var(--color-neon-green);
+    outline: none;
+    box-shadow:
+        0 0 8px 2px var(--color-neon-cyan),
+        0 0 24px var(--color-neon-green);
 }
 
 /* === Buttons === */
 .btnBase {
-  width: 100%;
-  padding: 12px 16px;
-  border-radius: 16px;
-  border: 2px solid var(--color-white);
-  font-weight: 800;
-  font-size: 1rem;
-  cursor: pointer;
-  text-shadow: 0 0 4px rgba(255, 255, 255, 0.6);
-  transition: transform var(--transition-fast);
-  -webkit-tap-highlight-color: transparent;
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 16px;
+    border: 2px solid var(--color-white);
+    font-weight: 800;
+    font-size: 1rem;
+    cursor: pointer;
+    text-shadow: 0 0 4px rgba(255, 255, 255, 0.6);
+    transition: transform var(--transition-fast);
+    -webkit-tap-highlight-color: transparent;
 }
 
 .btnBlue {
-  background: var(--btn-blue-gradient);
-  color: var(--color-black);
-  box-shadow: var(--shadow-blue), var(--shadow-cyan);
+    background: var(--btn-blue-gradient);
+    color: var(--color-black);
+    box-shadow: var(--shadow-blue), var(--shadow-cyan);
 }
 
 .btnGray {
-  background: var(--btn-gray-gradient);
-  color: var(--color-white);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.6);
+    background: var(--btn-gray-gradient);
+    color: var(--color-white);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.6);
 }
 
 .btnYellow {
-  background: var(--btn-yellow-gradient);
-  box-shadow: var(--shadow-yellow), var(--shadow-red);
+    background: var(--btn-yellow-gradient);
+    box-shadow: var(--shadow-yellow), var(--shadow-red);
 }
 
 /* === Error Message === */
 .error {
-  color: var(--color-error);
-  font-size: 0.85rem;
-  text-align: center;
-  padding: 8px;
-  background: var(--color-error-bg);
-  border-radius: 8px;
-  border: 1px solid var(--color-error-border);
+    color: var(--color-error);
+    font-size: 0.85rem;
+    text-align: center;
+    padding: 8px;
+    background: var(--color-error-bg);
+    border-radius: 8px;
+    border: 1px solid var(--color-error-border);
 }
 
 .helperText {
-  font-size: 0.75rem;
-  color: var(--color-gray-light);
-  text-shadow: 0 0 4px var(--color-black);
-  margin-top: 4px;
+    font-size: 0.75rem;
+    color: var(--color-gray-light);
+    text-shadow: 0 0 4px var(--color-black);
+    margin-top: 4px;
 }
 
 /* === Animations === */
 @keyframes bounceTitle {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-5px);
-  }
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-5px);
+    }
 }
 
 @keyframes cardPulse {
-  0%,
-  100% {
-    box-shadow: var(--shadow-strong), var(--shadow-glow-white);
-  }
-  50% {
-    box-shadow: var(--shadow-strong), 0 0 35px rgba(255, 255, 255, 0.35);
-  }
+    0%,
+    100% {
+        box-shadow: var(--shadow-strong), var(--shadow-glow-white);
+    }
+    50% {
+        box-shadow:
+            var(--shadow-strong),
+            0 0 35px rgba(255, 255, 255, 0.35);
+    }
 }

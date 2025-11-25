@@ -35,7 +35,7 @@ export function SkidMarkLayer({
         for (const car of cars) {
             const skidMark = gs.getSkidMarks(car);
             if (!skidMark || skidMark.isEmpty()) continue;
-            
+
             // Process left skid marks
             const leftPoints = skidMark.getLeftPoints();
             const leftFlatPoints: number[] = [];
@@ -49,10 +49,20 @@ export function SkidMarkLayer({
 
                 // Only render if visible
                 if (alpha > 0.01) {
-                    const screenP1 = worldToScreen({ x: p1.x, y: p1.y }, camera, stageWidth, stageHeight);
+                    const screenP1 = worldToScreen(
+                        { x: p1.x, y: p1.y },
+                        camera,
+                        stageWidth,
+                        stageHeight,
+                    );
                     leftFlatPoints.push(screenP1.x, screenP1.y);
                     if (i === leftPoints.length - 2) {
-                        const screenP2 = worldToScreen({ x: p2.x, y: p2.y }, camera, stageWidth, stageHeight);
+                        const screenP2 = worldToScreen(
+                            { x: p2.x, y: p2.y },
+                            camera,
+                            stageWidth,
+                            stageHeight,
+                        );
                         leftFlatPoints.push(screenP2.x, screenP2.y);
                     }
                 }
@@ -76,10 +86,20 @@ export function SkidMarkLayer({
                 const alpha = (p1.alpha + p2.alpha) / 2;
 
                 if (alpha > 0.01) {
-                    const screenP1 = worldToScreen({ x: p1.x, y: p1.y }, camera, stageWidth, stageHeight);
+                    const screenP1 = worldToScreen(
+                        { x: p1.x, y: p1.y },
+                        camera,
+                        stageWidth,
+                        stageHeight,
+                    );
                     rightFlatPoints.push(screenP1.x, screenP1.y);
                     if (i === rightPoints.length - 2) {
-                        const screenP2 = worldToScreen({ x: p2.x, y: p2.y }, camera, stageWidth, stageHeight);
+                        const screenP2 = worldToScreen(
+                            { x: p2.x, y: p2.y },
+                            camera,
+                            stageWidth,
+                            stageHeight,
+                        );
                         rightFlatPoints.push(screenP2.x, screenP2.y);
                     }
                 }

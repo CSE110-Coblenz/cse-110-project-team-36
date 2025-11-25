@@ -9,7 +9,7 @@ import {
     loadGameFromLocalStorage,
     hasSavedGame,
     deleteSavedGame,
-    listSaveSlots
+    listSaveSlots,
 } from '../../src/serialization/game';
 import { GameState } from '../../src/game/models/game-state';
 import { UserCar } from '../../src/game/models/user-car';
@@ -17,8 +17,14 @@ import { BotCar } from '../../src/game/models/bot-car';
 import { Track, TrackJSON } from '../../src/game/models/track';
 import { Camera } from '../../src/game/types';
 import { RaceController } from '../../src/game/controllers/RaceController';
-import { QuestionTopic, QuestionDifficulty } from '../../src/game/models/question';
-import { createDefaultRaceConfig, createDefaultBotConfig } from '../utils/test-helpers';
+import {
+    QuestionTopic,
+    QuestionDifficulty,
+} from '../../src/game/models/question';
+import {
+    createDefaultRaceConfig,
+    createDefaultBotConfig,
+} from '../utils/test-helpers';
 
 describe('GameState Serialization', () => {
     const createTestGameState = (): GameState => {
@@ -30,14 +36,18 @@ describe('GameState Serialization', () => {
                 { x: 0, y: 0 },
                 { x: 100, y: 0 },
                 { x: 100, y: 100 },
-                { x: 0, y: 100 }
+                { x: 0, y: 100 },
             ],
             smoothIterations: 1,
-            sampleSpacing: 10
+            sampleSpacing: 10,
         };
         const track = Track.fromJSON(trackJSON);
 
-        const camera: Camera = { pos: { x: 50, y: 50 }, zoom: 1.5, rotation: 0 };
+        const camera: Camera = {
+            pos: { x: 50, y: 50 },
+            zoom: 1.5,
+            rotation: 0,
+        };
         const gameState = new GameState(camera, track);
 
         const playerCar = new UserCar(0, '#00ff00', 40, 22);
@@ -82,7 +92,11 @@ describe('GameState Serialization', () => {
 
         it('should include all camera properties', () => {
             const gameState = createTestGameState();
-            gameState.updateCamera({ pos: { x: 123, y: 456 }, zoom: 2.5, rotation: 0 });
+            gameState.updateCamera({
+                pos: { x: 123, y: 456 },
+                zoom: 2.5,
+                rotation: 0,
+            });
 
             const jsonString = serializeGameState(gameState);
             const parsed = JSON.parse(jsonString);
@@ -90,7 +104,7 @@ describe('GameState Serialization', () => {
             expect(parsed.camera).toEqual({
                 pos: { x: 123, y: 456 },
                 zoom: 2.5,
-                rotation: 0
+                rotation: 0,
             });
         });
 
@@ -150,8 +164,12 @@ describe('GameState Serialization', () => {
 
             expect(deserializedGameState).toBeInstanceOf(GameState);
             expect(deserializedGameState.getCars()).toHaveLength(3);
-            expect(deserializedGameState.track.width).toBe(originalGameState.track.width);
-            expect(deserializedGameState.camera.zoom).toBe(originalGameState.camera.zoom);
+            expect(deserializedGameState.track.width).toBe(
+                originalGameState.track.width,
+            );
+            expect(deserializedGameState.camera.zoom).toBe(
+                originalGameState.camera.zoom,
+            );
         });
 
         it('should preserve player car identity', () => {
@@ -178,9 +196,13 @@ describe('GameState Serialization', () => {
             expect(deserializedAiCars).toHaveLength(originalAiCars.length);
 
             for (let i = 0; i < originalAiCars.length; i++) {
-                expect(deserializedAiCars[i].color).toBe(originalAiCars[i].color);
+                expect(deserializedAiCars[i].color).toBe(
+                    originalAiCars[i].color,
+                );
                 expect(deserializedAiCars[i].s).toBe(originalAiCars[i].s);
-                expect(deserializedAiCars[i].lapCount).toBe(originalAiCars[i].lapCount);
+                expect(deserializedAiCars[i].lapCount).toBe(
+                    originalAiCars[i].lapCount,
+                );
             }
         });
 
@@ -189,12 +211,20 @@ describe('GameState Serialization', () => {
                 version: '2.0.0',
                 timestamp: Date.now(),
                 camera: { pos: { x: 0, y: 0 }, zoom: 1, rotation: 0 },
-                track: { laneWidth: 5, numLanes: 4, samples: [], sTable: [], totalLength: 0 },
+                track: {
+                    laneWidth: 5,
+                    numLanes: 4,
+                    samples: [],
+                    sTable: [],
+                    totalLength: 0,
+                },
                 cars: [],
-                playerCarIndex: 0
+                playerCarIndex: 0,
             });
 
-            expect(() => deserializeGameState(invalidJson)).toThrow('Unsupported save file version: 2.0.0');
+            expect(() => deserializeGameState(invalidJson)).toThrow(
+                'Unsupported save file version: 2.0.0',
+            );
         });
 
         it('should handle malformed JSON gracefully', () => {
@@ -208,13 +238,19 @@ describe('GameState Serialization', () => {
         it('should maintain complete data integrity', () => {
             const originalGameState = createTestGameState();
 
-            originalGameState.updateCamera({ pos: { x: 200, y: 300 }, zoom: 0.8, rotation: 0 });
+            originalGameState.updateCamera({
+                pos: { x: 200, y: 300 },
+                zoom: 0.8,
+                rotation: 0,
+            });
 
             originalGameState.playerCar.r += 50;
 
             const jsonString = serializeGameState(originalGameState);
             const deserializedGameState = deserializeGameState(jsonString);
-            const reSerializedString = serializeGameState(deserializedGameState);
+            const reSerializedString = serializeGameState(
+                deserializedGameState,
+            );
 
             const original = JSON.parse(jsonString);
             const reSerialized = JSON.parse(reSerializedString);
@@ -236,7 +272,11 @@ describe('GameState Serialization', () => {
             const originalReward = deserializedPlayerCar.r;
             deserializedPlayerCar.r += 25;
 
-            deserializedGameState.updateCamera({ pos: { x: 100, y: 100 }, zoom: 2.0, rotation: 0 });
+            deserializedGameState.updateCamera({
+                pos: { x: 100, y: 100 },
+                zoom: 2.0,
+                rotation: 0,
+            });
 
             expect(deserializedPlayerCar.r).toBe(originalReward + 25);
             expect(deserializedGameState.camera.pos.x).toBe(100);
@@ -253,26 +293,39 @@ describe('GameState Serialization', () => {
                     { x: 0, y: 0 },
                     { x: 100, y: 0 },
                     { x: 100, y: 100 },
-                    { x: 0, y: 100 }
-                ]
+                    { x: 0, y: 100 },
+                ],
             };
             const track = Track.fromJSON(trackJSON);
             const questionConfig = {
                 topic: QuestionTopic.MIXED,
-                difficulty: QuestionDifficulty.MEDIUM
+                difficulty: QuestionDifficulty.MEDIUM,
             };
-            const raceController = new RaceController(track, questionConfig, createDefaultRaceConfig());
+            const raceController = new RaceController(
+                track,
+                questionConfig,
+                createDefaultRaceConfig(),
+            );
 
-            raceController.queueReward(raceController.getGameState().playerCar, 100);
+            raceController.queueReward(
+                raceController.getGameState().playerCar,
+                100,
+            );
             raceController.queueRewardByIndex(1, 50); // AI car
 
             raceController.step(1 / 60);
 
             const jsonString = raceController.saveToString();
-            const loadedController = RaceController.loadFromString(jsonString, questionConfig, createDefaultRaceConfig());
+            const loadedController = RaceController.loadFromString(
+                jsonString,
+                questionConfig,
+                createDefaultRaceConfig(),
+            );
 
-            const originalPlayerReward = raceController.getGameState().playerCar.r;
-            const loadedPlayerReward = loadedController.getGameState().playerCar.r;
+            const originalPlayerReward =
+                raceController.getGameState().playerCar.r;
+            const loadedPlayerReward =
+                loadedController.getGameState().playerCar.r;
 
             expect(loadedPlayerReward).toBeCloseTo(originalPlayerReward, 5);
             expect(loadedController.getGameState().getCars()).toHaveLength(4); // 1 player + 3 AI
@@ -290,13 +343,14 @@ describe('GameState Serialization', () => {
         describe('saveGameToLocalStorage', () => {
             it('should save game state to localStorage', () => {
                 const gameState = createTestGameState();
-                const mockSetItem = (global as any).testUtils.localStorage.setItem;
+                const mockSetItem = (global as any).testUtils.localStorage
+                    .setItem;
 
                 saveGameToLocalStorage(gameState, 'test-slot');
 
                 expect(mockSetItem).toHaveBeenCalledWith(
                     'formulafun_save_test-slot',
-                    expect.any(String)
+                    expect.any(String),
                 );
 
                 const savedData = mockSetItem.mock.calls[0][1];
@@ -305,27 +359,36 @@ describe('GameState Serialization', () => {
 
             it('should use default slot name when not provided', () => {
                 const gameState = createTestGameState();
-                const mockSetItem = (global as any).testUtils.localStorage.setItem;
+                const mockSetItem = (global as any).testUtils.localStorage
+                    .setItem;
 
                 saveGameToLocalStorage(gameState);
 
                 expect(mockSetItem).toHaveBeenCalledWith(
                     'formulafun_save_default',
-                    expect.any(String)
+                    expect.any(String),
                 );
             });
 
             it('should handle localStorage errors gracefully', () => {
                 const gameState = createTestGameState();
-                const mockSetItem = (global as any).testUtils.localStorage.setItem;
-                const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => { });
+                const mockSetItem = (global as any).testUtils.localStorage
+                    .setItem;
+                const consoleSpy = jest
+                    .spyOn(console, 'error')
+                    .mockImplementation(() => {});
 
                 mockSetItem.mockImplementation(() => {
                     throw new Error('Storage quota exceeded');
                 });
 
-                expect(() => saveGameToLocalStorage(gameState, 'test')).not.toThrow();
-                expect(consoleSpy).toHaveBeenCalledWith('Failed to save game state:', expect.any(Error));
+                expect(() =>
+                    saveGameToLocalStorage(gameState, 'test'),
+                ).not.toThrow();
+                expect(consoleSpy).toHaveBeenCalledWith(
+                    'Failed to save game state:',
+                    expect.any(Error),
+                );
 
                 consoleSpy.mockRestore();
             });
@@ -335,18 +398,22 @@ describe('GameState Serialization', () => {
             it('should load game state from localStorage', () => {
                 const originalGameState = createTestGameState();
                 const serializedData = serializeGameState(originalGameState);
-                const mockGetItem = (global as any).testUtils.localStorage.getItem;
+                const mockGetItem = (global as any).testUtils.localStorage
+                    .getItem;
                 mockGetItem.mockReturnValue(serializedData);
 
                 const loadedGameState = loadGameFromLocalStorage('test-slot');
 
-                expect(mockGetItem).toHaveBeenCalledWith('formulafun_save_test-slot');
+                expect(mockGetItem).toHaveBeenCalledWith(
+                    'formulafun_save_test-slot',
+                );
                 expect(loadedGameState).toBeInstanceOf(GameState);
                 expect(loadedGameState!.getCars()).toHaveLength(3);
             });
 
             it('should return null when no saved game exists', () => {
-                const mockGetItem = (global as any).testUtils.localStorage.getItem;
+                const mockGetItem = (global as any).testUtils.localStorage
+                    .getItem;
                 mockGetItem.mockReturnValue(null);
 
                 const loadedGameState = loadGameFromLocalStorage('nonexistent');
@@ -355,15 +422,21 @@ describe('GameState Serialization', () => {
             });
 
             it('should handle corrupted save data gracefully', () => {
-                const mockGetItem = (global as any).testUtils.localStorage.getItem;
-                const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => { });
+                const mockGetItem = (global as any).testUtils.localStorage
+                    .getItem;
+                const consoleSpy = jest
+                    .spyOn(console, 'error')
+                    .mockImplementation(() => {});
 
                 mockGetItem.mockReturnValue('corrupted data');
 
                 const loadedGameState = loadGameFromLocalStorage('corrupted');
 
                 expect(loadedGameState).toBeNull();
-                expect(consoleSpy).toHaveBeenCalledWith('Failed to load game state:', expect.any(SyntaxError));
+                expect(consoleSpy).toHaveBeenCalledWith(
+                    'Failed to load game state:',
+                    expect.any(SyntaxError),
+                );
 
                 consoleSpy.mockRestore();
             });
@@ -371,17 +444,21 @@ describe('GameState Serialization', () => {
 
         describe('hasSavedGame', () => {
             it('should return true when saved game exists', () => {
-                const mockGetItem = (global as any).testUtils.localStorage.getItem;
+                const mockGetItem = (global as any).testUtils.localStorage
+                    .getItem;
                 mockGetItem.mockReturnValue('some data');
 
                 const exists = hasSavedGame('test-slot');
 
                 expect(exists).toBe(true);
-                expect(mockGetItem).toHaveBeenCalledWith('formulafun_save_test-slot');
+                expect(mockGetItem).toHaveBeenCalledWith(
+                    'formulafun_save_test-slot',
+                );
             });
 
             it('should return false when no saved game exists', () => {
-                const mockGetItem = (global as any).testUtils.localStorage.getItem;
+                const mockGetItem = (global as any).testUtils.localStorage
+                    .getItem;
                 mockGetItem.mockReturnValue(null);
 
                 const exists = hasSavedGame('test-slot');
@@ -392,23 +469,32 @@ describe('GameState Serialization', () => {
 
         describe('deleteSavedGame', () => {
             it('should remove saved game from localStorage', () => {
-                const mockRemoveItem = (global as any).testUtils.localStorage.removeItem;
+                const mockRemoveItem = (global as any).testUtils.localStorage
+                    .removeItem;
 
                 deleteSavedGame('test-slot');
 
-                expect(mockRemoveItem).toHaveBeenCalledWith('formulafun_save_test-slot');
+                expect(mockRemoveItem).toHaveBeenCalledWith(
+                    'formulafun_save_test-slot',
+                );
             });
 
             it('should handle removal errors gracefully', () => {
-                const mockRemoveItem = (global as any).testUtils.localStorage.removeItem;
-                const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => { });
+                const mockRemoveItem = (global as any).testUtils.localStorage
+                    .removeItem;
+                const consoleSpy = jest
+                    .spyOn(console, 'error')
+                    .mockImplementation(() => {});
 
                 mockRemoveItem.mockImplementation(() => {
                     throw new Error('Access denied');
                 });
 
                 expect(() => deleteSavedGame('test-slot')).not.toThrow();
-                expect(consoleSpy).toHaveBeenCalledWith('Failed to delete game state:', expect.any(Error));
+                expect(consoleSpy).toHaveBeenCalledWith(
+                    'Failed to delete game state:',
+                    expect.any(Error),
+                );
 
                 consoleSpy.mockRestore();
             });
@@ -422,13 +508,17 @@ describe('GameState Serialization', () => {
                     'formulafun_save_slot2',
                     'other_app_data',
                     'formulafun_save_default',
-                    'more_other_data'
+                    'more_other_data',
                 ];
 
-                Object.defineProperty((global as any).testUtils.localStorage, 'length', {
-                    value: keys.length,
-                    writable: true
-                });
+                Object.defineProperty(
+                    (global as any).testUtils.localStorage,
+                    'length',
+                    {
+                        value: keys.length,
+                        writable: true,
+                    },
+                );
 
                 mockKey.mockImplementation((index: number) => {
                     return keys[index] || null;
@@ -441,10 +531,14 @@ describe('GameState Serialization', () => {
             });
 
             it('should return empty array when no saves exist', () => {
-                Object.defineProperty((global as any).testUtils.localStorage, 'length', {
-                    value: 0,
-                    writable: true
-                });
+                Object.defineProperty(
+                    (global as any).testUtils.localStorage,
+                    'length',
+                    {
+                        value: 0,
+                        writable: true,
+                    },
+                );
                 const slots = listSaveSlots();
 
                 expect(slots).toEqual([]);

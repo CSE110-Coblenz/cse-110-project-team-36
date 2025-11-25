@@ -7,7 +7,11 @@ import { UserCar } from '../../src/game/models/user-car';
 import { BotCar } from '../../src/game/models/bot-car';
 import { GameState } from '../../src/game/models/game-state';
 import { Camera } from '../../src/game/types';
-import type { PhysicsConfig, RaceConfig, BotConfig } from '../../src/game/config/types';
+import type {
+    PhysicsConfig,
+    RaceConfig,
+    BotConfig,
+} from '../../src/game/config/types';
 
 /**
  * Creates a simple rectangular test track
@@ -21,10 +25,10 @@ export function createSimpleTestTrack(width: number = 20): Track {
             { x: 0, y: 0 },
             { x: 100, y: 0 },
             { x: 100, y: 100 },
-            { x: 0, y: 100 }
+            { x: 0, y: 100 },
         ],
         smoothIterations: 1,
-        sampleSpacing: 10
+        sampleSpacing: 10,
     };
     return Track.fromJSON(trackJSON);
 }
@@ -44,10 +48,10 @@ export function createComplexTestTrack(): Track {
             { x: 100, y: 100 },
             { x: 50, y: 150 },
             { x: 0, y: 100 },
-            { x: -50, y: 50 }
+            { x: -50, y: 50 },
         ],
         smoothIterations: 3,
-        sampleSpacing: 5
+        sampleSpacing: 5,
     };
     return Track.fromJSON(trackJSON);
 }
@@ -67,13 +71,13 @@ export function createTestCar(
         lapCount: number;
         carLength: number;
         carWidth: number;
-    }> = {}
+    }> = {},
 ): UserCar {
     const car = new UserCar(
         sProg,
         color,
         options.carLength || 40,
-        options.carWidth || 22
+        options.carWidth || 22,
     );
 
     if (options.r !== undefined) car.r = options.r;
@@ -90,9 +94,12 @@ export function createTestCar(
  */
 export function createTestGameState(
     numAiCars: number = 2,
-    trackType: 'simple' | 'complex' = 'simple'
+    trackType: 'simple' | 'complex' = 'simple',
 ): GameState {
-    const track = trackType === 'simple' ? createSimpleTestTrack() : createComplexTestTrack();
+    const track =
+        trackType === 'simple'
+            ? createSimpleTestTrack()
+            : createComplexTestTrack();
     const camera: Camera = { pos: { x: 50, y: 50 }, zoom: 1.0, rotation: 0 };
     const gameState = new GameState(camera, track);
 
@@ -112,7 +119,7 @@ export function createTestGameState(
             22,
             1.0,
             defaultBotConfig,
-            i + 1
+            i + 1,
         );
         // Initialize next answer time
         aiCar.nextAnswerTime = aiCar.answerSpeed;
@@ -130,7 +137,7 @@ export function createTestGameState(
 export function expectVec2ToBeCloseTo(
     actual: { x: number; y: number },
     expected: { x: number; y: number },
-    precision: number = 5
+    precision: number = 5,
 ) {
     expect(actual.x).toBeCloseTo(expected.x, precision);
     expect(actual.y).toBeCloseTo(expected.y, precision);
@@ -142,7 +149,7 @@ export function expectVec2ToBeCloseTo(
 export function expectArrayToBeCloseTo(
     actual: number[],
     expected: number[],
-    precision: number = 5
+    precision: number = 5,
 ) {
     expect(actual).toHaveLength(expected.length);
     for (let i = 0; i < actual.length; i++) {
@@ -165,11 +172,11 @@ export function createMockLocalStorage() {
             delete store[key];
         }),
         clear: jest.fn(() => {
-            Object.keys(store).forEach(key => delete store[key]);
+            Object.keys(store).forEach((key) => delete store[key]);
         }),
         length: 0,
         key: jest.fn((index: number) => Object.keys(store)[index] || null),
-        _store: store // For test inspection
+        _store: store, // For test inspection
     };
 }
 
@@ -178,11 +185,19 @@ export function createMockLocalStorage() {
  */
 export function validateSerializedCar(serialized: any) {
     const requiredProps = [
-        'r', 's', 'v', 'lateral',
-        'color', 'carLength', 'carWidth', 'lapCount', 'lastS', 'crossedFinish'
+        'r',
+        's',
+        'v',
+        'lateral',
+        'color',
+        'carLength',
+        'carWidth',
+        'lapCount',
+        'lastS',
+        'crossedFinish',
     ];
 
-    requiredProps.forEach(prop => {
+    requiredProps.forEach((prop) => {
         expect(serialized).toHaveProperty(prop);
     });
 }
@@ -191,9 +206,15 @@ export function validateSerializedCar(serialized: any) {
  * Validates that a serialized track has all required properties
  */
 export function validateSerializedTrack(serialized: any) {
-    const requiredProps = ['laneWidth', 'numLanes', 'samples', 'sTable', 'totalLength'];
+    const requiredProps = [
+        'laneWidth',
+        'numLanes',
+        'samples',
+        'sTable',
+        'totalLength',
+    ];
 
-    requiredProps.forEach(prop => {
+    requiredProps.forEach((prop) => {
         expect(serialized).toHaveProperty(prop);
     });
 
@@ -207,9 +228,16 @@ export function validateSerializedTrack(serialized: any) {
  * Validates that a serialized game state has all required properties
  */
 export function validateSerializedGameState(serialized: any) {
-    const requiredProps = ['version', 'timestamp', 'camera', 'track', 'cars', 'playerCarIndex'];
+    const requiredProps = [
+        'version',
+        'timestamp',
+        'camera',
+        'track',
+        'cars',
+        'playerCarIndex',
+    ];
 
-    requiredProps.forEach(prop => {
+    requiredProps.forEach((prop) => {
         expect(serialized).toHaveProperty(prop);
     });
 
@@ -241,7 +269,7 @@ export function createDefaultPhysicsConfig(): PhysicsConfig {
         baseMu: 0.8,
         slipVelocityDecay: 8,
         momentumTransfer: 0.3,
-        kKappaBrake: 10
+        kKappaBrake: 10,
     };
 }
 
@@ -258,7 +286,7 @@ export function createDefaultBotConfig(): BotConfig {
         accuracyBase: 0.7,
         accuracyStdDev: 0,
         safetyTimeBase: 1.5,
-        safetyTimeStdDev: 0
+        safetyTimeStdDev: 0,
     };
 }
 
@@ -267,10 +295,14 @@ export function createDefaultRaceConfig(): RaceConfig {
         physics: createDefaultPhysicsConfig(),
         trackFile: 'track1.json',
         botConfig: createDefaultBotConfig(),
-        botDifficultyRanges: [[1.0, 1.0], [1.0, 1.0], [1.0, 1.0]],
+        botDifficultyRanges: [
+            [1.0, 1.0],
+            [1.0, 1.0],
+            [1.0, 1.0],
+        ],
         initialPositions: [-50, -100, -150],
         laneIndices: [1, 2, 0],
         userCarLaneIndex: 1,
-        userCarInitialPosition: 0
+        userCarInitialPosition: 0,
     };
 }

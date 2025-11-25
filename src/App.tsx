@@ -207,11 +207,11 @@ export default function App() {
                 controller={controller}
                 onBack={() => setScreen('menu')}
                 onLevelSelect={(level) => {
-                    setSelectedTopic(level.topic)
-                    setSelectedDifficulty(level.difficulty)
-                    setSelectedTrack(level.track)
-                    setScreen('race')
-                        }}
+                    setSelectedTopic(level.topic);
+                    setSelectedDifficulty(level.difficulty);
+                    setSelectedTrack(level.track);
+                    setScreen('race');
+                }}
                 currentUser={currentUser}
             />
         );
