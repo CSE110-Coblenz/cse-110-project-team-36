@@ -17,8 +17,10 @@ import {
     difficultyStringToEnum,
 } from './utils/questionUtils';
 import './global.css';
+import LevelSelectionPage from './pages/LevelSelectionPage';
+import { LevelSelectionController } from './game/controllers/LevelSelectionController';
 
-type Screen = 'menu' | 'race' | 'login' | 'difficulty';
+type Screen = 'menu' | 'race' | 'login' | 'difficulty' | 'campaign';
 
 export default function App() {
     const initializeUserState = () => {
@@ -58,6 +60,7 @@ export default function App() {
         null,
     );
     const [isLoadingRace, setIsLoadingRace] = useState(false);
+    const controller = new LevelSelectionController();
 
     const handleLogin = (username: string) => {
         saveCurrentUser(username);
@@ -117,6 +120,7 @@ export default function App() {
                 onStart={() => setScreen('difficulty')}
                 onSignUpClick={() => setScreen('login')}
                 onLogout={handleLogout}
+                onCampaignClick={() => setScreen('campaign')}
             />
         );
     }
@@ -152,6 +156,7 @@ export default function App() {
                     onStart={() => setScreen('difficulty')}
                     onSignUpClick={() => setScreen('login')}
                     onLogout={handleLogout}
+                    onCampaignClick={() => setScreen('campaign')}
                 />
             );
         }
@@ -192,6 +197,22 @@ export default function App() {
                 onPlayGuest={() => setScreen('difficulty')}
                 onLogin={handleLogin}
                 onBack={() => setScreen('menu')}
+            />
+        );
+    }
+
+    if (screen === 'campaign') {
+        return (
+            <LevelSelectionPage
+                controller={controller}
+                onBack={() => setScreen('menu')}
+                onLevelSelect={(level) => {
+                    setSelectedTopic(level.topic);
+                    setSelectedDifficulty(level.difficulty);
+                    setSelectedTrack(level.track);
+                    setScreen('race');
+                }}
+                currentUser={currentUser}
             />
         );
     }

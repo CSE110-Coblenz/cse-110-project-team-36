@@ -15,7 +15,8 @@ export const MainMenuPage: React.FC<{
     onStart: () => void;
     onSignUpClick: () => void;
     onLogout: () => void;
-}> = ({ currentUser, onStart, onSignUpClick, onLogout }) => {
+    onCampaignClick: () => void;
+}> = ({ currentUser, onStart, onSignUpClick, onLogout, onCampaignClick }) => {
     const [soundOn, setSoundOn] = useState(true);
     const [fullscreen, setFullscreen] = useState(false);
 
@@ -54,6 +55,13 @@ export const MainMenuPage: React.FC<{
                     onClick={onStart}
                 >
                     ▶ Start Race
+                </Button>
+
+                <Button
+                    className={`${styles.button} ${styles.btnYellow}`}
+                    onClick={onCampaignClick}
+                >
+                    🏆 Campaign Mode
                 </Button>
 
                 <Button
