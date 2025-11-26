@@ -9,6 +9,8 @@ import { events } from '../shared/events';
 import { PostRaceStats } from '../rendering/game/RaceFinishedPage';
 import { Button } from '../components/button';
 import styles from './styles/racePage.module.css';
+import { MiniGameOverlay } from '../rendering/game/MiniGameOverlay';
+
 
 interface RacePageProps {
     raceController: RaceController;
@@ -24,7 +26,7 @@ export const RacePage: React.FC<RacePageProps> = ({
     const containerRef = useRef<HTMLDivElement>(null);
     const [size, setSize] = useState({ w: PAGE_WIDTH, h: PAGE_HEIGHT });
     const [, setFrame] = useState(0);
-
+    const [showMinigame, setShowMinigame] = useState(false);
     const paused = raceController.getGameState().paused;
 
     useEffect(() => {
@@ -56,6 +58,22 @@ export const RacePage: React.FC<RacePageProps> = ({
         onExit();
     };
 
+    const handleOpenMinigame = () => {
+        setShowMinigame(true);
+        // optional: pause race when entering minigame if API supports it
+        // if (!raceController.getGameState().paused) {
+        //     raceController.togglePause();
+        // }
+    };
+
+    const handleCloseMinigame = () => {
+        setShowMinigame(false);
+        // optional: resume race here if you paused it above
+        // if (raceController.getGameState().paused) {
+        //     raceController.resume();
+        // }
+    };
+
     return (
         <div ref={containerRef} className={styles.racePage}>
             <QuestionAnswer
@@ -73,6 +91,17 @@ export const RacePage: React.FC<RacePageProps> = ({
                 >
                     Pause
                 </Button>
+
+                {/* neww Minigame button */}
+                <Button
+                    onClick={handleOpenMinigame}
+                    title="Open Minigame"
+                    className={styles.minigameButton}
+                >
+                    Minigame
+                </Button>
+
+
             </div>
 
             <Hud
@@ -94,6 +123,11 @@ export const RacePage: React.FC<RacePageProps> = ({
                 statsManager={raceController.getStatsManager()}
                 time={raceController.getElapsedMs() / 1000}
                 onExit={handleExitToMenu}
+            />
+            <MiniGameOverlay
+                visible={showMinigame}
+                onClose={handleCloseMinigame}
+                questionController={questionController}
             />
         </div>
     );
