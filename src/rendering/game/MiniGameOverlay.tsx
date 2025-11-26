@@ -140,10 +140,10 @@ export const MiniGameOverlay: React.FC<MiniGameOverlayProps> = ({
                 ) : (
                     <>
                         <div className={styles.actions}>
-                            <Button type="submit" className={styles.btnPrimary} onClick={function (e: React.FormEvent): void {
-                            }}>
+                            <Button type="submit" className={styles.btnPrimary} onClick={() => {}}>
                                 Submit
                             </Button>
+
                             <Button
                                 type="button"
                                 className={styles.btnGhost}

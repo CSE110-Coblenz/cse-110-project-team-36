@@ -1,11 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { events } from '../../../shared/events';
 
 type MiniGameStage = 'playing' | 'finished';
 
 const MINI_GAME_CONFIG = {
   totalQuestions: 10,
-  totalTimeSeconds: 10,
+  totalTimeSeconds: 20,
 };
 
 interface MiniGameState {
@@ -28,14 +28,14 @@ export function useTimedMiniGame(visible: boolean) {
   const timerRef = useRef<number | null>(null);
   const stageRef = useRef<MiniGameStage>('playing');
 
-  const stopTimer = () => {
+  const stopTimer = useCallback(() => {
     if (timerRef.current !== null) {
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
-  };
+  }, []);
 
-  const startTimer = () => {
+  const startTimer = useCallback(() => {
     stopTimer();
     timerRef.current = window.setInterval(() => {
       setState((prev) => {
@@ -50,9 +50,10 @@ export function useTimedMiniGame(visible: boolean) {
         return { ...prev, timeLeft: parseFloat(nextTime.toFixed(1)) };
       });
     }, 100);
-  };
+  }, [stopTimer]);
 
-  const resetRun = () => {
+  // Used by the "Play Again" button
+  const resetRun = useCallback(() => {
     stageRef.current = 'playing';
     setState({
       correct: 0,
@@ -62,7 +63,7 @@ export function useTimedMiniGame(visible: boolean) {
       stage: 'playing',
     });
     startTimer();
-  };
+  }, [startTimer]);
 
   useEffect(() => {
     if (!visible) {
@@ -70,7 +71,8 @@ export function useTimedMiniGame(visible: boolean) {
       return;
     }
 
-    resetRun();
+    // when overlay opens, start the timer
+    startTimer();
 
     const handleOutcome = (wasCorrect: boolean) => {
       if (stageRef.current === 'finished') return;
@@ -110,12 +112,14 @@ export function useTimedMiniGame(visible: boolean) {
       unsubSkipped();
       stopTimer();
     };
-  }, [visible]);
+  }, [visible, startTimer, stopTimer]);
 
   const accuracy =
     state.correct + state.missed === 0
       ? 0
-      : Math.round((state.correct / (state.correct + state.missed)) * 100);
+      : Math.round(
+        (state.correct / (state.correct + state.missed)) * 100,
+      );
 
   const progressPercent = Math.min(
     100,
