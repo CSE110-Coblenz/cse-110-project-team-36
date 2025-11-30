@@ -18,6 +18,10 @@ import { Track } from '../models/track';
 import type { RaceConfig } from '../config/types';
 import { ConfigController } from '../controllers/ConfigController';
 import { loadTrack } from '../../utils/trackList';
+import { BrowserTimerService } from '../../services/adapters/TimerService';
+import { BrowserStorageService } from '../../services/adapters/StorageService';
+import { BrowserDOMService } from '../../services/adapters/DOMService';
+import { PersistenceService } from '../../services/PersistenceService';
 
 /**
  * Factory for creating RaceController instances
@@ -88,9 +92,20 @@ export class RaceControllerFactory {
             raceConfig.physics,
         );
 
+        // Create browser API adapters
+        const timerService = new BrowserTimerService();
+        const storageService = new BrowserStorageService();
+        const domService = new BrowserDOMService();
+
+        // Create persistence service
+        const persistenceService = new PersistenceService(storageService);
+
         const questionManager = new QuestionManager(questionConfig);
         const statsManager = new QuestionStatsManager();
-        const questionController = new QuestionController(questionManager);
+        const questionController = new QuestionController(
+            questionManager,
+            timerService,
+        );
 
         const botController = new BotController(
             gameState,
@@ -144,6 +159,7 @@ export class RaceControllerFactory {
                     }
                 },
             },
+            domService,
             () => raceControllerInstance?.handleVisibilityLost(),
         );
 
@@ -162,6 +178,7 @@ export class RaceControllerFactory {
             streakController,
             listenerController,
             clock,
+            persistenceService,
         );
 
         return raceControllerInstance;
@@ -204,9 +221,20 @@ export class RaceControllerFactory {
             raceConfig.physics,
         );
 
+        // Create browser API adapters
+        const timerService = new BrowserTimerService();
+        const storageService = new BrowserStorageService();
+        const domService = new BrowserDOMService();
+
+        // Create persistence service
+        const persistenceService = new PersistenceService(storageService);
+
         const questionManager = new QuestionManager(questionConfig);
         const statsManager = new QuestionStatsManager();
-        const questionController = new QuestionController(questionManager);
+        const questionController = new QuestionController(
+            questionManager,
+            timerService,
+        );
 
         const botController = new BotController(
             gameState,
@@ -260,6 +288,7 @@ export class RaceControllerFactory {
                     }
                 },
             },
+            domService,
             () => raceControllerInstance?.handleVisibilityLost(),
         );
 
@@ -278,6 +307,7 @@ export class RaceControllerFactory {
             streakController,
             listenerController,
             clock,
+            persistenceService,
         );
 
         return raceControllerInstance;

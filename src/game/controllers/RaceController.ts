@@ -17,16 +17,8 @@ import { QuestionController } from './QuestionController';
 import { StreakController } from './StreakController';
 import { updateUserStats } from '../../services/localStorage';
 import type { RaceConfig } from '../config/types';
+import type { PersistenceService } from '../../services/PersistenceService';
 import { RaceControllerFactory } from '../factories/RaceControllerFactory';
-import {
-    serializeGameState,
-    deserializeGameState,
-    saveGameToLocalStorage,
-    loadGameFromLocalStorage,
-    hasSavedGame,
-    deleteSavedGame,
-    listSaveSlots,
-} from '../../serialization/game';
 
 /**
  * Race controller class
@@ -52,6 +44,7 @@ export class RaceController {
     private clock: GameClock;
     private listenerController: ListenerController;
     private raceCompleted: boolean = false;
+    private persistenceService: PersistenceService;
 
     /**
      * Constructor with dependency injection
@@ -71,6 +64,7 @@ export class RaceController {
      * @param streakController - Streak controller
      * @param listenerController - Listener controller
      * @param clock - Game clock
+     * @param persistenceService - Persistence service for save/load operations
      */
     constructor(
         gameState: GameState,
@@ -86,6 +80,7 @@ export class RaceController {
         streakController: StreakController,
         listenerController: ListenerController,
         clock: GameClock,
+        persistenceService: PersistenceService,
     ) {
         this.gameState = gameState;
         this.carController = carController;
@@ -100,6 +95,7 @@ export class RaceController {
         this.streakController = streakController;
         this.listenerController = listenerController;
         this.clock = clock;
+        this.persistenceService = persistenceService;
 
         this.initialize();
     }
@@ -213,7 +209,6 @@ export class RaceController {
 
             this.elapsedMs += dt * 1000;
 
-            // Check for race completion only during active gameplay
             if (this.gameState.playerCar.hasFinished()) {
                 this.raceCompleted = true;
                 this.stop();
@@ -503,88 +498,15 @@ export class RaceController {
      * @returns The serialized game state as JSON string
      */
     saveToString(): string {
-        return serializeGameState(this.gameState);
+        return this.persistenceService.serializeGameState(this.gameState);
     }
 
     /**
-     * Load game state from a JSON string
-     *
-     * @param jsonString - The serialized game state
-     * @param questionConfig - Configuration for question generation
-     * @param raceConfig - Race configuration (includes physics config)
-     * @returns A new RaceController with the loaded state
-     */
-    static loadFromString(
-        jsonString: string,
-        questionConfig: QuestionConfig,
-        raceConfig: RaceConfig,
-    ): RaceController {
-        const gameState = deserializeGameState(jsonString);
-        return RaceController.fromGameState(
-            gameState,
-            questionConfig,
-            raceConfig,
-        );
-    }
-
-    /**
-     * Save the current game state to localStorage
+     * Save the current game state to storage
      *
      * @param slotName - The name of the save slot (default: 'default')
      */
     saveToLocalStorage(slotName: string = 'default'): void {
-        saveGameToLocalStorage(this.gameState, slotName);
-    }
-
-    /**
-     * Load game state from localStorage
-     *
-     * @param questionConfig - Configuration for question generation
-     * @param raceConfig - Race configuration (includes physics config)
-     * @param slotName - The name of the save slot (default: 'default')
-     * @returns A new RaceController with the loaded state, or null if no save exists
-     */
-    static loadFromLocalStorage(
-        questionConfig: QuestionConfig,
-        raceConfig: RaceConfig,
-        slotName: string = 'default',
-    ): RaceController | null {
-        const gameState = loadGameFromLocalStorage(slotName);
-        if (!gameState) {
-            return null;
-        }
-        return RaceController.fromGameState(
-            gameState,
-            questionConfig,
-            raceConfig,
-        );
-    }
-
-    /**
-     * Check if a save exists in localStorage
-     *
-     * @param slotName - The name of the save slot (default: 'default')
-     * @returns True if a save exists, false otherwise
-     */
-    static hasSavedGame(slotName: string = 'default'): boolean {
-        return hasSavedGame(slotName);
-    }
-
-    /**
-     * Delete a save from localStorage
-     *
-     * @param slotName - The name of the save slot (default: 'default')
-     */
-    static deleteSavedGame(slotName: string = 'default'): void {
-        deleteSavedGame(slotName);
-    }
-
-    /**
-     * List all available save slots
-     *
-     * @returns Array of save slot names
-     */
-    static listSaveSlots(): string[] {
-        return listSaveSlots();
+        this.persistenceService.saveGame(this.gameState, slotName);
     }
 }

@@ -8,6 +8,7 @@ import {
     SkipQuestionListener,
     LaneChangeListener,
 } from '../listeners/KeyboardListener';
+import type { DOMService } from '../../services/adapters/DOMService';
 
 /**
  * Listener controller class
@@ -43,6 +44,7 @@ export class ListenerController {
             onLaneChangeLeft: () => void;
             onLaneChangeRight: () => void;
         },
+        private domService: DOMService,
         private onVisibilityLost?: () => void,
     ) {
         this.pauseKeyListener = (e: KeyboardEvent) => {
@@ -103,7 +105,7 @@ export class ListenerController {
             },
         );
 
-        this.resizeListener = new ResizeListener(document.body, () => {});
+        this.resizeListener = new ResizeListener(this.domService.getBody(), () => {});
     }
 
     /**
