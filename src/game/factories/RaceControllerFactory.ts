@@ -48,6 +48,9 @@ export class RaceControllerFactory {
         // Load race config (includes physics config via inheritance)
         const raceConfig = await ConfigController.loadRaceConfig(raceFile);
 
+        // value of RaceDifficulty is assginemd to question's difficulty => allows bot diffuclty configuration in GameStateFactory
+        raceConfig.raceDifficulty = questionConfig.difficulty;
+
         // Load track from trackFile reference
         const trackData = await loadTrack(
             raceConfig.trackFile.replace('.json', ''),
