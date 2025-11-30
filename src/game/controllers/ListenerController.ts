@@ -9,6 +9,8 @@ import {
     LaneChangeListener,
 } from '../listeners/KeyboardListener';
 import type { DOMService } from '../../services/adapters/DOMService';
+import type { WindowService } from '../../services/adapters/WindowService';
+import type { DocumentService } from '../../services/adapters/DocumentService';
 
 /**
  * Listener controller class
@@ -45,6 +47,8 @@ export class ListenerController {
             onLaneChangeRight: () => void;
         },
         private domService: DOMService,
+        private windowService: WindowService,
+        private documentService: DocumentService,
         private onVisibilityLost?: () => void,
     ) {
         this.pauseKeyListener = (e: KeyboardEvent) => {
@@ -61,37 +65,39 @@ export class ListenerController {
                     this.onVisibilityLost();
                 }
             },
+            this.windowService,
+            this.documentService,
         );
 
         this.spaceRewardListener = new SpaceRewardListener(() => {
             if (!this.gameInputsPaused) {
                 this.onSpaceReward();
             }
-        });
+        }, this.windowService);
 
         this.numberInputListener = new NumberInputListener((char: string) => {
             if (!this.gameInputsPaused) {
                 this.questionCallbacks.onNumberInput(char);
             }
-        });
+        }, this.windowService);
 
         this.deleteListener = new DeleteListener(() => {
             if (!this.gameInputsPaused) {
                 this.questionCallbacks.onDelete();
             }
-        });
+        }, this.windowService);
 
         this.enterSubmitListener = new EnterSubmitListener(() => {
             if (!this.gameInputsPaused) {
                 this.questionCallbacks.onEnterSubmit();
             }
-        });
+        }, this.windowService);
 
         this.skipQuestionListener = new SkipQuestionListener(() => {
             if (!this.gameInputsPaused) {
                 this.questionCallbacks.onSkip();
             }
-        });
+        }, this.windowService);
 
         this.laneChangeListener = new LaneChangeListener(
             (direction: -1 | 1) => {
@@ -103,6 +109,7 @@ export class ListenerController {
                     }
                 }
             },
+            this.windowService,
         );
 
         this.resizeListener = new ResizeListener(this.domService.getBody(), () => {});
@@ -131,7 +138,7 @@ export class ListenerController {
 
         this.visibilityListener.start();
 
-        window.addEventListener('keydown', this.pauseKeyListener);
+        this.windowService.addEventListener('keydown', this.pauseKeyListener);
 
         this.spaceRewardListener.start();
         this.numberInputListener.start();
@@ -151,7 +158,7 @@ export class ListenerController {
             return;
         }
 
-        window.removeEventListener('keydown', this.pauseKeyListener);
+        this.windowService.removeEventListener('keydown', this.pauseKeyListener);
 
         this.resizeListener.stop();
         this.visibilityListener.stop();

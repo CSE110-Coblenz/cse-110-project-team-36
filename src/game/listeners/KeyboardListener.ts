@@ -1,3 +1,5 @@
+import type { WindowService } from '../../services/adapters/WindowService';
+
 export class EscapeListener {
     private onKey = (e: KeyboardEvent) => {
         if (e.key === 'Escape') {
@@ -5,12 +7,15 @@ export class EscapeListener {
             this.onExit();
         }
     };
-    constructor(private onExit: () => void) {}
+    constructor(
+        private onExit: () => void,
+        private windowService: WindowService,
+    ) {}
     start() {
-        window.addEventListener('keydown', this.onKey);
+        this.windowService.addEventListener('keydown', this.onKey);
     }
     stop() {
-        window.removeEventListener('keydown', this.onKey);
+        this.windowService.removeEventListener('keydown', this.onKey);
     }
 }
 
@@ -21,12 +26,15 @@ export class SpaceRewardListener {
             this.onReward();
         }
     };
-    constructor(private onReward: () => void) {}
+    constructor(
+        private onReward: () => void,
+        private windowService: WindowService,
+    ) {}
     start() {
-        window.addEventListener('keydown', this.onKey);
+        this.windowService.addEventListener('keydown', this.onKey);
     }
     stop() {
-        window.removeEventListener('keydown', this.onKey);
+        this.windowService.removeEventListener('keydown', this.onKey);
     }
 }
 
@@ -36,12 +44,15 @@ export class NumberInputListener {
             this.onInput(e.key);
         }
     };
-    constructor(private onInput: (char: string) => void) {}
+    constructor(
+        private onInput: (char: string) => void,
+        private windowService: WindowService,
+    ) {}
     start() {
-        window.addEventListener('keydown', this.onKey);
+        this.windowService.addEventListener('keydown', this.onKey);
     }
     stop() {
-        window.removeEventListener('keydown', this.onKey);
+        this.windowService.removeEventListener('keydown', this.onKey);
     }
 }
 
@@ -52,12 +63,15 @@ export class DeleteListener {
             this.onDelete();
         }
     };
-    constructor(private onDelete: () => void) {}
+    constructor(
+        private onDelete: () => void,
+        private windowService: WindowService,
+    ) {}
     start() {
-        window.addEventListener('keydown', this.onKey);
+        this.windowService.addEventListener('keydown', this.onKey);
     }
     stop() {
-        window.removeEventListener('keydown', this.onKey);
+        this.windowService.removeEventListener('keydown', this.onKey);
     }
 }
 
@@ -68,12 +82,15 @@ export class EnterSubmitListener {
             this.onSubmit();
         }
     };
-    constructor(private onSubmit: () => void) {}
+    constructor(
+        private onSubmit: () => void,
+        private windowService: WindowService,
+    ) {}
     start() {
-        window.addEventListener('keydown', this.onKey);
+        this.windowService.addEventListener('keydown', this.onKey);
     }
     stop() {
-        window.removeEventListener('keydown', this.onKey);
+        this.windowService.removeEventListener('keydown', this.onKey);
     }
 }
 
@@ -84,12 +101,15 @@ export class SkipQuestionListener {
             this.onSkip();
         }
     };
-    constructor(private onSkip: () => void) {}
+    constructor(
+        private onSkip: () => void,
+        private windowService: WindowService,
+    ) {}
     start() {
-        window.addEventListener('keydown', this.onKey);
+        this.windowService.addEventListener('keydown', this.onKey);
     }
     stop() {
-        window.removeEventListener('keydown', this.onKey);
+        this.windowService.removeEventListener('keydown', this.onKey);
     }
 }
 
@@ -104,11 +124,14 @@ export class LaneChangeListener {
             this.onLaneChange(-1);
         }
     };
-    constructor(private onLaneChange: (direction: -1 | 1) => void) {}
+    constructor(
+        private onLaneChange: (direction: -1 | 1) => void,
+        private windowService: WindowService,
+    ) {}
     start() {
-        window.addEventListener('keydown', this.onKey);
+        this.windowService.addEventListener('keydown', this.onKey);
     }
     stop() {
-        window.removeEventListener('keydown', this.onKey);
+        this.windowService.removeEventListener('keydown', this.onKey);
     }
 }

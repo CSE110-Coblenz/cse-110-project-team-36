@@ -19,6 +19,10 @@ import type { RaceConfig } from '../config/types';
 import type { PersistenceService } from '../../services/PersistenceService';
 import type { UserStatsService } from '../../services/UserStatsService';
 import { RaceControllerFactory } from '../factories/RaceControllerFactory';
+import type { RacePageViewModel } from '../../rendering/view-models/RacePageViewModel';
+import type { QuestionAnswerViewModel } from '../../rendering/view-models/QuestionAnswerViewModel';
+import type { StreakBarViewModel } from '../../rendering/view-models/StreakBarViewModel';
+import type { PostRaceStatsViewModel } from '../../rendering/view-models/PostRaceStatsViewModel';
 
 /**
  * Race controller class
@@ -243,25 +247,61 @@ export class RaceController {
     }
 
     /**
-     * Get the question controller
+     * Build the view model for the race page
      *
-     * @returns The question controller
+     * @param currentUser - The current user's username (or null)
+     * @param onExit - Callback to execute when exiting the race
+     * @returns The race page view model
      */
-    getQuestionController(): QuestionController {
-        return this.questionController;
-    }
+    buildViewModel(
+        currentUser: string | null,
+        onExit: () => void,
+    ): RacePageViewModel {
+        const questionAnswerViewModel: QuestionAnswerViewModel = {
+            answer: this.questionController.getAnswer(),
+            feedback: this.questionController.getFeedback(),
+            currentQuestion: this.questionController.getCurrentQuestion(),
+            onAddChar: (char: string) => this.questionController.addChar(char),
+            onDeleteChar: () => this.questionController.deleteChar(),
+            onSubmit: () => this.questionController.submitAnswer(),
+            onSkip: () => this.questionController.skipQuestion(),
+        };
 
-    getStreakController(): StreakController {
-        return this.streakController;
-    }
+        const streakBarViewModel: StreakBarViewModel = {
+            gauge: this.streakController.getGauge(),
+            state: this.streakController.getState(),
+        };
 
-    /**
-     * Get the stats manager
-     *
-     * @returns The stats manager
-     */
-    getStatsManager(): QuestionStatsManager {
-        return this.statsManager;
+        const stats = this.statsManager.getStats();
+        const postRaceStatsViewModel: PostRaceStatsViewModel = {
+            correctCount: stats.filter((s) => s.outcome === 'correct').length,
+            incorrectCount: stats.filter((s) => s.outcome === 'incorrect')
+                .length,
+            skippedCount: stats.filter((s) => s.outcome === 'skipped').length,
+            time: this.getElapsedMs() / 1000,
+            onExit: () => {
+                this.exitRace(currentUser);
+                onExit();
+            },
+        };
+
+        return {
+            gameState: this.getGameState(),
+            elapsedMs: this.getElapsedMs(),
+            accuracy: this.getAccuracy(),
+            correctCount: this.getCorrectCount(),
+            incorrectCount: this.getIncorrectCount(),
+            paused: this.isPaused(),
+            onTogglePause: () => this.togglePause(),
+            onResume: () => this.resume(),
+            onExit: () => {
+                this.exitRace(currentUser);
+                onExit();
+            },
+            questionAnswerViewModel,
+            streakBarViewModel,
+            postRaceStatsViewModel,
+        };
     }
 
     /**

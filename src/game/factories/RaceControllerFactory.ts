@@ -21,6 +21,8 @@ import { loadTrack } from '../../utils/trackList';
 import { BrowserTimerService } from '../../services/adapters/TimerService';
 import { BrowserStorageService } from '../../services/adapters/StorageService';
 import { BrowserDOMService } from '../../services/adapters/DOMService';
+import { BrowserWindowService } from '../../services/adapters/WindowService';
+import { BrowserDocumentService } from '../../services/adapters/DocumentService';
 import { PersistenceService } from '../../services/PersistenceService';
 import { UserService } from '../../services/UserService';
 import { UserStatsService } from '../../services/UserStatsService';
@@ -98,6 +100,8 @@ export class RaceControllerFactory {
         const timerService = new BrowserTimerService();
         const storageService = new BrowserStorageService();
         const domService = new BrowserDOMService();
+        const windowService = new BrowserWindowService();
+        const documentService = new BrowserDocumentService();
 
         // Create persistence service
         const persistenceService = new PersistenceService(storageService);
@@ -136,14 +140,10 @@ export class RaceControllerFactory {
                     150,
                 ) ?? undefined,
             {
-                onNumberInput: (char) =>
-                    raceControllerInstance?.getQuestionController().addChar(char),
-                onDelete: () =>
-                    raceControllerInstance?.getQuestionController().deleteChar(),
-                onEnterSubmit: () =>
-                    raceControllerInstance?.getQuestionController().submitAnswer(),
-                onSkip: () =>
-                    raceControllerInstance?.getQuestionController().skipQuestion(),
+                onNumberInput: (char) => questionController.addChar(char),
+                onDelete: () => questionController.deleteChar(),
+                onEnterSubmit: () => questionController.submitAnswer(),
+                onSkip: () => questionController.skipQuestion(),
             },
             {
                 onLaneChangeLeft: () => {
@@ -166,6 +166,8 @@ export class RaceControllerFactory {
                 },
             },
             domService,
+            windowService,
+            documentService,
             () => raceControllerInstance?.handleVisibilityLost(),
         );
 
@@ -232,6 +234,8 @@ export class RaceControllerFactory {
         const timerService = new BrowserTimerService();
         const storageService = new BrowserStorageService();
         const domService = new BrowserDOMService();
+        const windowService = new BrowserWindowService();
+        const documentService = new BrowserDocumentService();
 
         // Create persistence service
         const persistenceService = new PersistenceService(storageService);
@@ -268,16 +272,10 @@ export class RaceControllerFactory {
                     150,
                 ) ?? undefined,
             {
-                onNumberInput: (char) =>
-                    raceControllerInstance?.getQuestionController().addChar(
-                        char,
-                    ),
-                onDelete: () =>
-                    raceControllerInstance?.getQuestionController().deleteChar(),
-                onEnterSubmit: () =>
-                    raceControllerInstance?.getQuestionController().submitAnswer(),
-                onSkip: () =>
-                    raceControllerInstance?.getQuestionController().skipQuestion(),
+                onNumberInput: (char) => questionController.addChar(char),
+                onDelete: () => questionController.deleteChar(),
+                onEnterSubmit: () => questionController.submitAnswer(),
+                onSkip: () => questionController.skipQuestion(),
             },
             {
                 onLaneChangeLeft: () => {
@@ -300,6 +298,8 @@ export class RaceControllerFactory {
                 },
             },
             domService,
+            windowService,
+            documentService,
             () => raceControllerInstance?.handleVisibilityLost(),
         );
 

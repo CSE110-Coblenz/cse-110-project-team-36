@@ -9,10 +9,6 @@ import { events } from '../shared/events';
 import { PostRaceStats } from '../rendering/game/RaceFinishedPage';
 import { Button } from '../components/button';
 import styles from './styles/racePage.module.css';
-import type { RacePageViewModel } from '../rendering/view-models/RacePageViewModel';
-import type { QuestionAnswerViewModel } from '../rendering/view-models/QuestionAnswerViewModel';
-import type { StreakBarViewModel } from '../rendering/view-models/StreakBarViewModel';
-import type { PostRaceStatsViewModel } from '../rendering/view-models/PostRaceStatsViewModel';
 
 interface RacePageProps {
     raceController: RaceController;
@@ -24,59 +20,6 @@ interface RacePageProps {
  * Build a view model from a RaceController
  * This is a bridge function during migration - eventually RaceController should provide this directly
  */
-function buildViewModel(
-    raceController: RaceController,
-    currentUser: string | null,
-    onExit: () => void,
-): RacePageViewModel {
-    const questionController = raceController.getQuestionController();
-    const streakController = raceController.getStreakController();
-
-    const questionAnswerViewModel: QuestionAnswerViewModel = {
-        answer: questionController.getAnswer(),
-        feedback: questionController.getFeedback(),
-        currentQuestion: questionController.getCurrentQuestion(),
-        onAddChar: (char: string) => questionController.addChar(char),
-        onDeleteChar: () => questionController.deleteChar(),
-        onSubmit: () => questionController.submitAnswer(),
-        onSkip: () => questionController.skipQuestion(),
-    };
-
-    const streakBarViewModel: StreakBarViewModel = {
-        gauge: streakController.getGauge(),
-        state: streakController.getState(),
-    };
-
-    const stats = raceController.getStatsManager().getStats();
-    const postRaceStatsViewModel: PostRaceStatsViewModel = {
-        correctCount: stats.filter((s) => s.outcome === 'correct').length,
-        incorrectCount: stats.filter((s) => s.outcome === 'incorrect').length,
-        skippedCount: stats.filter((s) => s.outcome === 'skipped').length,
-        time: raceController.getElapsedMs() / 1000,
-        onExit: () => {
-            raceController.exitRace(currentUser);
-            onExit();
-        },
-    };
-
-    return {
-        gameState: raceController.getGameState(),
-        elapsedMs: raceController.getElapsedMs(),
-        accuracy: raceController.getAccuracy(),
-        correctCount: raceController.getCorrectCount(),
-        incorrectCount: raceController.getIncorrectCount(),
-        paused: raceController.isPaused(),
-        onTogglePause: () => raceController.togglePause(),
-        onResume: () => raceController.resume(),
-        onExit: () => {
-            raceController.exitRace(currentUser);
-            onExit();
-        },
-        questionAnswerViewModel,
-        streakBarViewModel,
-        postRaceStatsViewModel,
-    };
-}
 
 export const RacePage: React.FC<RacePageProps> = ({
     raceController,
@@ -121,7 +64,7 @@ export const RacePage: React.FC<RacePageProps> = ({
         return () => clearInterval(id);
     }, []);
 
-    const viewModel = buildViewModel(raceController, currentUser, onExit);
+    const viewModel = raceController.buildViewModel(currentUser, onExit);
     const gs = viewModel.gameState;
 
     const handleSettings = () => events.emit('SettingsRequested', {});
