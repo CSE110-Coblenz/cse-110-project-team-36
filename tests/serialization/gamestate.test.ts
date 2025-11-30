@@ -16,7 +16,6 @@ import { UserCar } from '../../src/game/models/user-car';
 import { BotCar } from '../../src/game/models/bot-car';
 import { Track, TrackJSON } from '../../src/game/models/track';
 import { Camera } from '../../src/game/types';
-import { RaceController } from '../../src/game/controllers/RaceController';
 import {
     QuestionTopic,
     QuestionDifficulty,
@@ -24,7 +23,10 @@ import {
 import {
     createDefaultRaceConfig,
     createDefaultBotConfig,
+    createTestRaceController,
 } from '../utils/test-helpers';
+import { PersistenceService } from '../../src/services/PersistenceService';
+import { BrowserStorageService } from '../../src/services/adapters/StorageService';
 
 describe('GameState Serialization', () => {
     const createTestGameState = (): GameState => {
@@ -301,7 +303,7 @@ describe('GameState Serialization', () => {
                 topic: QuestionTopic.MIXED,
                 difficulty: QuestionDifficulty.MEDIUM,
             };
-            const raceController = new RaceController(
+            const raceController = createTestRaceController(
                 track,
                 questionConfig,
                 createDefaultRaceConfig(),
@@ -316,7 +318,10 @@ describe('GameState Serialization', () => {
             raceController.step(1 / 60);
 
             const jsonString = raceController.saveToString();
-            const loadedController = RaceController.loadFromString(
+            const persistenceService = new PersistenceService(
+                new BrowserStorageService(),
+            );
+            const loadedController = persistenceService.loadRaceControllerFromString(
                 jsonString,
                 questionConfig,
                 createDefaultRaceConfig(),

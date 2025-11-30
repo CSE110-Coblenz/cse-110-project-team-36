@@ -16,6 +16,11 @@ interface RacePageProps {
     onExit: () => void;
 }
 
+/**
+ * Build a view model from a RaceController
+ * This is a bridge function during migration - eventually RaceController should provide this directly
+ */
+
 export const RacePage: React.FC<RacePageProps> = ({
     raceController,
     currentUser,
@@ -24,8 +29,7 @@ export const RacePage: React.FC<RacePageProps> = ({
     const containerRef = useRef<HTMLDivElement>(null);
     const [size, setSize] = useState({ w: PAGE_WIDTH, h: PAGE_HEIGHT });
     const [, setFrame] = useState(0);
-
-    const paused = raceController.getGameState().paused;
+    const [, forceUpdate] = useState(0);
 
     useEffect(() => {
         if (!containerRef.current) return;
@@ -33,7 +37,10 @@ export const RacePage: React.FC<RacePageProps> = ({
         raceController.start(
             containerRef.current,
             (w, h) => setSize({ w, h }),
-            () => setFrame((f) => f + 1),
+            () => {
+                setFrame((f) => f + 1);
+                forceUpdate((n) => n + 1); // Force update to refresh view models
+            },
         );
 
         return () => {
@@ -41,33 +48,39 @@ export const RacePage: React.FC<RacePageProps> = ({
         };
     }, [raceController]);
 
-    const gs = raceController.getGameState();
-    const questionController = raceController.getQuestionController();
-    const streakController = raceController.getStreakController();
-    const elapsedMs = raceController.getElapsedMs();
-    const accuracy = raceController.getAccuracy();
-    const correctCount = raceController.getCorrectCount();
-    const incorrectCount = raceController.getIncorrectCount();
+    // Subscribe to question state changes to update view model
+    useEffect(() => {
+        const unsubscribe = events.on('QuestionStateChanged', () => {
+            forceUpdate((n) => n + 1);
+        });
+        return unsubscribe;
+    }, []);
 
-    const handleResume = () => raceController.resume();
+    // Update streak bar periodically
+    useEffect(() => {
+        const id = setInterval(() => {
+            forceUpdate((n) => n + 1);
+        }, 100);
+        return () => clearInterval(id);
+    }, []);
+
+    const viewModel = raceController.buildViewModel(currentUser, onExit);
+    const gs = viewModel.gameState;
+
     const handleSettings = () => events.emit('SettingsRequested', {});
-    const handleExitToMenu = () => {
-        raceController.exitRace(currentUser);
-        onExit();
-    };
 
     return (
         <div ref={containerRef} className={styles.racePage}>
             <QuestionAnswer
-                questionController={questionController}
-                streakController={streakController}
+                viewModel={viewModel.questionAnswerViewModel}
+                streakBarViewModel={viewModel.streakBarViewModel}
             />
             <GameStage gs={gs} width={size.w} height={size.h} />
 
             <div className={styles.pausePlacement}>
                 <Button
-                    onClick={() => raceController.togglePause()}
-                    aria-pressed={paused ? 'true' : 'false'}
+                    onClick={viewModel.onTogglePause}
+                    aria-pressed={viewModel.paused ? 'true' : 'false'}
                     title="Pause / Open Menu"
                     className={styles.pauseButton}
                 >
@@ -77,24 +90,20 @@ export const RacePage: React.FC<RacePageProps> = ({
 
             <Hud
                 lap={(gs.playerCar?.lapCount ?? 0) + 1}
-                elapsedMs={elapsedMs}
-                accuracy={accuracy}
-                correctCount={correctCount}
-                incorrectCount={incorrectCount}
+                elapsedMs={viewModel.elapsedMs}
+                accuracy={viewModel.accuracy}
+                correctCount={viewModel.correctCount}
+                incorrectCount={viewModel.incorrectCount}
             />
 
             <PauseOverlay
-                visible={paused}
-                onResume={handleResume}
+                visible={viewModel.paused}
+                onResume={viewModel.onResume}
                 onSettings={handleSettings}
-                onExit={handleExitToMenu}
+                onExit={viewModel.onExit}
             />
 
-            <PostRaceStats
-                statsManager={raceController.getStatsManager()}
-                time={raceController.getElapsedMs() / 1000}
-                onExit={handleExitToMenu}
-            />
+            <PostRaceStats viewModel={viewModel.postRaceStatsViewModel} />
         </div>
     );
 };

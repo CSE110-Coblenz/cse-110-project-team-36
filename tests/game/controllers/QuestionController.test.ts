@@ -8,17 +8,20 @@ import {
     QuestionTopic,
     QuestionDifficulty,
 } from '../../../src/game/models/question';
+import { BrowserTimerService } from '../../../src/services/adapters/TimerService';
 
 describe('QuestionController', () => {
     let questionManager: QuestionManager;
     let controller: QuestionController;
+    let timerService: BrowserTimerService;
 
     beforeEach(() => {
         questionManager = new QuestionManager({
             topic: QuestionTopic.ADDITION,
             difficulty: QuestionDifficulty.EASY,
         });
-        controller = new QuestionController(questionManager);
+        timerService = new BrowserTimerService();
+        controller = new QuestionController(questionManager, timerService);
     });
 
     afterEach(() => {
