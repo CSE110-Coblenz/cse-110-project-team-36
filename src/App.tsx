@@ -3,13 +3,7 @@ import { RacePage } from './pages/RacePage';
 import { MainMenuPage } from './pages/MainMenuPage';
 import { LoginPage } from './pages/LoginPage';
 import DifficultySelectionScreen from './pages/DifficultySelectionScreen';
-import {
-    getCurrentUser,
-    saveCurrentUser,
-    logout as logoutUser,
-    getUser,
-    updateUserPreferences,
-} from './services/localStorage';
+import { userService } from './services/userServiceInstance';
 import { RaceController } from './game/controllers/RaceController';
 import { RaceControllerFactory } from './game/factories/RaceControllerFactory';
 import {
@@ -24,9 +18,9 @@ type Screen = 'menu' | 'race' | 'login' | 'difficulty' | 'campaign';
 
 export default function App() {
     const initializeUserState = () => {
-        const user = getCurrentUser();
+        const user = userService.getCurrentUser();
         if (user) {
-            const userProfile = getUser(user);
+            const userProfile = userService.getUser(user);
             return {
                 user,
                 topic: userProfile?.preferences?.lastTopic || '',
@@ -63,13 +57,13 @@ export default function App() {
     const controller = new LevelSelectionController();
 
     const handleLogin = (username: string) => {
-        saveCurrentUser(username);
+        userService.saveCurrentUser(username);
         setCurrentUser(username);
         setScreen('menu');
     };
 
     const handleLogout = () => {
-        logoutUser();
+        userService.logout();
         setCurrentUser(null);
         setScreen('menu');
     };
@@ -136,7 +130,7 @@ export default function App() {
                     setScreen('race');
 
                     if (currentUser) {
-                        updateUserPreferences(currentUser, {
+                        userService.updateUserPreferences(currentUser, {
                             lastTopic: topic,
                             lastDifficulty: difficulty,
                             lastTrack: track,

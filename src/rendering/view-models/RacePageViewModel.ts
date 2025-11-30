@@ -1,7 +1,7 @@
 import type { GameState } from '../../game/models/game-state';
-import type { QuestionStatsManager } from '../../game/managers/QuestionStatsManager';
 import type { QuestionAnswerViewModel } from './QuestionAnswerViewModel';
 import type { StreakBarViewModel } from './StreakBarViewModel';
+import type { PostRaceStatsViewModel } from './PostRaceStatsViewModel';
 
 /**
  * View model for RacePage component
@@ -19,6 +19,6 @@ export interface RacePageViewModel {
     onExit: () => void;
     questionAnswerViewModel: QuestionAnswerViewModel;
     streakBarViewModel: StreakBarViewModel;
-    statsManager: QuestionStatsManager; // Can be further abstracted later
+    postRaceStatsViewModel: PostRaceStatsViewModel;
 }
 

@@ -12,6 +12,7 @@ import styles from './styles/racePage.module.css';
 import type { RacePageViewModel } from '../rendering/view-models/RacePageViewModel';
 import type { QuestionAnswerViewModel } from '../rendering/view-models/QuestionAnswerViewModel';
 import type { StreakBarViewModel } from '../rendering/view-models/StreakBarViewModel';
+import type { PostRaceStatsViewModel } from '../rendering/view-models/PostRaceStatsViewModel';
 
 interface RacePageProps {
     raceController: RaceController;
@@ -46,6 +47,18 @@ function buildViewModel(
         state: streakController.getState(),
     };
 
+    const stats = raceController.getStatsManager().getStats();
+    const postRaceStatsViewModel: PostRaceStatsViewModel = {
+        correctCount: stats.filter((s) => s.outcome === 'correct').length,
+        incorrectCount: stats.filter((s) => s.outcome === 'incorrect').length,
+        skippedCount: stats.filter((s) => s.outcome === 'skipped').length,
+        time: raceController.getElapsedMs() / 1000,
+        onExit: () => {
+            raceController.exitRace(currentUser);
+            onExit();
+        },
+    };
+
     return {
         gameState: raceController.getGameState(),
         elapsedMs: raceController.getElapsedMs(),
@@ -61,7 +74,7 @@ function buildViewModel(
         },
         questionAnswerViewModel,
         streakBarViewModel,
-        statsManager: raceController.getStatsManager(),
+        postRaceStatsViewModel,
     };
 }
 
@@ -147,11 +160,7 @@ export const RacePage: React.FC<RacePageProps> = ({
                 onExit={viewModel.onExit}
             />
 
-            <PostRaceStats
-                statsManager={viewModel.statsManager}
-                time={viewModel.elapsedMs / 1000}
-                onExit={viewModel.onExit}
-            />
+            <PostRaceStats viewModel={viewModel.postRaceStatsViewModel} />
         </div>
     );
 };

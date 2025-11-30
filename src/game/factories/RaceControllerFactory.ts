@@ -22,6 +22,8 @@ import { BrowserTimerService } from '../../services/adapters/TimerService';
 import { BrowserStorageService } from '../../services/adapters/StorageService';
 import { BrowserDOMService } from '../../services/adapters/DOMService';
 import { PersistenceService } from '../../services/PersistenceService';
+import { UserService } from '../../services/UserService';
+import { UserStatsService } from '../../services/UserStatsService';
 
 /**
  * Factory for creating RaceController instances
@@ -99,6 +101,10 @@ export class RaceControllerFactory {
 
         // Create persistence service
         const persistenceService = new PersistenceService(storageService);
+
+        // Create user service and user stats service
+        const userService = new UserService(storageService);
+        const userStatsService = new UserStatsService(userService);
 
         const questionManager = new QuestionManager(questionConfig);
         const statsManager = new QuestionStatsManager();
@@ -179,6 +185,7 @@ export class RaceControllerFactory {
             listenerController,
             clock,
             persistenceService,
+            userStatsService,
         );
 
         return raceControllerInstance;
@@ -228,6 +235,10 @@ export class RaceControllerFactory {
 
         // Create persistence service
         const persistenceService = new PersistenceService(storageService);
+
+        // Create user service and user stats service
+        const userService = new UserService(storageService);
+        const userStatsService = new UserStatsService(userService);
 
         const questionManager = new QuestionManager(questionConfig);
         const statsManager = new QuestionStatsManager();
@@ -308,6 +319,7 @@ export class RaceControllerFactory {
             listenerController,
             clock,
             persistenceService,
+            userStatsService,
         );
 
         return raceControllerInstance;

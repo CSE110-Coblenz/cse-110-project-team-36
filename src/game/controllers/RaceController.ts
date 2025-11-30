@@ -15,9 +15,9 @@ import { GameClock } from '../clock';
 import { ListenerController } from './ListenerController';
 import { QuestionController } from './QuestionController';
 import { StreakController } from './StreakController';
-import { updateUserStats } from '../../services/localStorage';
 import type { RaceConfig } from '../config/types';
 import type { PersistenceService } from '../../services/PersistenceService';
+import type { UserStatsService } from '../../services/UserStatsService';
 import { RaceControllerFactory } from '../factories/RaceControllerFactory';
 
 /**
@@ -45,6 +45,7 @@ export class RaceController {
     private listenerController: ListenerController;
     private raceCompleted: boolean = false;
     private persistenceService: PersistenceService;
+    private userStatsService: UserStatsService;
 
     /**
      * Constructor with dependency injection
@@ -65,6 +66,7 @@ export class RaceController {
      * @param listenerController - Listener controller
      * @param clock - Game clock
      * @param persistenceService - Persistence service for save/load operations
+     * @param userStatsService - User stats service for saving user statistics
      */
     constructor(
         gameState: GameState,
@@ -81,6 +83,7 @@ export class RaceController {
         listenerController: ListenerController,
         clock: GameClock,
         persistenceService: PersistenceService,
+        userStatsService: UserStatsService,
     ) {
         this.gameState = gameState;
         this.carController = carController;
@@ -96,6 +99,7 @@ export class RaceController {
         this.listenerController = listenerController;
         this.clock = clock;
         this.persistenceService = persistenceService;
+        this.userStatsService = userStatsService;
 
         this.initialize();
     }
@@ -462,7 +466,7 @@ export class RaceController {
      */
     saveStatsForUser(username: string): void {
         const stats = this.statsManager.getStats();
-        updateUserStats(username, Array.from(stats));
+        this.userStatsService.saveStats(username, Array.from(stats));
     }
 
     /**
