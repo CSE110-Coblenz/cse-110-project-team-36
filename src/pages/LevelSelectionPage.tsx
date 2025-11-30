@@ -5,6 +5,7 @@
 import React, { useState } from 'react';
 import { LevelSelectionController } from '../game/controllers/LevelSelectionController';
 import type { Level } from '../game/models/LevelModel';
+import { Button } from "../components/button";
 
 import styles from './styles/levelSelectionPage.module.css';
 
@@ -29,9 +30,9 @@ export const LevelSelectionPage: React.FC<{
             {/* Main Card */}
             <div className={styles.card}>
                 {/* Back Button */}
-                <button className={styles.backButton} onClick={onBack}>
+                <Button className={styles.backButton} onClick={onBack}>
                     ← Back
-                </button>
+                </Button>
 
                 {/* Header */}
                 <div className={styles.header}>
@@ -51,9 +52,9 @@ export const LevelSelectionPage: React.FC<{
                 {/* Level Display */}
                 <div className={styles.levelDisplay}>
                     {/* Left Arrow */}
-                    <button className={styles.arrowButton} onClick={goPrev}>
+                    <Button className={styles.arrowButton} onClick={goPrev}>
                         ‹
-                    </button>
+                    </Button>
 
                     {/* Level Card */}
                     <div className={styles.levelCard}>
@@ -113,18 +114,18 @@ export const LevelSelectionPage: React.FC<{
                         </div>
 
                         {/* Start Level Button */}
-                        <button
+                        <Button
                             className={styles.startButton}
                             onClick={() => onLevelSelect(currentLevel)}
                         >
                             START LEVEL {index + 1}
-                        </button>
+                        </Button>
                     </div>
 
                     {/* Right Arrow */}
-                    <button className={styles.arrowButton} onClick={goNext}>
+                    <Button className={styles.arrowButton} onClick={goNext}>
                         ›
-                    </button>
+                    </Button>
                 </div>
 
                 {/* Level Progress Dots */}

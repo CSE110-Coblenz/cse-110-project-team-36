@@ -1,21 +1,20 @@
 import React from 'react';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-    additionalStyle?: React.CSSProperties; // additional styles for base button. Can be used to change colors, size etc.
     onClick: (e: React.FormEvent) => void; // click handler
     children?: React.ReactNode; // button text or elements
 }
 
 export const Button: React.FC<ButtonProps> = ({
-    additionalStyle,
     onClick,
     children,
     ...props
 }) => {
+
     return (
         <button
-            style={{ ...btnBase, ...additionalStyle }}
             onClick={onClick}
+            style = { props.className ? undefined : btnBase }
             {...props}
         >
             {children}
@@ -24,15 +23,17 @@ export const Button: React.FC<ButtonProps> = ({
 };
 
 const btnBase: React.CSSProperties = {
-    width: '100%',
-    padding: '12px 16px',
+    padding: '12px 20px',                       // slightly wider
     borderRadius: 16,
-    border: '2px solid #fff',
+    border: '2px solid var(--color-white)',     // use global white
     fontWeight: 800,
     fontSize: '1rem',
-    color: '#000',
+    color: 'var(--color-black)',                // global black
     cursor: 'pointer',
-    textShadow: '0 0 4px rgba(255,255,255,0.6)',
-    transition: 'transform 0.12s ease',
+    textShadow: '0 0 6px rgba(255, 255, 255, 0.6)', // subtle glow
+    background: 'var(--btn-blue-gradient)',     // neon blue gradient
+    boxShadow: 'var(--shadow-neon-blue)',       // neon glow shadow
+    transition: 'transform var(--transition-fast), box-shadow var(--transition-fast)',
     WebkitTapHighlightColor: 'transparent',
+    fontFamily: 'var(--font-main)',
 };
