@@ -1,8 +1,8 @@
 import type { WindowService } from '../../services/adapters/WindowService';
 
 export class EscapeListener {
-    private onKey = (e: KeyboardEvent) => {
-        if (e.key === 'Escape') {
+    private onKey = (e: Event) => {
+        if (e instanceof KeyboardEvent && e.key === 'Escape') {
             e.preventDefault();
             this.onExit();
         }
@@ -20,8 +20,8 @@ export class EscapeListener {
 }
 
 export class SpaceRewardListener {
-    private onKey = (e: KeyboardEvent) => {
-        if (e.key === ' ' || e.key === 'Spacebar') {
+    private onKey = (e: Event) => {
+        if (e instanceof KeyboardEvent && (e.key === ' ' || e.key === 'Spacebar')) {
             e.preventDefault();
             this.onReward();
         }
@@ -39,8 +39,8 @@ export class SpaceRewardListener {
 }
 
 export class NumberInputListener {
-    private onKey = (e: KeyboardEvent) => {
-        if (/^[0-9]$/.test(e.key) || e.key === '.' || e.key === '-') {
+    private onKey = (e: Event) => {
+        if (e instanceof KeyboardEvent && (/^[0-9]$/.test(e.key) || e.key === '.' || e.key === '-')) {
             this.onInput(e.key);
         }
     };
@@ -57,8 +57,8 @@ export class NumberInputListener {
 }
 
 export class DeleteListener {
-    private onKey = (e: KeyboardEvent) => {
-        if (e.key === 'Backspace' || e.key === 'Delete') {
+    private onKey = (e: Event) => {
+        if (e instanceof KeyboardEvent && (e.key === 'Backspace' || e.key === 'Delete')) {
             e.preventDefault();
             this.onDelete();
         }
@@ -76,8 +76,8 @@ export class DeleteListener {
 }
 
 export class EnterSubmitListener {
-    private onKey = (e: KeyboardEvent) => {
-        if (e.key === 'Enter') {
+    private onKey = (e: Event) => {
+        if (e instanceof KeyboardEvent && e.key === 'Enter') {
             e.preventDefault();
             this.onSubmit();
         }
@@ -95,8 +95,8 @@ export class EnterSubmitListener {
 }
 
 export class SkipQuestionListener {
-    private onKey = (e: KeyboardEvent) => {
-        if (e.key === 's' || e.key === 'S') {
+    private onKey = (e: Event) => {
+        if (e instanceof KeyboardEvent && (e.key === 's' || e.key === 'S')) {
             e.preventDefault();
             this.onSkip();
         }
@@ -114,14 +114,16 @@ export class SkipQuestionListener {
 }
 
 export class LaneChangeListener {
-    private onKey = (e: KeyboardEvent) => {
-        const key = e.key.toLowerCase();
-        if (key === 'a' || key === 'arrowleft') {
-            e.preventDefault();
-            this.onLaneChange(1);
-        } else if (key === 'd' || key === 'arrowright') {
-            e.preventDefault();
-            this.onLaneChange(-1);
+    private onKey = (e: Event) => {
+        if (e instanceof KeyboardEvent) {
+            const key = e.key.toLowerCase();
+            if (key === 'a' || key === 'arrowleft') {
+                e.preventDefault();
+                this.onLaneChange(1);
+            } else if (key === 'd' || key === 'arrowright') {
+                e.preventDefault();
+                this.onLaneChange(-1);
+            }
         }
     };
     constructor(

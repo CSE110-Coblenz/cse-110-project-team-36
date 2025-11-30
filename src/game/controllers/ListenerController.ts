@@ -23,7 +23,7 @@ export class ListenerController {
     private isRunning: boolean = false;
     private gameInputsPaused: boolean = false;
 
-    private pauseKeyListener: (e: KeyboardEvent) => void;
+    private pauseKeyListener: (e: Event) => void;
     private resizeListener: ResizeListener;
     private visibilityListener: VisibilityListener;
     private spaceRewardListener: SpaceRewardListener;
@@ -51,11 +51,13 @@ export class ListenerController {
         private documentService: DocumentService,
         private onVisibilityLost?: () => void,
     ) {
-        this.pauseKeyListener = (e: KeyboardEvent) => {
-            const k = e.key.toLowerCase();
-            if (k === 'escape' || k === 'p') {
-                e.preventDefault();
-                this.onPauseToggle();
+        this.pauseKeyListener = (e: Event) => {
+            if (e instanceof KeyboardEvent) {
+                const k = e.key.toLowerCase();
+                if (k === 'escape' || k === 'p') {
+                    e.preventDefault();
+                    this.onPauseToggle();
+                }
             }
         };
 
