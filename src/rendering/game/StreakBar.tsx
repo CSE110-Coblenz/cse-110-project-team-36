@@ -1,22 +1,13 @@
-import { useEffect, useState } from 'react';
-import { StreakController } from '../../game/controllers/StreakController';
+import React from 'react';
+import type { StreakBarViewModel } from '../view-models/StreakBarViewModel';
 import styles from '../styles/streakBar.module.css';
 
 interface StreakBarProps {
-    streakController: StreakController;
+    viewModel: StreakBarViewModel;
 }
 
-export const StreakBar: React.FC<StreakBarProps> = ({ streakController }) => {
-    const [gauge, setGauge] = useState(0);
-    const [state, setState] = useState('idle');
-
-    useEffect(() => {
-        const id = setInterval(() => {
-            setGauge(streakController.getGauge());
-            setState(streakController.getState());
-        }, 100);
-        return () => clearInterval(id);
-    }, [streakController]);
+export const StreakBar: React.FC<StreakBarProps> = ({ viewModel }) => {
+    const { gauge, state } = viewModel;
 
     // Toggle bar style on Streak active/ inactive
     const barClass =

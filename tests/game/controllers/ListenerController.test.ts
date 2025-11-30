@@ -3,6 +3,9 @@
  */
 
 import { ListenerController } from '../../../src/game/controllers/ListenerController';
+import { BrowserDOMService } from '../../../src/services/adapters/DOMService';
+import { BrowserWindowService } from '../../../src/services/adapters/WindowService';
+import { BrowserDocumentService } from '../../../src/services/adapters/DocumentService';
 
 describe('ListenerController', () => {
     let containerElement: HTMLElement;
@@ -43,6 +46,10 @@ describe('ListenerController', () => {
         document.body.removeChild(containerElement);
     });
 
+    const domService = new BrowserDOMService();
+    const windowService = new BrowserWindowService();
+    const documentService = new BrowserDocumentService();
+
     describe('Instantiation', () => {
         it('should create a ListenerController', () => {
             const controller = new ListenerController(
@@ -50,6 +57,9 @@ describe('ListenerController', () => {
                 onSpaceReward,
                 questionCallbacks,
                 laneChangeCallbacks,
+                domService,
+                windowService,
+                documentService,
             );
 
             expect(controller).toBeDefined();
@@ -65,6 +75,9 @@ describe('ListenerController', () => {
                 onSpaceReward,
                 questionCallbacks,
                 laneChangeCallbacks,
+                domService,
+                windowService,
+                documentService,
             );
 
             controller.start(containerElement, onResize);
@@ -78,6 +91,9 @@ describe('ListenerController', () => {
                 onSpaceReward,
                 questionCallbacks,
                 laneChangeCallbacks,
+                domService,
+                windowService,
+                documentService,
             );
 
             controller.start(containerElement, onResize);
@@ -95,6 +111,9 @@ describe('ListenerController', () => {
                 onSpaceReward,
                 questionCallbacks,
                 laneChangeCallbacks,
+                domService,
+                windowService,
+                documentService,
             );
 
             controller.start(containerElement, onResize);
@@ -109,6 +128,9 @@ describe('ListenerController', () => {
                 onSpaceReward,
                 questionCallbacks,
                 laneChangeCallbacks,
+                domService,
+                windowService,
+                documentService,
             );
 
             controller.start(containerElement, onResize);
@@ -125,6 +147,9 @@ describe('ListenerController', () => {
                 onSpaceReward,
                 questionCallbacks,
                 laneChangeCallbacks,
+                domService,
+                windowService,
+                documentService,
             );
 
             controller.start(containerElement, onResize);
@@ -142,6 +167,9 @@ describe('ListenerController', () => {
                 onSpaceReward,
                 questionCallbacks,
                 laneChangeCallbacks,
+                domService,
+                windowService,
+                documentService,
             );
 
             controller.start(containerElement, onResize);
@@ -159,6 +187,9 @@ describe('ListenerController', () => {
                 onSpaceReward,
                 questionCallbacks,
                 laneChangeCallbacks,
+                domService,
+                windowService,
+                documentService,
             );
 
             controller.start(containerElement, onResize);
@@ -176,6 +207,9 @@ describe('ListenerController', () => {
                 onSpaceReward,
                 questionCallbacks,
                 laneChangeCallbacks,
+                domService,
+                windowService,
+                documentService,
             );
 
             controller.start(containerElement, onResize);
@@ -196,6 +230,9 @@ describe('ListenerController', () => {
                 onSpaceReward,
                 questionCallbacks,
                 laneChangeCallbacks,
+                domService,
+                windowService,
+                documentService,
             );
 
             controller.start(containerElement, onResize);
@@ -213,6 +250,9 @@ describe('ListenerController', () => {
                 onSpaceReward,
                 questionCallbacks,
                 laneChangeCallbacks,
+                domService,
+                windowService,
+                documentService,
             );
 
             controller.start(containerElement, onResize);
@@ -231,6 +271,9 @@ describe('ListenerController', () => {
                 onSpaceReward,
                 questionCallbacks,
                 laneChangeCallbacks,
+                domService,
+                windowService,
+                documentService,
             );
 
             controller.start(containerElement, onResize);
@@ -257,6 +300,9 @@ describe('ListenerController', () => {
                 onSpaceReward,
                 questionCallbacks,
                 laneChangeCallbacks,
+                domService,
+                windowService,
+                documentService,
             );
 
             expect(() => {
@@ -272,6 +318,9 @@ describe('ListenerController', () => {
                 onSpaceReward,
                 questionCallbacks,
                 laneChangeCallbacks,
+                domService,
+                windowService,
+                documentService,
             );
 
             expect(() => {
@@ -287,6 +336,9 @@ describe('ListenerController', () => {
                 onSpaceReward,
                 questionCallbacks,
                 laneChangeCallbacks,
+                domService,
+                windowService,
+                documentService,
             );
 
             controller.start(containerElement, onResize);
@@ -307,6 +359,9 @@ describe('ListenerController', () => {
                 onSpaceReward,
                 questionCallbacks,
                 laneChangeCallbacks,
+                domService,
+                windowService,
+                documentService,
             );
 
             controller.start(containerElement, onResize);
@@ -324,6 +379,9 @@ describe('ListenerController', () => {
                 onSpaceReward,
                 questionCallbacks,
                 laneChangeCallbacks,
+                domService,
+                windowService,
+                documentService,
             );
 
             expect(() => {
@@ -337,6 +395,9 @@ describe('ListenerController', () => {
                 onSpaceReward,
                 questionCallbacks,
                 laneChangeCallbacks,
+                domService,
+                windowService,
+                documentService,
             );
 
             controller.start(containerElement, onResize);
@@ -352,6 +413,9 @@ describe('ListenerController', () => {
                 onSpaceReward,
                 questionCallbacks,
                 laneChangeCallbacks,
+                domService,
+                windowService,
+                documentService,
             );
 
             expect(() => {

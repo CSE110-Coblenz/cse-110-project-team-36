@@ -1,16 +1,11 @@
 import React, { useState } from 'react';
-import {
-    userExists,
-    getUser,
-    saveUser,
-    hashPassword,
-    verifyPassword,
-} from '../services/localStorage';
-import type { UserProfile } from '../services/localStorage';
+import { userService } from '../services/userServiceInstance';
+import type { UserProfile } from '../services/UserService';
+import { hashPassword, verifyPassword } from '../utils/auth';
 import styles from './styles/loginPage.module.css';
-import { UsernameStep } from '../components/auth/userNameStep';
-import { LoginStep } from '../components/auth/loginForm';
-import { SignupStep } from '../components/auth/signup';
+import { UsernameStep } from '../components/auth/UserNameStep';
+import { LoginStep } from '../components/auth/LoginForm';
+import { SignupStep } from '../components/auth/Signup';
 
 export const LoginPage: React.FC<{
     onPlayGuest: () => void;
@@ -32,7 +27,7 @@ export const LoginPage: React.FC<{
             return;
         }
         setError(null);
-        setStep(userExists(username) ? 'login' : 'signup');
+        setStep(userService.userExists(username) ? 'login' : 'signup');
     };
 
     const handleChangeUsername = () => {
@@ -48,7 +43,7 @@ export const LoginPage: React.FC<{
         setError(null);
 
         if (step === 'login') {
-            const user = getUser(username);
+            const user = userService.getUser(username);
             if (!user) return setError('User not found');
             if (!verifyPassword(password, user.passwordHash))
                 return setError('Incorrect password');
@@ -70,7 +65,7 @@ export const LoginPage: React.FC<{
                 createdAt: Date.now(),
             };
 
-            saveUser(newUser);
+            userService.saveUser(newUser);
             onLogin(username.trim());
         }
     };

@@ -1,3 +1,6 @@
+import type { WindowService } from '../../services/adapters/WindowService';
+import type { DocumentService } from '../../services/adapters/DocumentService';
+
 /**
  * Listener for browser visibility changes (tab focus/blur)
  */
@@ -6,7 +9,11 @@ export class VisibilityListener {
     private visibilityHandler: (() => void) | null = null;
     private blurHandler: (() => void) | null = null;
 
-    constructor(private onVisibilityChange: (isVisible: boolean) => void) {}
+    constructor(
+        private onVisibilityChange: (isVisible: boolean) => void,
+        private windowService: WindowService,
+        private documentService: DocumentService,
+    ) {}
 
     /**
      * Start listening for visibility/blur changes
@@ -15,15 +22,18 @@ export class VisibilityListener {
         if (this.isActive) return;
 
         this.visibilityHandler = () => {
-            this.onVisibilityChange(!document.hidden);
+            this.onVisibilityChange(!this.documentService.getHidden());
         };
 
         this.blurHandler = () => {
             this.onVisibilityChange(false);
         };
 
-        document.addEventListener('visibilitychange', this.visibilityHandler);
-        window.addEventListener('blur', this.blurHandler);
+        this.documentService.addEventListener(
+            'visibilitychange',
+            this.visibilityHandler,
+        );
+        this.windowService.addEventListener('blur', this.blurHandler);
         this.isActive = true;
     }
 
@@ -34,14 +44,14 @@ export class VisibilityListener {
         if (!this.isActive) return;
 
         if (this.visibilityHandler) {
-            document.removeEventListener(
+            this.documentService.removeEventListener(
                 'visibilitychange',
                 this.visibilityHandler,
             );
             this.visibilityHandler = null;
         }
         if (this.blurHandler) {
-            window.removeEventListener('blur', this.blurHandler);
+            this.windowService.removeEventListener('blur', this.blurHandler);
             this.blurHandler = null;
         }
         this.isActive = false;

@@ -1,45 +1,24 @@
-import React, { useState, useEffect } from 'react';
-import { QuestionController } from '../../game/controllers/QuestionController';
-import { StreakController } from '../../game/controllers/StreakController';
+import React from 'react';
+import type { QuestionAnswerViewModel } from '../view-models/QuestionAnswerViewModel';
+import type { StreakBarViewModel } from '../view-models/StreakBarViewModel';
 import { StreakBar } from './StreakBar';
-import { events } from '../../shared/events';
 import styles from '../styles/questionAnswer.module.css';
 import { Button } from '../../components/button';
 
 interface QuestionAnswerProps {
-    questionController: QuestionController;
-    streakController: StreakController;
+    viewModel: QuestionAnswerViewModel;
+    streakBarViewModel: StreakBarViewModel;
 }
 
 export function QuestionAnswer({
-    questionController,
-    streakController,
+    viewModel,
+    streakBarViewModel,
 }: QuestionAnswerProps) {
-    // Force re-render to sync with controller state
-    const [, forceUpdate] = useState(0);
+    const { answer, feedback, currentQuestion, onSubmit, onSkip } = viewModel;
 
-    useEffect(() => {
-        // Subscribe to state change events from controller
-        const unsubscribe = events.on('QuestionStateChanged', () => {
-            forceUpdate((n) => n + 1);
-        });
-
-        return unsubscribe;
-    }, [questionController]);
-
-    // Get state from controller
-    const answer = questionController.getAnswer();
-    const feedback = questionController.getFeedback();
-    const currentQuestion = questionController.getCurrentQuestion();
-
-    // Handlers are now simple - they just call controller methods
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        questionController.submitAnswer();
-    };
-
-    const handleSkip = () => {
-        questionController.skipQuestion();
+        onSubmit();
     };
 
     const feedbackClass =
@@ -59,7 +38,7 @@ export function QuestionAnswer({
     return (
         <div>
             <div className={styles.streakBarPlacement}>
-                <StreakBar streakController={streakController} />
+                <StreakBar viewModel={streakBarViewModel} />
             </div>
             <form
                 aria-label="Math question input"
@@ -111,7 +90,7 @@ export function QuestionAnswer({
                     <Button
                         type="button"
                         className={styles.btnGray}
-                        onClick={handleSkip}
+                        onClick={onSkip}
                         title="Skip (S)"
                     >
                         Skip

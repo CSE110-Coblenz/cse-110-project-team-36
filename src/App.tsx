@@ -1,117 +1,28 @@
-import { useState, useEffect } from 'react';
+import './global.css';
 import { RacePage } from './pages/RacePage';
 import { MainMenuPage } from './pages/MainMenuPage';
 import { LoginPage } from './pages/LoginPage';
 import DifficultySelectionScreen from './pages/DifficultySelectionScreen';
-import {
-    getCurrentUser,
-    saveCurrentUser,
-    logout as logoutUser,
-    getUser,
-    updateUserPreferences,
-} from './services/localStorage';
-import { RaceService } from './services/RaceService';
-import { RaceController } from './game/controllers/RaceController';
-import {
-    topicStringToEnum,
-    difficultyStringToEnum,
-} from './utils/questionUtils';
-import './global.css';
 import LevelSelectionPage from './pages/LevelSelectionPage';
 import { LevelSelectionController } from './game/controllers/LevelSelectionController';
-
-type Screen = 'menu' | 'race' | 'login' | 'difficulty' | 'campaign';
+import { useAppState } from './hooks/useAppState';
 
 export default function App() {
-    const initializeUserState = () => {
-        const user = getCurrentUser();
-        if (user) {
-            const userProfile = getUser(user);
-            return {
-                user,
-                topic: userProfile?.preferences?.lastTopic || '',
-                difficulty: userProfile?.preferences?.lastDifficulty || '',
-                track: userProfile?.preferences?.lastTrack || 'track1',
-            };
-        }
-        return {
-            user: null,
-            topic: '',
-            difficulty: '',
-            track: 'track1',
-        };
-    };
+    const {
+        screen,
+        currentUser,
+        selectedTopic,
+        selectedDifficulty,
+        selectedTrack,
+        raceController,
+        isLoadingRace,
+        setScreen,
+        handleLogin,
+        handleLogout,
+        handleStartRace,
+    } = useAppState();
 
-    const initialUserState = initializeUserState();
-    const [screen, setScreen] = useState<Screen>('menu');
-    const [currentUser, setCurrentUser] = useState<string | null>(
-        initialUserState.user,
-    );
-    const [selectedTopic, setSelectedTopic] = useState<string>(
-        initialUserState.topic,
-    );
-    const [selectedDifficulty, setSelectedDifficulty] = useState<string>(
-        initialUserState.difficulty,
-    );
-    const [selectedTrack, setSelectedTrack] = useState<string>(
-        initialUserState.track,
-    );
-    const [raceController, setRaceController] = useState<RaceController | null>(
-        null,
-    );
-    const [isLoadingRace, setIsLoadingRace] = useState(false);
     const controller = new LevelSelectionController();
-
-    const handleLogin = (username: string) => {
-        saveCurrentUser(username);
-        setCurrentUser(username);
-        setScreen('menu');
-    };
-
-    const handleLogout = () => {
-        logoutUser();
-        setCurrentUser(null);
-        setScreen('menu');
-    };
-
-    // Initialize race controller when entering race screen
-    useEffect(() => {
-        if (
-            screen === 'race' &&
-            selectedTopic &&
-            selectedDifficulty &&
-            selectedTrack
-        ) {
-            // Setting loading state before async operation is a valid pattern
-            // eslint-disable-next-line react-hooks/set-state-in-effect
-            setIsLoadingRace(true);
-            let controller: RaceController | null = null;
-
-            RaceService.initializeRace('race1.json', {
-                topic: topicStringToEnum(selectedTopic),
-                difficulty: difficultyStringToEnum(selectedDifficulty),
-            })
-                .then((c) => {
-                    controller = c;
-                    setRaceController(c);
-                    setIsLoadingRace(false);
-                })
-                .catch((err) => {
-                    console.error('Failed to load track:', err);
-                    setIsLoadingRace(false);
-                    // Fall back to menu on error
-                    setScreen('menu');
-                });
-
-            return () => {
-                if (controller) {
-                    controller.destroy();
-                }
-                setRaceController(null);
-                setIsLoadingRace(false);
-            };
-        }
-    }, [screen, selectedTopic, selectedDifficulty, selectedTrack]);
 
     if (screen === 'menu') {
         return (
@@ -129,20 +40,7 @@ export default function App() {
         return (
             <DifficultySelectionScreen
                 onBack={() => setScreen('menu')}
-                onStartRace={(topic, difficulty, track) => {
-                    setSelectedTopic(topic);
-                    setSelectedDifficulty(difficulty);
-                    setSelectedTrack(track);
-                    setScreen('race');
-
-                    if (currentUser) {
-                        updateUserPreferences(currentUser, {
-                            lastTopic: topic,
-                            lastDifficulty: difficulty,
-                            lastTrack: track,
-                        });
-                    }
-                }}
+                onStartRace={handleStartRace}
             />
         );
     }
@@ -207,10 +105,7 @@ export default function App() {
                 controller={controller}
                 onBack={() => setScreen('menu')}
                 onLevelSelect={(level) => {
-                    setSelectedTopic(level.topic);
-                    setSelectedDifficulty(level.difficulty);
-                    setSelectedTrack(level.track);
-                    setScreen('race');
+                    handleStartRace(level.topic, level.difficulty, level.track);
                 }}
                 currentUser={currentUser}
             />

@@ -1,32 +1,32 @@
-import React, { useState } from 'react';
-import { QuestionStatsManager } from '../../game/managers/QuestionStatsManager';
+import React, { useState, useEffect } from 'react';
 import { events } from '../../shared/events';
+import type { PostRaceStatsViewModel } from '../view-models/PostRaceStatsViewModel';
 
 interface PostRaceStatsProps {
-    statsManager: QuestionStatsManager;
-    time: number;
-    onExit: () => void;
+    viewModel: PostRaceStatsViewModel;
 }
 
 export const PostRaceStats: React.FC<PostRaceStatsProps> = ({
-    statsManager,
-    time,
-    onExit,
+    viewModel,
 }) => {
     const [show, setShow] = useState(false);
 
-    events.on('RaceFinished', () => {
-        setShow(true);
-    });
+    useEffect(() => {
+        const unsubscribe = events.on('RaceFinished', () => {
+            setShow(true);
+        });
+
+        return () => {
+            unsubscribe();
+        };
+    }, []);
 
     if (!show) {
         return null;
     }
 
-    const stats = statsManager.getStats();
-    const correct = stats.filter((s) => s.outcome === 'correct').length;
-    const incorrect = stats.filter((s) => s.outcome === 'incorrect').length;
-    const skipped = stats.filter((s) => s.outcome === 'skipped').length;
+    const { correctCount, incorrectCount, skippedCount, time, onExit } =
+        viewModel;
 
     const formatTime = (t: number) => {
         const minutes = Math.floor(t / 60);
@@ -52,9 +52,15 @@ export const PostRaceStats: React.FC<PostRaceStatsProps> = ({
             }}
         >
             <h2 style={{ marginBottom: 16 }}>Race Complete!</h2>
-            <div style={{ marginBottom: 8 }}>Correct Answers: {correct}</div>
-            <div style={{ marginBottom: 8 }}>Wrong Answers: {incorrect}</div>
-            <div style={{ marginBottom: 8 }}>Skipped Questions: {skipped}</div>
+            <div style={{ marginBottom: 8 }}>
+                Correct Answers: {correctCount}
+            </div>
+            <div style={{ marginBottom: 8 }}>
+                Wrong Answers: {incorrectCount}
+            </div>
+            <div style={{ marginBottom: 8 }}>
+                Skipped Questions: {skippedCount}
+            </div>
             <div style={{ marginBottom: 16 }}>Time: {formatTime(time)}</div>
             <button
                 onClick={onExit}
