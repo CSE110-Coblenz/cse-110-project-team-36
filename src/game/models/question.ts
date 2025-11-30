@@ -1,3 +1,4 @@
+import { Difficulty } from '../config/types';
 /**
  * Question topic/category enum
  */
@@ -7,15 +8,6 @@ export enum QuestionTopic {
     MULTIPLICATION = 'multiplication',
     DIVISION = 'division',
     MIXED = 'mixed',
-}
-
-/**
- * Question difficulty level
- */
-export enum QuestionDifficulty {
-    EASY = 'easy',
-    MEDIUM = 'medium',
-    HARD = 'hard',
 }
 
 /**
@@ -37,7 +29,7 @@ export class Question {
     public readonly questionText: string;
     public readonly correctAnswer: number;
     public readonly topic: QuestionTopic;
-    public readonly difficulty: QuestionDifficulty;
+    public readonly difficulty: Difficulty;
     public readonly generatedAt: number; // timestamp
 
     public userAnswer?: number;
@@ -56,7 +48,7 @@ export class Question {
         questionText: string,
         correctAnswer: number,
         topic: QuestionTopic,
-        difficulty: QuestionDifficulty,
+        difficulty: Difficulty,
     ) {
         this.questionText = questionText;
         this.correctAnswer = correctAnswer;

@@ -7,10 +7,11 @@ import { UserCar } from '../../src/game/models/user-car';
 import { BotCar } from '../../src/game/models/bot-car';
 import { GameState } from '../../src/game/models/game-state';
 import { Camera } from '../../src/game/types';
-import type {
-    PhysicsConfig,
-    RaceConfig,
-    BotConfig,
+import {
+    type PhysicsConfig,
+    type RaceConfig,
+    type BotConfig,
+    Difficulty,
 } from '../../src/game/config/types';
 
 /**
@@ -111,6 +112,7 @@ export function createTestGameState(
 
     // Add AI cars
     const defaultBotConfig = createDefaultBotConfig();
+
     for (let i = 0; i < numAiCars; i++) {
         const aiCar = new BotCar(
             -(i + 1) * 50,
@@ -118,6 +120,7 @@ export function createTestGameState(
             40,
             22,
             1.0,
+            Difficulty.EASY,
             defaultBotConfig,
             i + 1,
         );

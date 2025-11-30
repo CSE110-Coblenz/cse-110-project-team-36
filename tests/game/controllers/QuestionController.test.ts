@@ -4,10 +4,8 @@
 
 import { QuestionController } from '../../../src/game/controllers/QuestionController';
 import { QuestionManager } from '../../../src/game/managers/QuestionManager';
-import {
-    QuestionTopic,
-    QuestionDifficulty,
-} from '../../../src/game/models/question';
+import { QuestionTopic } from '../../../src/game/models/question';
+import { Difficulty } from '../../../src/game/config/types';
 
 describe('QuestionController', () => {
     let questionManager: QuestionManager;
@@ -16,7 +14,7 @@ describe('QuestionController', () => {
     beforeEach(() => {
         questionManager = new QuestionManager({
             topic: QuestionTopic.ADDITION,
-            difficulty: QuestionDifficulty.EASY,
+            difficulty: Difficulty.EASY,
         });
         controller = new QuestionController(questionManager);
     });

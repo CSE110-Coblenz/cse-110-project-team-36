@@ -11,6 +11,7 @@ import {
     createSimpleTestTrack,
     createDefaultBotConfig,
 } from '../../utils/test-helpers';
+import { Difficulty } from '../../../src/game/config/types';
 
 describe('GameState Model', () => {
     let track: Track;
@@ -47,8 +48,25 @@ describe('GameState Model', () => {
         it('should add cars to the cars array', () => {
             const gameState = new GameState(camera, track);
             const botConfig = createDefaultBotConfig();
-            const aiCar1 = new BotCar(100, '#ff0000', 40, 22, 1.0, botConfig);
-            const aiCar2 = new BotCar(200, '#0000ff', 40, 22, 1.0, botConfig);
+
+            const aiCar1 = new BotCar(
+                100,
+                '#ff0000',
+                40,
+                22,
+                1.0,
+                Difficulty.EASY,
+                botConfig,
+            );
+            const aiCar2 = new BotCar(
+                200,
+                '#0000ff',
+                40,
+                22,
+                1.0,
+                Difficulty.EASY,
+                botConfig,
+            );
             aiCar1.nextAnswerTime = aiCar1.answerSpeed;
             aiCar2.nextAnswerTime = aiCar2.answerSpeed;
 
@@ -63,7 +81,15 @@ describe('GameState Model', () => {
         it('should return readonly array of all cars', () => {
             const gameState = new GameState(camera, track);
             const botConfig = createDefaultBotConfig();
-            const car = new BotCar(0, '#ff0000', 40, 22, 1.0, botConfig);
+            const car = new BotCar(
+                0,
+                '#ff0000',
+                40,
+                22,
+                1.0,
+                Difficulty.EASY,
+                botConfig,
+            );
             car.nextAnswerTime = car.answerSpeed;
             gameState.addCar(car);
 
@@ -88,8 +114,25 @@ describe('GameState Model', () => {
             const gameState = new GameState(camera, track);
             const botConfig = createDefaultBotConfig();
             const playerCar = new UserCar(0, '#00ff00');
-            const aiCar1 = new BotCar(100, '#ff0000', 40, 22, 1.0, botConfig);
-            const aiCar2 = new BotCar(200, '#0000ff', 40, 22, 1.0, botConfig);
+
+            const aiCar1 = new BotCar(
+                100,
+                '#ff0000',
+                40,
+                22,
+                1.0,
+                Difficulty.EASY,
+                botConfig,
+            );
+            const aiCar2 = new BotCar(
+                200,
+                '#0000ff',
+                40,
+                22,
+                1.0,
+                Difficulty.EASY,
+                botConfig,
+            );
             aiCar1.nextAnswerTime = aiCar1.answerSpeed;
             aiCar2.nextAnswerTime = aiCar2.answerSpeed;
 
@@ -109,7 +152,15 @@ describe('GameState Model', () => {
             const botConfig = createDefaultBotConfig();
             const gameState1 = new GameState(camera, track);
             const p1 = new UserCar(0, '#00ff00');
-            const a1 = new BotCar(100, '#ff0000', 40, 22, 1.0, botConfig);
+            const a1 = new BotCar(
+                100,
+                '#ff0000',
+                40,
+                22,
+                1.0,
+                Difficulty.EASY,
+                botConfig,
+            );
             a1.nextAnswerTime = a1.answerSpeed;
             gameState1.addPlayerCar(p1);
             gameState1.addCar(a1);
@@ -118,8 +169,24 @@ describe('GameState Model', () => {
             expect(gameState1.aiCars[0]).toBe(a1);
 
             const gameState2 = new GameState(camera, track);
-            const a2a = new BotCar(200, '#ff0000', 40, 22, 1.0, botConfig);
-            const a2b = new BotCar(300, '#0000ff', 40, 22, 1.0, botConfig);
+            const a2a = new BotCar(
+                200,
+                '#ff0000',
+                40,
+                22,
+                1.0,
+                Difficulty.EASY,
+                botConfig,
+            );
+            const a2b = new BotCar(
+                300,
+                '#0000ff',
+                40,
+                22,
+                1.0,
+                Difficulty.EASY,
+                botConfig,
+            );
             const p2 = new UserCar(0, '#00ff00');
             a2a.nextAnswerTime = a2a.answerSpeed;
             a2b.nextAnswerTime = a2b.answerSpeed;
@@ -139,7 +206,15 @@ describe('GameState Model', () => {
             const botConfig = createDefaultBotConfig();
             const playerCar1 = new UserCar(0, '#00ff00');
             const playerCar2 = new UserCar(0, '#00ffff');
-            const aiCar = new BotCar(100, '#ff0000', 40, 22, 1.0, botConfig);
+            const aiCar = new BotCar(
+                100,
+                '#ff0000',
+                40,
+                22,
+                1.0,
+                Difficulty.EASY,
+                botConfig,
+            );
             aiCar.nextAnswerTime = aiCar.answerSpeed;
 
             gameState.addPlayerCar(playerCar1);

@@ -1,4 +1,13 @@
 /**
+ * Race Game difficulty level
+ */
+export enum Difficulty {
+    EASY = 'easy',
+    MEDIUM = 'medium',
+    HARD = 'hard',
+}
+
+/**
  * Physics configuration interface
  * Contains all physics constants used by CarController and CollisionController
  */

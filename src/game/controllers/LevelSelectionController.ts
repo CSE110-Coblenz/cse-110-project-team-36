@@ -1,6 +1,7 @@
 // controllers/LevelSelectionController.ts
 import { LevelModel } from '../models/LevelModel';
-import { QuestionDifficulty, QuestionTopic } from '../models/question';
+import { QuestionTopic } from '../models/question';
+import { Difficulty } from '../config/types';
 
 export class LevelSelectionController {
     index = 0;
@@ -19,26 +20,26 @@ export class LevelSelectionController {
         return LevelModel.getLevel(this.index);
     }
 
-    getDifficultyColor(difficulty: QuestionDifficulty) {
+    getDifficultyColor(difficulty: Difficulty) {
         switch (difficulty) {
-            case QuestionDifficulty.EASY:
+            case Difficulty.EASY:
                 return '#4CAF50';
-            case QuestionDifficulty.MEDIUM:
+            case Difficulty.MEDIUM:
                 return '#FF9800';
-            case QuestionDifficulty.HARD:
+            case Difficulty.HARD:
                 return '#F44336';
             default:
                 return '#666';
         }
     }
 
-    getDifficultyText(difficulty: QuestionDifficulty) {
+    getDifficultyText(difficulty: Difficulty) {
         switch (difficulty) {
-            case QuestionDifficulty.EASY:
+            case Difficulty.EASY:
                 return 'EASY';
-            case QuestionDifficulty.MEDIUM:
+            case Difficulty.MEDIUM:
                 return 'MEDIUM';
-            case QuestionDifficulty.HARD:
+            case Difficulty.HARD:
                 return 'HARD';
             default:
                 return 'UNKNOWN';

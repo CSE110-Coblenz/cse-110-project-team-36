@@ -1,22 +1,20 @@
 import { events } from '../../shared/events';
-import {
-    Question,
-    QuestionTopic,
-    QuestionDifficulty,
-} from '../models/question';
+import { Question, QuestionTopic } from '../models/question';
+
+import { Difficulty } from '../config/types';
 
 export interface QuestionConfig {
     topic: QuestionTopic;
-    difficulty: QuestionDifficulty;
+    difficulty: Difficulty;
 }
 
 /**
  * Difficulty ranges for operands
  */
 const DIFFICULTY_RANGES = {
-    [QuestionDifficulty.EASY]: { min: 1, max: 5 },
-    [QuestionDifficulty.MEDIUM]: { min: 1, max: 10 },
-    [QuestionDifficulty.HARD]: { min: 1, max: 20 },
+    [Difficulty.EASY]: { min: 1, max: 5 },
+    [Difficulty.MEDIUM]: { min: 1, max: 10 },
+    [Difficulty.HARD]: { min: 1, max: 20 },
 };
 
 export class QuestionManager {
@@ -77,7 +75,7 @@ export class QuestionManager {
      */
     private generateQuestionParams(
         topic: QuestionTopic,
-        difficulty: QuestionDifficulty,
+        difficulty: Difficulty,
         previousParams: { a: number; b: number; operation: string } | null,
     ) {
         const { min, max } = DIFFICULTY_RANGES[difficulty];

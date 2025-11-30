@@ -12,6 +12,7 @@ import {
     createDefaultPhysicsConfig,
     createDefaultBotConfig,
 } from '../../utils/test-helpers';
+import { Difficulty } from '../../../src/game/config/types';
 
 describe('CarController', () => {
     let gameState: GameState;
@@ -38,10 +39,28 @@ describe('CarController', () => {
             gameState.addPlayerCar(new UserCar(0, '#00ff00'));
             const botConfig = createDefaultBotConfig();
             gameState.addCar(
-                new BotCar(100, '#ff0000', 40, 22, 1.0, botConfig, 1),
+                new BotCar(
+                    100,
+                    '#ff0000',
+                    40,
+                    22,
+                    1.0,
+                    Difficulty.EASY,
+                    botConfig,
+                    1,
+                ),
             );
             gameState.addCar(
-                new BotCar(200, '#0000ff', 40, 22, 1.0, botConfig, 2),
+                new BotCar(
+                    200,
+                    '#0000ff',
+                    40,
+                    22,
+                    1.0,
+                    Difficulty.EASY,
+                    botConfig,
+                    2,
+                ),
             );
 
             controller.initializeCars();
@@ -117,7 +136,15 @@ describe('CarController', () => {
     describe('Reward Queue System', () => {
         it('should add reward to pendingRewards map', () => {
             const botConfig = createDefaultBotConfig();
-            const car = new BotCar(0, '#ff0000', 40, 22, 1.0, botConfig);
+            const car = new BotCar(
+                0,
+                '#ff0000',
+                40,
+                22,
+                1.0,
+                Difficulty.EASY,
+                botConfig,
+            );
             car.nextAnswerTime = car.answerSpeed;
             gameState.addCar(car);
             controller.queueReward(car, 100);
@@ -138,7 +165,15 @@ describe('CarController', () => {
         it('should queue reward for correct car by index', () => {
             const botConfig = createDefaultBotConfig();
             const car1 = new UserCar(0, '#00ff00');
-            const car2 = new BotCar(100, '#ff0000', 40, 22, 1.0, botConfig);
+            const car2 = new BotCar(
+                100,
+                '#ff0000',
+                40,
+                22,
+                1.0,
+                Difficulty.EASY,
+                botConfig,
+            );
             car2.nextAnswerTime = car2.answerSpeed;
             gameState.addPlayerCar(car1);
             gameState.addCar(car2);
@@ -167,7 +202,15 @@ describe('CarController', () => {
         it('should update all cars in GameState', () => {
             const botConfig = createDefaultBotConfig();
             const car1 = new UserCar();
-            const car2 = new BotCar(0, '#ff0000', 40, 22, 1.0, botConfig);
+            const car2 = new BotCar(
+                0,
+                '#ff0000',
+                40,
+                22,
+                1.0,
+                Difficulty.EASY,
+                botConfig,
+            );
             car2.nextAnswerTime = car2.answerSpeed;
             gameState.addPlayerCar(car1);
             gameState.addCar(car2);
