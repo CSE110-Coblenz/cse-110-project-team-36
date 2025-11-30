@@ -1,11 +1,14 @@
 import React from 'react';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+    additionalStyle?: React.CSSProperties; // additional styles for base button. Can be used to change colors, size etc.
     onClick: (e: React.FormEvent) => void; // click handler
     children?: React.ReactNode; // button text or elements
+    
 }
 
 export const Button: React.FC<ButtonProps> = ({
+    additionalStyle,
     onClick,
     children,
     ...props
@@ -14,7 +17,7 @@ export const Button: React.FC<ButtonProps> = ({
     return (
         <button
             onClick={onClick}
-            style = { props.className ? undefined : btnBase }
+            style = { props.className ? undefined : {...btnBase, ...additionalStyle} }
             {...props}
         >
             {children}
