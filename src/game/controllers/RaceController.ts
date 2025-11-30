@@ -212,12 +212,13 @@ export class RaceController {
             this.gameState.updateSkidMarks(dt);
 
             this.elapsedMs += dt * 1000;
-        }
 
-        if (this.gameState.playerCar.hasFinished()) {
-            this.raceCompleted = true;
-            this.stop();
-            events.emit('RaceFinished', {});
+            // Check for race completion only during active gameplay
+            if (this.gameState.playerCar.hasFinished()) {
+                this.raceCompleted = true;
+                this.stop();
+                events.emit('RaceFinished', {});
+            }
         }
 
         const playerCar = this.gameState.playerCar;

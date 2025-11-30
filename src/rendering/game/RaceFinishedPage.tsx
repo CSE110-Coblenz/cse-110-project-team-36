@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { QuestionStatsManager } from '../../game/managers/QuestionStatsManager';
 import { events } from '../../shared/events';
 
@@ -15,9 +15,15 @@ export const PostRaceStats: React.FC<PostRaceStatsProps> = ({
 }) => {
     const [show, setShow] = useState(false);
 
-    events.on('RaceFinished', () => {
-        setShow(true);
-    });
+    useEffect(() => {
+        const unsubscribe = events.on('RaceFinished', () => {
+            setShow(true);
+        });
+
+        return () => {
+            unsubscribe();
+        };
+    }, []);
 
     if (!show) {
         return null;
