@@ -10,8 +10,8 @@ import {
     getUser,
     updateUserPreferences,
 } from './services/localStorage';
-import { RaceService } from './services/RaceService';
 import { RaceController } from './game/controllers/RaceController';
+import { RaceControllerFactory } from './game/factories/RaceControllerFactory';
 import {
     topicStringToEnum,
     difficultyStringToEnum,
@@ -87,7 +87,7 @@ export default function App() {
             setIsLoadingRace(true);
             let controller: RaceController | null = null;
 
-            RaceService.initializeRace('race1.json', {
+            RaceControllerFactory.createRaceControllerAsync('race1.json', {
                 topic: topicStringToEnum(selectedTopic),
                 difficulty: difficultyStringToEnum(selectedDifficulty),
             })

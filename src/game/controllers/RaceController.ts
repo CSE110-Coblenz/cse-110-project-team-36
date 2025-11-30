@@ -1,8 +1,5 @@
 import { GameState } from '../models/game-state';
-import { Track } from '../models/track';
 import { Car } from '../models/car';
-import { UserCar } from '../models/user-car';
-import { BotCar } from '../models/bot-car';
 import { CarController } from './CarController';
 import { BotController } from './BotController';
 import { CameraController } from './CameraController';
@@ -18,9 +15,9 @@ import { GameClock } from '../clock';
 import { ListenerController } from './ListenerController';
 import { QuestionController } from './QuestionController';
 import { StreakController } from './StreakController';
-import { ANIMATION_TICK } from '../../const';
 import { updateUserStats } from '../../services/localStorage';
 import type { RaceConfig } from '../config/types';
+import { RaceControllerFactory } from '../factories/RaceControllerFactory';
 import {
     serializeGameState,
     deserializeGameState,
@@ -57,131 +54,70 @@ export class RaceController {
     private raceCompleted: boolean = false;
 
     /**
-     * Constructor
+     * Constructor with dependency injection
+     * This is the preferred constructor for creating RaceController instances.
+     * Use RaceControllerFactory for normal usage.
      *
-     * @param track - The track to initialize the race controller on
-     * @param questionConfig - Configuration for question generation
-     * @param raceConfig - Race configuration (includes physics config)
+     * @param gameState - The game state
+     * @param carController - Car controller
+     * @param cameraController - Camera controller
+     * @param laneController - Lane controller
+     * @param collisionController - Collision controller
+     * @param slipController - Slip controller
+     * @param botController - Bot controller
+     * @param questionManager - Question manager
+     * @param statsManager - Stats manager
+     * @param questionController - Question controller
+     * @param streakController - Streak controller
+     * @param listenerController - Listener controller
+     * @param clock - Game clock
      */
     constructor(
-        track: Track,
-        questionConfig: QuestionConfig,
-        raceConfig: RaceConfig,
+        gameState: GameState,
+        carController: CarController,
+        cameraController: CameraController,
+        laneController: LaneController,
+        collisionController: CollisionController,
+        slipController: SlipController,
+        botController: BotController,
+        questionManager: QuestionManager,
+        statsManager: QuestionStatsManager,
+        questionController: QuestionController,
+        streakController: StreakController,
+        listenerController: ListenerController,
+        clock: GameClock,
     ) {
-        const camera = { pos: { x: 0, y: 0 }, zoom: 1, rotation: 0 };
-        this.gameState = new GameState(camera, track);
+        this.gameState = gameState;
+        this.carController = carController;
+        this.cameraController = cameraController;
+        this.laneController = laneController;
+        this.collisionController = collisionController;
+        this.slipController = slipController;
+        this.botController = botController;
+        this.questionManager = questionManager;
+        this.statsManager = statsManager;
+        this.questionController = questionController;
+        this.streakController = streakController;
+        this.listenerController = listenerController;
+        this.clock = clock;
 
-        this.gameState.addPlayerCar(
-            new UserCar(
-                raceConfig.userCarInitialPosition,
-                '#22c55e',
-                40,
-                22,
-                raceConfig.userCarLaneIndex,
-            ),
-        );
-
-        // Create bot cars with configurations
-        const botConfig = raceConfig.botConfig;
-        const difficultyRanges = raceConfig.botDifficultyRanges;
-        const initialPositions = raceConfig.initialPositions;
-        const laneIndices = raceConfig.laneIndices;
-
-        for (let i = 0; i < difficultyRanges.length; i++) {
-            const [minDifficulty, maxDifficulty] = difficultyRanges[i];
-            // Generate random difficulty within range
-            const difficulty =
-                minDifficulty + Math.random() * (maxDifficulty - minDifficulty);
-
-            const botCar = new BotCar(
-                initialPositions[i],
-                '#ef4444',
-                40,
-                22,
-                difficulty,
-                botConfig,
-                laneIndices[i],
-            );
-            // Initialize next answer time based on bot's answer speed
-            botCar.nextAnswerTime = botCar.answerSpeed;
-            this.gameState.addCar(botCar);
-        }
-
-        this.carController = new CarController(
-            this.gameState,
-            raceConfig.physics,
-        );
-        this.carController.initializeCars();
-
-        this.cameraController = new CameraController(this.gameState);
-
-        // Create lane controller first
-        this.laneController = new LaneController(
-            this.gameState,
-            this.carController,
-        );
-
-        // Create collision controller with dependencies
-        this.collisionController = new CollisionController(
-            this.gameState,
-            this.laneController,
-            this.carController,
-            raceConfig.physics,
-        );
-
-        // Create slip controller
-        this.slipController = new SlipController(
-            this.gameState,
-            raceConfig.physics,
-        );
-
-        this.questionManager = new QuestionManager(questionConfig);
-        this.statsManager = new QuestionStatsManager();
-        this.questionController = new QuestionController(this.questionManager);
-
-        // Create bot controller
-        this.botController = new BotController(
-            this.gameState,
-            this.laneController,
-            this.carController,
-        );
-
-        // Create listener controller with all callbacks
-        this.listenerController = new ListenerController(
-            () => this.togglePause(),
-            () => this.queueReward(this.gameState.playerCar, 150),
-            {
-                onNumberInput: (char) => this.questionController.addChar(char),
-                onDelete: () => this.questionController.deleteChar(),
-                onEnterSubmit: () => this.questionController.submitAnswer(),
-                onSkip: () => this.questionController.skipQuestion(),
-            },
-            {
-                onLaneChangeLeft: () => {
-                    this.laneController.switchLane(
-                        this.gameState.playerCar,
-                        -1,
-                        this.elapsedMs / 1000,
-                    );
-                },
-                onLaneChangeRight: () => {
-                    this.laneController.switchLane(
-                        this.gameState.playerCar,
-                        1,
-                        this.elapsedMs / 1000,
-                    );
-                },
-            },
-            () => this.handleVisibilityLost(),
-        );
-
-        this.setupQuestionEventListeners();
-        this.clock = new GameClock(ANIMATION_TICK);
-
-        this.streakController = new StreakController();
+        this.initialize();
     }
 
-    private handleVisibilityLost(): void {
+
+    /**
+     * Initialize event listeners and other setup
+     * Called after all dependencies are injected
+     */
+    private initialize(): void {
+        this.setupQuestionEventListeners();
+    }
+
+    /**
+     * Handle visibility lost event
+     * Made package-private for use by factory
+     */
+    handleVisibilityLost(): void {
         if (this.isRunning && !this.gameState.paused) {
             this.pause();
         }
@@ -242,90 +178,11 @@ export class RaceController {
         questionConfig: QuestionConfig,
         raceConfig: RaceConfig,
     ): RaceController {
-        // Create a dummy track for the constructor, then replace with loaded state
-        const dummyTrack = Track.fromJSON({
-            version: 1,
-            numLanes: 4,
-            laneWidth: 10,
-            points: [
-                { x: 0, y: 0 },
-                { x: 1, y: 0 },
-                { x: 0, y: 1 },
-            ],
-        });
-        const controller = new RaceController(
-            dummyTrack,
+        return RaceControllerFactory.createFromGameState(
+            gameState,
             questionConfig,
             raceConfig,
         );
-
-        // Replace with the loaded game state
-        controller.gameState = gameState;
-        controller.cameraController = new CameraController(gameState);
-        controller.carController = new CarController(
-            gameState,
-            raceConfig.physics,
-        );
-        controller.carController.initializeCars();
-
-        // Recreate lane controller first
-        controller.laneController = new LaneController(
-            gameState,
-            controller.carController,
-        );
-
-        // Recreate collision controller with dependencies
-        controller.collisionController = new CollisionController(
-            gameState,
-            controller.laneController,
-            controller.carController,
-            raceConfig.physics,
-        );
-
-        // Recreate slip controller
-        controller.slipController = new SlipController(
-            gameState,
-            raceConfig.physics,
-        );
-
-        // Recreate bot controller
-        controller.botController = new BotController(
-            gameState,
-            controller.laneController,
-            controller.carController,
-        );
-
-        // Recreate listener controller with lane change callbacks
-        controller.listenerController = new ListenerController(
-            () => controller.togglePause(),
-            () => controller.queueReward(gameState.playerCar, 150),
-            {
-                onNumberInput: (char) =>
-                    controller.questionController.addChar(char),
-                onDelete: () => controller.questionController.deleteChar(),
-                onEnterSubmit: () =>
-                    controller.questionController.submitAnswer(),
-                onSkip: () => controller.questionController.skipQuestion(),
-            },
-            {
-                onLaneChangeLeft: () => {
-                    controller.laneController.switchLane(
-                        gameState.playerCar,
-                        -1,
-                        controller.elapsedMs / 1000,
-                    );
-                },
-                onLaneChangeRight: () => {
-                    controller.laneController.switchLane(
-                        gameState.playerCar,
-                        1,
-                        controller.elapsedMs / 1000,
-                    );
-                },
-            },
-        );
-
-        return controller;
     }
 
     /**
