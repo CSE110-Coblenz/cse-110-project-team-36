@@ -12,6 +12,12 @@ import type {
     RaceConfig,
     BotConfig,
 } from '../../src/game/config/types';
+import { RaceController } from '../../src/game/controllers/RaceController';
+import { RaceControllerFactory } from '../../src/game/factories/RaceControllerFactory';
+import {
+    QuestionTopic,
+    QuestionDifficulty,
+} from '../../src/game/models/question';
 
 /**
  * Creates a simple rectangular test track
@@ -305,4 +311,29 @@ export function createDefaultRaceConfig(): RaceConfig {
         userCarLaneIndex: 1,
         userCarInitialPosition: 0,
     };
+}
+
+/**
+ * Creates a RaceController for testing using the factory
+ */
+export function createTestRaceController(
+    track?: Track,
+    questionConfig?: {
+        topic: QuestionTopic;
+        difficulty: QuestionDifficulty;
+    },
+    raceConfig?: RaceConfig,
+): RaceController {
+    const testTrack = track || createSimpleTestTrack();
+    const testQuestionConfig = questionConfig || {
+        topic: QuestionTopic.MIXED,
+        difficulty: QuestionDifficulty.MEDIUM,
+    };
+    const testRaceConfig = raceConfig || createDefaultRaceConfig();
+
+    return RaceControllerFactory.createRaceController(
+        testTrack,
+        testQuestionConfig,
+        testRaceConfig,
+    );
 }

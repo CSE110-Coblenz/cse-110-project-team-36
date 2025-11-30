@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { RaceController } from '../game/controllers/RaceController';
 import { RaceControllerFactory } from '../game/factories/RaceControllerFactory';
 import { userService } from '../services/userServiceInstance';
@@ -65,6 +65,7 @@ export function useAppState(): UseAppStateReturn {
         null,
     );
     const [isLoadingRace, setIsLoadingRace] = useState(false);
+    const isLoadingRef = useRef(false);
 
     const handleLogin = (username: string) => {
         userService.saveCurrentUser(username);
@@ -99,9 +100,15 @@ export function useAppState(): UseAppStateReturn {
             screen === 'race' &&
             selectedTopic &&
             selectedDifficulty &&
-            selectedTrack
+            selectedTrack &&
+            !isLoadingRef.current
         ) {
-            setIsLoadingRace(true);
+            isLoadingRef.current = true;
+            // Use setTimeout to defer state update to next tick, avoiding synchronous setState
+            const timeoutId = setTimeout(() => {
+                setIsLoadingRace(true);
+            }, 0);
+
             let controller: RaceController | null = null;
 
             RaceControllerFactory.createRaceControllerAsync('race1.json', {
@@ -112,20 +119,24 @@ export function useAppState(): UseAppStateReturn {
                     controller = c;
                     setRaceController(c);
                     setIsLoadingRace(false);
+                    isLoadingRef.current = false;
                 })
                 .catch((err) => {
                     console.error('Failed to load track:', err);
                     setIsLoadingRace(false);
+                    isLoadingRef.current = false;
                     // Fall back to menu on error
                     setScreen('menu');
                 });
 
             return () => {
+                clearTimeout(timeoutId);
                 if (controller) {
                     controller.destroy();
                 }
                 setRaceController(null);
                 setIsLoadingRace(false);
+                isLoadingRef.current = false;
             };
         }
     }, [screen, selectedTopic, selectedDifficulty, selectedTrack]);

@@ -1,6 +1,6 @@
 import type { GameState } from '../game/models/game-state';
 import type { QuestionConfig } from '../game/managers/QuestionManager';
-import type { RaceConfig } from '../config/types';
+import type { RaceConfig } from '../game/config/types';
 import { serializeGameState, deserializeGameState } from '../serialization/game';
 import type { StorageService } from './adapters/StorageService';
 import { RaceControllerFactory } from '../game/factories/RaceControllerFactory';
