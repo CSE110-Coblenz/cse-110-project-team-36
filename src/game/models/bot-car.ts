@@ -12,7 +12,7 @@ export interface BotStats {
     safetyTimeThreshold: number;
 }
 
-export const GameDifficultyScaling: Record<Difficulty, BotStats> = {
+export const RaceDifficultyScaling: Record<Difficulty, BotStats> = {
     [Difficulty.EASY]: {
         answerSpeed: 0.85, // slower
         accuracy: 0.9, // worse acurracy
@@ -37,7 +37,7 @@ export const GameDifficultyScaling: Record<Difficulty, BotStats> = {
  */
 export class BotCar extends Car {
     public difficulty: number; // Master difficulty scalar [a, b]
-    public gameDifficulty: Difficulty; // Difficulty from selection screen scalar
+    public raceDifficulty: Difficulty; // Difficulty from selection screen scalar
     public answerSpeed: number; // Mean time to answer questions (seconds)
     public answerSpeedStdDev: number; // Standard deviation for answer speed variation
     public accuracy: number; // Probability of answering correctly [0, 1]
@@ -50,18 +50,18 @@ export class BotCar extends Car {
         carLength: number = 40,
         carWidth: number = 22,
         difficulty: number = 1.0,
-        gameDifficulty: Difficulty = Difficulty.EASY,
+        raceDifficulty: Difficulty = Difficulty.EASY,
         config: BotConfig,
         laneIndex?: number,
     ) {
         super(initialS, color, carLength, carWidth, laneIndex);
         this.difficulty = difficulty;
-        this.gameDifficulty = gameDifficulty;
+        this.raceDifficulty = raceDifficulty;
 
         // Generate bot statistics based on difficulty and config
         const stats = BotCar.generateBotStats(
             difficulty,
-            gameDifficulty,
+            raceDifficulty,
             config,
         );
         this.answerSpeed = stats.answerSpeed;
@@ -79,10 +79,10 @@ export class BotCar extends Car {
      */
     static generateBotStats(
         difficulty: number,
-        gameDifficulty: Difficulty,
+        raceDifficulty: Difficulty,
         config: BotConfig,
     ): BotStats {
-        const gameDifficultyScale = GameDifficultyScaling[gameDifficulty];
+        const gameDifficultyScale = RaceDifficultyScaling[raceDifficulty];
 
         const answerSpeed = Math.max(
             0.1,

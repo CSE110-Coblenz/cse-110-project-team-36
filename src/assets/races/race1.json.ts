@@ -1,4 +1,4 @@
-import { type RaceConfig } from '../../game/config/types';
+import { type RaceConfig, Difficulty } from '../../game/config/types';
 import config1 from '../physics/config1.json';
 
 const race: RaceConfig = {
@@ -25,6 +25,7 @@ const race: RaceConfig = {
     laneIndices: [0, 1, 2, 3, 0, 1, 2],
     userCarLaneIndex: 3,
     userCarInitialPosition: -700,
+    raceDifficulty: Difficulty.MEDIUM,
 };
 
 export default race;

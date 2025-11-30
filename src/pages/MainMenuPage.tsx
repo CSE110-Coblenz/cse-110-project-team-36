@@ -9,6 +9,7 @@
 import React, { useState } from 'react';
 import styles from './styles/mainMenuPage.module.css';
 import { Button } from '../components/button';
+import { documentService } from '../services/documentServiceInstance';
 
 export const MainMenuPage: React.FC<{
     currentUser: string | null;
@@ -22,11 +23,12 @@ export const MainMenuPage: React.FC<{
 
     const toggleSound = () => setSoundOn(!soundOn);
 
-    const toggleFullscreen = () => {
+    const toggleFullscreen = async () => {
         if (!fullscreen) {
-            document.documentElement.requestFullscreen?.();
+            const element = documentService.getDocumentElement();
+            await documentService.requestFullscreen(element);
         } else {
-            document.exitFullscreen?.();
+            await documentService.exitFullscreen();
         }
         setFullscreen(!fullscreen);
     };

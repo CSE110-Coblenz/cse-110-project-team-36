@@ -56,4 +56,5 @@ export interface RaceConfig {
     laneIndices: number[]; // Array of lane indices for each bot
     userCarLaneIndex: number; // Lane index for the user car
     userCarInitialPosition: number; // Initial position for the user car
+    raceDifficulty: Difficulty;
 }

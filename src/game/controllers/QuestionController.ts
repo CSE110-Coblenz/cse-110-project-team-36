@@ -1,5 +1,6 @@
 import { QuestionManager } from '../managers/QuestionManager';
 import { events } from '../../shared/events';
+import type { TimerService } from '../../services/adapters/TimerService';
 
 export type FeedbackState = 'none' | 'correct' | 'incorrect';
 
@@ -17,7 +18,10 @@ export class QuestionController {
     private feedbackTimeoutId: number | null = null;
     private currentQuestion: string;
 
-    constructor(private questionManager: QuestionManager) {
+    constructor(
+        private questionManager: QuestionManager,
+        private timerService: TimerService,
+    ) {
         this.currentQuestion = questionManager.getCurrentQuestion();
     }
 
@@ -67,10 +71,10 @@ export class QuestionController {
         this.feedback = wasCorrect ? 'correct' : 'incorrect';
 
         if (this.feedbackTimeoutId !== null) {
-            clearTimeout(this.feedbackTimeoutId);
+            this.timerService.clearTimeout(this.feedbackTimeoutId);
         }
 
-        this.feedbackTimeoutId = window.setTimeout(() => {
+        this.feedbackTimeoutId = this.timerService.setTimeout(() => {
             this.feedback = 'none';
             this.feedbackTimeoutId = null;
             this.emitStateChange();
@@ -91,7 +95,7 @@ export class QuestionController {
         this.feedback = 'none';
 
         if (this.feedbackTimeoutId !== null) {
-            clearTimeout(this.feedbackTimeoutId);
+            this.timerService.clearTimeout(this.feedbackTimeoutId);
             this.feedbackTimeoutId = null;
         }
         this.emitStateChange();
@@ -131,7 +135,7 @@ export class QuestionController {
      */
     destroy(): void {
         if (this.feedbackTimeoutId !== null) {
-            clearTimeout(this.feedbackTimeoutId);
+            this.timerService.clearTimeout(this.feedbackTimeoutId);
             this.feedbackTimeoutId = null;
         }
     }

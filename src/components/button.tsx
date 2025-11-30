@@ -17,7 +17,7 @@ export const Button: React.FC<ButtonProps> = ({
     return (
         <button
             onClick={onClick}
-            style = { props.className ? undefined : {...btnBase, ...additionalStyle} }
+            style = { {...btnBase, ...additionalStyle} }
             {...props}
         >
             {children}
@@ -34,8 +34,6 @@ const btnBase: React.CSSProperties = {
     color: 'var(--color-black)',                // global black
     cursor: 'pointer',
     textShadow: '0 0 6px rgba(255, 255, 255, 0.6)', // subtle glow
-    background: 'var(--btn-blue-gradient)',     // neon blue gradient
-    boxShadow: 'var(--shadow-neon-blue)',       // neon glow shadow
     transition: 'transform var(--transition-fast), box-shadow var(--transition-fast)',
     WebkitTapHighlightColor: 'transparent',
     fontFamily: 'var(--font-main)',

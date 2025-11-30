@@ -6,17 +6,20 @@ import { QuestionController } from '../../../src/game/controllers/QuestionContro
 import { QuestionManager } from '../../../src/game/managers/QuestionManager';
 import { QuestionTopic } from '../../../src/game/models/question';
 import { Difficulty } from '../../../src/game/config/types';
+import { BrowserTimerService } from '../../../src/services/adapters/TimerService';
 
 describe('QuestionController', () => {
     let questionManager: QuestionManager;
     let controller: QuestionController;
+    let timerService: BrowserTimerService;
 
     beforeEach(() => {
         questionManager = new QuestionManager({
             topic: QuestionTopic.ADDITION,
             difficulty: Difficulty.EASY,
         });
-        controller = new QuestionController(questionManager);
+        timerService = new BrowserTimerService();
+        controller = new QuestionController(questionManager, timerService);
     });
 
     afterEach(() => {
