@@ -1,9 +1,13 @@
 import { useMemo } from 'react';
-import { Layer, Group, Rect } from 'react-konva';
+import { Layer, Group, Rect, Image as KonvaImage } from 'react-konva';
 import type { Track } from '../../game/models/track';
 import type { Camera } from '../../game/types';
 import type { Car } from '../../game/models/car';
 import { worldToScreen } from './utils';
+import useImage from 'use-image';
+
+import playerCarSprite from '../../assets/cars/car-sprite.png';
+import enemyCarSprite from '../../assets/cars/enemy-car-sprite.png';
 
 /**
  * Car layer component
@@ -31,6 +35,7 @@ export function CarLayer({
                     stageWidth={stageWidth}
                     stageHeight={stageHeight}
                     camera={camera}
+                    isPlayer={i === 0}
                 />
             ))}
         </Layer>
@@ -46,13 +51,19 @@ function CarRenderer({
     stageWidth,
     stageHeight,
     camera,
+    isPlayer,
 }: {
     track: Track;
     car: Car;
     stageWidth: number;
     stageHeight: number;
     camera: Camera;
+    isPlayer: boolean;
+
 }) {
+    const [playerSprite] = useImage(playerCarSprite);
+    const [enemySprite] = useImage(enemyCarSprite);
+    const sprite = isPlayer ? playerSprite : enemySprite;
     const { screenRotation, screen, scale } = useMemo(() => {
         const lateralOffset = car.lateral;
         const worldPos = car.getWorldPosition(track, lateralOffset);
@@ -63,18 +74,11 @@ function CarRenderer({
             stageHeight,
         );
 
-        // Convert car's world rotation (degrees) to radians
         const carWorldRotationRad = (worldPos.angleDeg * Math.PI) / 180;
-
-        // Calculate relative rotation: car rotation minus camera rotation
-        // This compensates for the world rotation applied by the camera transform
-        // For player car (at camera position): carWorldRotationRad ≈ camera.rotation, so relativeRotation ≈ 0
-        // For other cars: relativeRotation is their rotation relative to the camera
         const relativeRotationRad = carWorldRotationRad - camera.rotation;
 
-        // Convert back to degrees, add 90° to fix length/width alignment, and add wobble
         const relativeRotationDeg = (relativeRotationRad * 180) / Math.PI;
-        const screenRotation = relativeRotationDeg + 90 + car.slipWobble;
+        const screenRotation = relativeRotationDeg + car.slipWobble;
 
         return {
             screenRotation,
@@ -83,19 +87,31 @@ function CarRenderer({
         };
     }, [track, car, camera, stageWidth, stageHeight]);
 
-    const w = car.carLength * scale;
-    const h = car.carWidth * scale;
+    const SPRITE_SCALE = 1.5;
+
+    const w = car.carLength * scale * SPRITE_SCALE * 1.4;
+    const h = car.carWidth * scale * SPRITE_SCALE * 2.0;
 
     return (
         <Group x={screen.x} y={screen.y} rotation={screenRotation}>
-            <Rect
-                x={-w / 2}
-                y={-h / 2}
-                width={w}
-                height={h}
-                fill={car.color}
-                cornerRadius={Math.min(8, h * 0.4)}
-            />
+            {sprite ? (
+                <KonvaImage
+                    image={sprite}
+                    x={-w / 2}
+                    y={-h / 2}
+                    width={w}
+                    height={h}
+                />
+            ) : (
+                <Rect
+                    x={-w / 2}
+                    y={-h / 2}
+                    width={w}
+                    height={h}
+                    fill={car.color}
+                    cornerRadius={Math.min(8, h * 0.4)}
+                />
+            )}
         </Group>
     );
 }
