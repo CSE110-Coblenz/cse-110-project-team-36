@@ -56,7 +56,7 @@ export const MainMenuPage: React.FC<{
                     className={`${styles.button} ${styles.btnYellow}`}
                     onClick={onStart}
                 >
-                    ▶ Start Race
+                    ▶ Practice Mode
                 </Button>
 
                 <Button
