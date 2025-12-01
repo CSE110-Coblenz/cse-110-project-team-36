@@ -1,5 +1,6 @@
 import { Car } from './car';
 import type { BotConfig } from '../config/types';
+import { Difficulty } from '../config/types';
 import { gaussian, clamp } from '../../utils/math';
 
 /**
@@ -11,6 +12,24 @@ export interface BotStats {
     safetyTimeThreshold: number;
 }
 
+export const RaceDifficultyScaling: Record<Difficulty, BotStats> = {
+    [Difficulty.EASY]: {
+        answerSpeed: 0.85, // slower
+        accuracy: 0.9, // worse acurracy
+        safetyTimeThreshold: 1.2, // safer
+    },
+    [Difficulty.MEDIUM]: {
+        answerSpeed: 1, // normal
+        accuracy: 1, // normal
+        safetyTimeThreshold: 1.0, // normal
+    },
+    [Difficulty.HARD]: {
+        answerSpeed: 1.05, // faster
+        accuracy: 1.05, // better accuracy
+        safetyTimeThreshold: 0.9, // less cautious
+    },
+};
+
 /**
  * BotCar class
  *
@@ -18,6 +37,7 @@ export interface BotStats {
  */
 export class BotCar extends Car {
     public difficulty: number; // Master difficulty scalar [a, b]
+    public raceDifficulty: Difficulty; // Difficulty from selection screen scalar
     public answerSpeed: number; // Mean time to answer questions (seconds)
     public answerSpeedStdDev: number; // Standard deviation for answer speed variation
     public accuracy: number; // Probability of answering correctly [0, 1]
@@ -30,14 +50,20 @@ export class BotCar extends Car {
         carLength: number = 40,
         carWidth: number = 22,
         difficulty: number = 1.0,
+        raceDifficulty: Difficulty = Difficulty.EASY,
         config: BotConfig,
         laneIndex?: number,
     ) {
         super(initialS, color, carLength, carWidth, laneIndex);
         this.difficulty = difficulty;
+        this.raceDifficulty = raceDifficulty;
 
         // Generate bot statistics based on difficulty and config
-        const stats = BotCar.generateBotStats(difficulty, config);
+        const stats = BotCar.generateBotStats(
+            difficulty,
+            raceDifficulty,
+            config,
+        );
         this.answerSpeed = stats.answerSpeed;
         this.answerSpeedStdDev = config.answerSpeedStdDev;
         this.accuracy = stats.accuracy;
@@ -51,21 +77,29 @@ export class BotCar extends Car {
      * @param config - Bot configuration
      * @returns Generated bot statistics
      */
-    static generateBotStats(difficulty: number, config: BotConfig): BotStats {
+    static generateBotStats(
+        difficulty: number,
+        raceDifficulty: Difficulty,
+        config: BotConfig,
+    ): BotStats {
+        const gameDifficultyScale = RaceDifficultyScaling[raceDifficulty];
+
         const answerSpeed = Math.max(
             0.1,
-            config.answerSpeedBase / difficulty +
+            config.answerSpeedBase /
+                (difficulty * gameDifficultyScale.answerSpeed) +
                 gaussian(0, config.answerSpeedStdDev),
         );
         const accuracy = clamp(
-            config.accuracyBase * difficulty +
+            config.accuracyBase * (difficulty * gameDifficultyScale.accuracy) +
                 gaussian(0, config.accuracyStdDev),
             0,
             1,
         );
         const safetyTimeThreshold = Math.max(
             0.5,
-            config.safetyTimeBase * difficulty +
+            config.safetyTimeBase *
+                (difficulty * gameDifficultyScale.safetyTimeThreshold) +
                 gaussian(0, config.safetyTimeStdDev),
         );
         return {

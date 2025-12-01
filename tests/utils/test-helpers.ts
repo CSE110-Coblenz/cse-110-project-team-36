@@ -7,11 +7,17 @@ import { UserCar } from '../../src/game/models/user-car';
 import { BotCar } from '../../src/game/models/bot-car';
 import { GameState } from '../../src/game/models/game-state';
 import { Camera } from '../../src/game/types';
-import type {
-    PhysicsConfig,
-    RaceConfig,
-    BotConfig,
+import {
+    type PhysicsConfig,
+    type RaceConfig,
+    type BotConfig,
+    Difficulty,
 } from '../../src/game/config/types';
+import { RaceController } from '../../src/game/controllers/RaceController';
+import { RaceControllerFactory } from '../../src/game/factories/RaceControllerFactory';
+import {
+    QuestionTopic,
+} from '../../src/game/models/question';
 
 /**
  * Creates a simple rectangular test track
@@ -111,6 +117,7 @@ export function createTestGameState(
 
     // Add AI cars
     const defaultBotConfig = createDefaultBotConfig();
+
     for (let i = 0; i < numAiCars; i++) {
         const aiCar = new BotCar(
             -(i + 1) * 50,
@@ -118,6 +125,7 @@ export function createTestGameState(
             40,
             22,
             1.0,
+            Difficulty.EASY,
             defaultBotConfig,
             i + 1,
         );
@@ -304,5 +312,31 @@ export function createDefaultRaceConfig(): RaceConfig {
         laneIndices: [1, 2, 0],
         userCarLaneIndex: 1,
         userCarInitialPosition: 0,
+        raceDifficulty: Difficulty.MEDIUM
     };
+}
+
+/**
+ * Creates a RaceController for testing using the factory
+ */
+export function createTestRaceController(
+    track?: Track,
+    questionConfig?: {
+        topic: QuestionTopic;
+        difficulty: Difficulty;
+    },
+    raceConfig?: RaceConfig,
+): RaceController {
+    const testTrack = track || createSimpleTestTrack();
+    const testQuestionConfig = questionConfig || {
+        topic: QuestionTopic.MIXED,
+        difficulty: Difficulty.MEDIUM,
+    };
+    const testRaceConfig = raceConfig || createDefaultRaceConfig();
+
+    return RaceControllerFactory.createRaceController(
+        testTrack,
+        testQuestionConfig,
+        testRaceConfig,
+    );
 }
