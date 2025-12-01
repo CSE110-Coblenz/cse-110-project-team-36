@@ -46,6 +46,7 @@ export class GameStateFactory {
         const difficultyRanges = raceConfig.botDifficultyRanges;
         const initialPositions = raceConfig.initialPositions;
         const laneIndices = raceConfig.laneIndices;
+        const raceDifficulty = raceConfig.raceDifficulty;
 
         for (let i = 0; i < difficultyRanges.length; i++) {
             const [minDifficulty, maxDifficulty] = difficultyRanges[i];
@@ -59,6 +60,7 @@ export class GameStateFactory {
                 40,
                 22,
                 difficulty,
+                raceDifficulty,
                 botConfig,
                 laneIndices[i],
             );

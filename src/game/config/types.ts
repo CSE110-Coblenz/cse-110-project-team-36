@@ -1,4 +1,13 @@
 /**
+ * Race Game difficulty level
+ */
+export enum Difficulty {
+    EASY = 'easy',
+    MEDIUM = 'medium',
+    HARD = 'hard',
+}
+
+/**
  * Physics configuration interface
  * Contains all physics constants used by CarController and CollisionController
  */
@@ -47,4 +56,5 @@ export interface RaceConfig {
     laneIndices: number[]; // Array of lane indices for each bot
     userCarLaneIndex: number; // Lane index for the user car
     userCarInitialPosition: number; // Initial position for the user car
+    raceDifficulty: Difficulty;
 }

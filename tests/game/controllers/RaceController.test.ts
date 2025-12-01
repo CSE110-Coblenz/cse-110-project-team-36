@@ -2,22 +2,20 @@
  * Unit tests for RaceController
  */
 import { Track } from '../../../src/game/models/track';
-import {
-    QuestionTopic,
-    QuestionDifficulty,
-} from '../../../src/game/models/question';
+import { QuestionTopic } from '../../../src/game/models/question';
 import {
     createSimpleTestTrack,
     createDefaultRaceConfig,
     createTestRaceController,
 } from '../../utils/test-helpers';
 import { RaceControllerFactory } from '../../../src/game/factories/RaceControllerFactory';
+import { Difficulty } from '../../../src/game/config/types';
 
 describe('RaceController', () => {
     let track: Track;
     const defaultQuestionConfig = {
         topic: QuestionTopic.MIXED,
-        difficulty: QuestionDifficulty.MEDIUM,
+        difficulty: Difficulty.MEDIUM,
     };
 
     beforeEach(() => {

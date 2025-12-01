@@ -3,16 +3,14 @@
  */
 
 import { QuestionManager } from '../../../src/game/managers/QuestionManager';
-import {
-    QuestionTopic,
-    QuestionDifficulty,
-} from '../../../src/game/models/question';
+import { QuestionTopic } from '../../../src/game/models/question';
 import { events } from '../../../src/shared/events';
+import { Difficulty } from '../../../src/game/config/types';
 
 describe('QuestionManager', () => {
     const defaultQuestionConfig = {
         topic: QuestionTopic.MIXED,
-        difficulty: QuestionDifficulty.MEDIUM,
+        difficulty: Difficulty.MEDIUM,
     };
     beforeEach(() => {
         jest.spyOn(console, 'log').mockImplementation(() => {});
@@ -130,11 +128,11 @@ describe('QuestionManager', () => {
                 defaultQuestionConfig,
                 {
                     topic: QuestionTopic.ADDITION,
-                    difficulty: QuestionDifficulty.EASY,
+                    difficulty: Difficulty.EASY,
                 },
                 {
                     topic: QuestionTopic.MULTIPLICATION,
-                    difficulty: QuestionDifficulty.HARD,
+                    difficulty: Difficulty.HARD,
                 },
             ];
 

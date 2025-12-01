@@ -108,7 +108,6 @@ export class RaceController {
         this.initialize();
     }
 
-
     /**
      * Initialize event listeners and other setup
      * Called after all dependencies are injected

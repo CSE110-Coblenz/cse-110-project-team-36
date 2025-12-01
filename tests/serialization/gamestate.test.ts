@@ -16,10 +16,7 @@ import { UserCar } from '../../src/game/models/user-car';
 import { BotCar } from '../../src/game/models/bot-car';
 import { Track, TrackJSON } from '../../src/game/models/track';
 import { Camera } from '../../src/game/types';
-import {
-    QuestionTopic,
-    QuestionDifficulty,
-} from '../../src/game/models/question';
+import { QuestionTopic } from '../../src/game/models/question';
 import {
     createDefaultRaceConfig,
     createDefaultBotConfig,
@@ -27,6 +24,7 @@ import {
 } from '../utils/test-helpers';
 import { PersistenceService } from '../../src/services/PersistenceService';
 import { BrowserStorageService } from '../../src/services/adapters/StorageService';
+import { Difficulty } from '../../src/game/config/types';
 
 describe('GameState Serialization', () => {
     const createTestGameState = (): GameState => {
@@ -57,12 +55,28 @@ describe('GameState Serialization', () => {
         playerCar.r = 10;
 
         const botConfig = createDefaultBotConfig();
-        const aiCar1 = new BotCar(-50, '#ff0000', 35, 20, 1.0, botConfig);
+        const aiCar1 = new BotCar(
+            -50,
+            '#ff0000',
+            35,
+            20,
+            1.0,
+            Difficulty.EASY,
+            botConfig,
+        );
         aiCar1.v = 55;
         aiCar1.lapCount = 1;
         aiCar1.nextAnswerTime = aiCar1.answerSpeed;
 
-        const aiCar2 = new BotCar(-100, '#0000ff', 45, 25, 1.0, botConfig);
+        const aiCar2 = new BotCar(
+            -100,
+            '#0000ff',
+            45,
+            25,
+            1.0,
+            Difficulty.EASY,
+            botConfig,
+        );
         aiCar2.v = 50;
         aiCar2.lateral = 5;
         aiCar2.nextAnswerTime = aiCar2.answerSpeed;
@@ -301,7 +315,7 @@ describe('GameState Serialization', () => {
             const track = Track.fromJSON(trackJSON);
             const questionConfig = {
                 topic: QuestionTopic.MIXED,
-                difficulty: QuestionDifficulty.MEDIUM,
+                difficulty: Difficulty.MEDIUM,
             };
             const raceController = createTestRaceController(
                 track,

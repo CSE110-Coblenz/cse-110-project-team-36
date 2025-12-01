@@ -5,6 +5,7 @@ import { Track } from '../game/models/track';
 import { UserCar } from '../game/models/user-car';
 import { BotCar } from '../game/models/bot-car';
 import { GameState as GameStateClass } from '../game/models/game-state';
+import type { Difficulty } from '../game/config/types';
 
 export interface SerializedCar {
     type: 'user' | 'bot';
@@ -26,6 +27,7 @@ export interface SerializedCar {
     crossedFinish: boolean;
     // Bot-specific fields (only present for bot cars)
     difficulty?: number;
+    raceDifficulty?: Difficulty | undefined;
     answerSpeed?: number;
     answerSpeedStdDev?: number;
     accuracy?: number;
@@ -62,6 +64,7 @@ function serializeCar(car: Car): SerializedCar {
             ...base,
             type: 'bot',
             difficulty: car.difficulty,
+            raceDifficulty: car.raceDifficulty,
             answerSpeed: car.answerSpeed,
             answerSpeedStdDev: car.answerSpeedStdDev,
             accuracy: car.accuracy,
@@ -108,6 +111,7 @@ function deserializeCar(data: SerializedCar): Car {
             data.carLength,
             data.carWidth,
             data.difficulty,
+            data.raceDifficulty,
             {
                 answerSpeedBase: data.answerSpeed || 2.0,
                 answerSpeedStdDev: data.answerSpeedStdDev || 0.5,
