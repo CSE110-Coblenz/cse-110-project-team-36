@@ -27,6 +27,7 @@ export class Car {
     public pendingLaneChanges: number = 0; // net lane changes requested (direction-based queue)
     public laneChangeStartOffset: number | null = null; // lateral offset (world units) where lane change started from (for smooth interruptions)
     public laneChangeStartVelocity: number | null = null; // lateral velocity (world units/sec) when lane change started (for smooth interruptions)
+    public effectiveLanes: number[] = [0]; // cached effective lane indices (computed once per frame in updateLaneChanges)
     public crashedThisFrame: boolean = false; // flag to indicate crash occurred this frame (skip physics smoothing)
 
     public lapCount: number = 0;
@@ -57,6 +58,7 @@ export class Car {
         if (laneIndex !== undefined) {
             this.laneIndex = laneIndex;
         }
+        this.effectiveLanes = [this.laneIndex];
     }
 
     /**
@@ -166,6 +168,7 @@ export class Car {
             pendingLaneChanges: this.pendingLaneChanges,
             laneChangeStartOffset: this.laneChangeStartOffset,
             laneChangeStartVelocity: this.laneChangeStartVelocity,
+            effectiveLanes: this.effectiveLanes,
             lapCount: this.lapCount,
             lastS: this.lastS,
             crossedFinish: this.crossedFinish,
@@ -194,6 +197,7 @@ export class Car {
         pendingLaneChanges?: number;
         laneChangeStartOffset?: number | null;
         laneChangeStartVelocity?: number | null;
+        effectiveLanes?: number[];
         lapCount: number;
         lastS: number;
         crossedFinish: boolean;
@@ -217,6 +221,7 @@ export class Car {
         car.pendingLaneChanges = data.pendingLaneChanges ?? 0;
         car.laneChangeStartOffset = data.laneChangeStartOffset ?? null;
         car.laneChangeStartVelocity = data.laneChangeStartVelocity ?? null;
+        car.effectiveLanes = data.effectiveLanes ?? [car.laneIndex];
         car.lapCount = data.lapCount;
         car.lastS = data.lastS;
         car.crossedFinish = data.crossedFinish;

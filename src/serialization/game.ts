@@ -22,6 +22,7 @@ export interface SerializedCar {
     pendingLaneChanges: number;
     laneChangeStartOffset: number | null;
     laneChangeStartVelocity: number | null;
+    effectiveLanes: number[];
     lapCount: number;
     lastS: number;
     crossedFinish: boolean;
@@ -95,6 +96,7 @@ function deserializeCar(data: SerializedCar): Car {
         pendingLaneChanges: data.pendingLaneChanges,
         laneChangeStartOffset: data.laneChangeStartOffset,
         laneChangeStartVelocity: data.laneChangeStartVelocity,
+        effectiveLanes: data.effectiveLanes ?? [data.laneIndex ?? 0],
         lapCount: data.lapCount,
         lastS: data.lastS,
         crossedFinish: data.crossedFinish,

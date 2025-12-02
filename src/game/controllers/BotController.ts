@@ -43,15 +43,11 @@ export class BotController {
 
             // Evaluate safety metric and decide on lane changes
             if (!bot.isChangingLanes()) {
-                const direction = this.shouldLaneChange(bot, currentGameTime);
+                const direction = this.shouldLaneChange(bot);
                 if (direction !== 0) {
                     // Before committing to lane change, do a predictive collision check
                     if (
-                        this.wouldLaneChangeCauseCollision(
-                            bot,
-                            direction,
-                            currentGameTime,
-                        )
+                        this.wouldLaneChangeCauseCollision(bot, direction)
                     ) {
                         // Skip this lane change to avoid immediate collision
                         continue;
@@ -94,11 +90,8 @@ export class BotController {
      * @param currentGameTime - Current game time in seconds
      * @returns Safety metric with time ahead and behind
      */
-    evaluateSafetyMetric(bot: BotCar, currentGameTime: number): SafetyMetric {
-        const botLanes = this.laneController.getEffectiveLanes(
-            bot,
-            currentGameTime,
-        );
+    evaluateSafetyMetric(bot: BotCar): SafetyMetric {
+        const botLanes = bot.effectiveLanes;
         const allCars = this.gameState.getCars();
 
         let minTimeAhead = Infinity;
@@ -107,10 +100,7 @@ export class BotController {
         for (const car of allCars) {
             if (car === bot) continue;
 
-            const carLanes = this.laneController.getEffectiveLanes(
-                car,
-                currentGameTime,
-            );
+            const carLanes = car.effectiveLanes;
             const sameLane = botLanes.some((l) => carLanes.includes(l));
             if (!sameLane) continue;
 
@@ -141,11 +131,10 @@ export class BotController {
      * Determine if bot should change lanes
      *
      * @param bot - The bot car to evaluate
-     * @param currentGameTime - Current game time in seconds
      * @returns -1 for left, 1 for right, 0 for no change
      */
-    shouldLaneChange(bot: BotCar, currentGameTime: number): -1 | 0 | 1 {
-        const currentSafety = this.evaluateSafetyMetric(bot, currentGameTime);
+    shouldLaneChange(bot: BotCar): -1 | 0 | 1 {
+        const currentSafety = this.evaluateSafetyMetric(bot);
         const minSafety = Math.min(
             currentSafety.timeAhead,
             currentSafety.timeBehind,
@@ -166,19 +155,10 @@ export class BotController {
 
         // Check left lane
         if (leftLane >= 0) {
-            const leftSafety = this.evaluateLaneSafety(
-                bot,
-                leftLane,
-                currentGameTime,
-            );
+            const leftSafety = this.evaluateLaneSafety(bot, leftLane);
             if (
                 leftSafety > bestSafety &&
-                this.isLaneSafeToChangeInto(
-                    bot,
-                    leftLane,
-                    currentGameTime,
-                    leftSafety,
-                )
+                this.isLaneSafeToChangeInto(bot, leftLane, leftSafety)
             ) {
                 bestLane = leftLane;
                 bestSafety = leftSafety;
@@ -187,19 +167,10 @@ export class BotController {
 
         // Check right lane
         if (rightLane < track.numLanes) {
-            const rightSafety = this.evaluateLaneSafety(
-                bot,
-                rightLane,
-                currentGameTime,
-            );
+            const rightSafety = this.evaluateLaneSafety(bot, rightLane);
             if (
                 rightSafety > bestSafety &&
-                this.isLaneSafeToChangeInto(
-                    bot,
-                    rightLane,
-                    currentGameTime,
-                    rightSafety,
-                )
+                this.isLaneSafeToChangeInto(bot, rightLane, rightSafety)
             ) {
                 bestLane = rightLane;
                 bestSafety = rightSafety;
@@ -221,21 +192,14 @@ export class BotController {
      * @param currentGameTime - Current game time in seconds
      * @returns Minimum safety time for that lane
      */
-    private evaluateLaneSafety(
-        bot: BotCar,
-        laneIndex: number,
-        currentGameTime: number,
-    ): number {
+    private evaluateLaneSafety(bot: BotCar, laneIndex: number): number {
         const allCars = this.gameState.getCars();
         let minTime = Infinity;
 
         for (const car of allCars) {
             if (car === bot) continue;
 
-            const carLanes = this.laneController.getEffectiveLanes(
-                car,
-                currentGameTime,
-            );
+            const carLanes = car.effectiveLanes;
             if (!carLanes.includes(laneIndex)) continue;
 
             const timeToCollision = this.calculateTimeToCollision(bot, car);
@@ -260,7 +224,6 @@ export class BotController {
     private isLaneSafeToChangeInto(
         bot: BotCar,
         laneIndex: number,
-        currentGameTime: number,
         laneSafetyTime: number,
     ): boolean {
         // First check: lane must have acceptable safety time (accounts for cars already in lane)
@@ -274,10 +237,7 @@ export class BotController {
         for (const car of allCars) {
             if (car === bot) continue;
 
-            const carLanes = this.laneController.getEffectiveLanes(
-                car,
-                currentGameTime,
-            );
+            const carLanes = car.effectiveLanes;
             const carInTargetLane = carLanes.includes(laneIndex);
 
             // Check if car is attempting to change into this lane OR already in it
@@ -359,7 +319,6 @@ export class BotController {
     private wouldLaneChangeCauseCollision(
         bot: BotCar,
         direction: -1 | 1,
-        currentGameTime: number,
     ): boolean {
         const track = this.gameState.track;
         const targetLane = bot.laneIndex + direction;
@@ -379,10 +338,7 @@ export class BotController {
             // Get lanes this car will be in during the lane change
             // We'll be in both source and target lanes during transition
             const botFutureLanes = [bot.laneIndex, targetLane];
-            const carLanes = this.laneController.getEffectiveLanes(
-                car,
-                currentGameTime,
-            );
+            const carLanes = car.effectiveLanes;
 
             // Check if we'd share any lanes
             const wouldShareLane = botFutureLanes.some((l) =>

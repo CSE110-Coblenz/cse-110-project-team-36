@@ -3,6 +3,9 @@ import type { Car } from '../models/car';
 import type { Track } from '../models/track';
 import { CarController } from './CarController';
 
+const INVALID_LANE_CHANGE_PENALTY = 0.8;
+const LANE_CHANGE_PROGRESS_COMPLETE = 1.0;
+
 /**
  * Ease-in-out cubic interpolation function
  */
@@ -16,9 +19,9 @@ function easeInOutCubic(t: number): number {
  */
 function easeInOutCubicDerivative(t: number): number {
     if (t < 0.5) {
-        return 12 * t * t; // derivative of 4t³
+        return 12 * t * t;
     } else {
-        return 12 * t * t - 24 * t + 12; // derivative of 1 - (-2t + 2)³/2
+        return 12 * t * t - 24 * t + 12;
     }
 }
 
@@ -30,11 +33,11 @@ function easeInOutCubicDerivative(t: number): number {
  * @returns Interpolated offset and velocity
  */
 function interpolateLaneChange(params: {
-    startOffset: number; // Starting lateral offset (world units)
-    targetOffset: number; // Target lateral offset (world units)
-    startVelocity: number; // Starting lateral velocity (world units/sec)
-    progress: number; // Normalized progress [0, 1], precondition: 0 <= progress <= 1
-    duration: number; // Total duration of lane change (seconds)
+    startOffset: number;    // Starting lateral offset (world units)
+    targetOffset: number;   // Target lateral offset (world units)
+    startVelocity: number;  // Starting lateral velocity (world units/sec)
+    progress: number;       // Normalized progress [0, 1], precondition: 0 <= progress <= 1
+    duration: number;       // Total duration of lane change (seconds)
 }): { offset: number; velocity: number } {
     const { startOffset, targetOffset, startVelocity, progress, duration } =
         params;
@@ -71,7 +74,7 @@ export class LaneController {
         if (targetLane < 0 || targetLane >= track.numLanes) {
             // Invalid target - revert change and apply penalty
             car.pendingLaneChanges -= direction;
-            this.carController.applyPenalty(car, 0.8);
+            this.carController.applyPenalty(car, INVALID_LANE_CHANGE_PENALTY);
             return false;
         }
 
@@ -89,22 +92,22 @@ export class LaneController {
     }
 
     /**
-     * Cancel a lane change and boot car back to source lane
+     * Cancel a lane change and smoothly bump car back to source lane
+     * Initiates a smooth lane change back to the source lane with shorter duration
      *
      * @param car - The car to cancel lane change for
+     * @param currentGameTime - Current game time in seconds
      */
-    cancelLaneChange(car: Car): void {
+    cancelLaneChange(car: Car, currentGameTime: number): void {
         const track = this.gameState.track;
+        const currentLateral = car.lateral;
+        const currentVelocity = this.getLaneChangeVelocity(car, track, currentGameTime);
 
-        // Reset lane change state
-        car.targetLaneIndex = null;
-        car.laneChangeStartTime = null;
+        car.laneChangeStartOffset = currentLateral;
+        car.laneChangeStartVelocity = currentVelocity;
+        car.targetLaneIndex = car.laneIndex;
+        car.laneChangeStartTime = currentGameTime - car.laneChangeDuration * 0.5;
         car.pendingLaneChanges = 0;
-        car.laneChangeStartOffset = null;
-        car.laneChangeStartVelocity = null;
-
-        // Boot back to source lane (current laneIndex is the source)
-        car.lateral = track.getLaneOffset(car.laneIndex);
     }
 
     /**
@@ -117,13 +120,12 @@ export class LaneController {
         const track = this.gameState.track;
 
         for (const car of cars) {
-            // Compute current lateral state for every car and write to car.lateral
             const state = this.getLaneChangeState(car, track, currentGameTime);
             car.lateral = state.offset;
+            car.effectiveLanes = this.getEffectiveLanes(car, currentGameTime);
 
             if (car.laneChangeStartTime === null) continue;
 
-            // Check if lane change is complete
             const elapsed = currentGameTime - car.laneChangeStartTime;
             if (elapsed >= car.laneChangeDuration) {
                 car.laneIndex = car.targetLaneIndex!;
@@ -133,6 +135,7 @@ export class LaneController {
                 car.laneChangeStartOffset = null;
                 car.laneChangeStartVelocity = null;
                 car.lateral = track.getLaneOffset(car.laneIndex);
+                car.effectiveLanes = [car.laneIndex];
             }
         }
     }
@@ -156,19 +159,15 @@ export class LaneController {
             return [sourceLane];
         }
 
-        // Calculate which two-lane segment the car is currently in
         const progress = car.getLaneChangeProgress(currentGameTime);
         const numLanesToCross = Math.abs(targetLane - sourceLane);
 
-        // If progress is 1.0, car has completed the change - only in target lane
-        if (progress >= 1.0) {
+        if (progress >= LANE_CHANGE_PROGRESS_COMPLETE) {
             return [targetLane];
         }
 
-        // Calculate which segment we're in (0 to numLanesToCross - 1)
         const segmentIndex = Math.floor(progress * numLanesToCross);
 
-        // Determine the two lanes for this segment
         const direction = targetLane > sourceLane ? 1 : -1;
         const currentSegmentStartLane = sourceLane + segmentIndex * direction;
         const currentSegmentEndLane = currentSegmentStartLane + direction;
