@@ -130,14 +130,11 @@ export class CarController {
         let vNext = vTemp + aBrake * dt;
 
         // Global clamps
-        vNext = clamp(vNext, 0, this.config.vMax);
+        vNext = Math.max(this.config.vMin, clamp(vNext, 0, this.config.vMax));
 
-        // 6. Optionally enforce a floor for motion; vUsed is what we integrate s with
-        const vUsed = Math.max(this.config.vMin, vNext);
-
-        // 7. Commit back to car (authoritative state)
+        // 6. Commit back to car (authoritative state)
         car.v = vNext;
-        car.s = track.wrapS(s + vUsed * dt);
+        car.s = track.wrapS(s + vNext * dt);
     }
 
     /**
