@@ -115,7 +115,7 @@ export function useAppState(): UseAppStateReturn {
 
             let controller: RaceController | null = null;
 
-            RaceControllerFactory.createRaceControllerAsync(selectedTrack, {
+            RaceControllerFactory.createRaceControllerAsync('race1.json', {
                 topic: topicStringToEnum(selectedTopic),
                 difficulty: difficultyStringToEnum(selectedDifficulty),
             })

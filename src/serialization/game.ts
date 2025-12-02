@@ -6,6 +6,7 @@ import { UserCar } from '../game/models/user-car';
 import { BotCar } from '../game/models/bot-car';
 import { GameState as GameStateClass } from '../game/models/game-state';
 import type { Difficulty } from '../game/config/types';
+import type { PitLaneSegment } from '../game/models/track';
 
 export interface SerializedCar {
     type: 'user' | 'bot';
@@ -41,6 +42,8 @@ export interface SerializedTrack {
     samples: { x: number; y: number }[];
     sTable: number[];
     totalLength: number;
+    pitStops: { x: number; y: number}[];
+    pitLaneSegments: PitLaneSegment[];
 }
 
 export interface SerializedGameState {

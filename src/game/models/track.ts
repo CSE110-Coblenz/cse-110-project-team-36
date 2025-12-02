@@ -309,7 +309,7 @@ export class Track {
         return this.pitStops;
     }
 
-    get PitLaneSegments(): readonly PitLaneSegment[] {
+    get getPitLaneSegments(): readonly PitLaneSegment[] {
         return this.pitLaneSegments;
     }
 
@@ -367,6 +367,7 @@ export class Track {
             sTable: [...this.sTable],
             totalLength: this.totalLength,
             pitStops: [...this.pitStops],
+            pitLaneSegments: [...this.pitLaneSegments]
         };
     }
 
@@ -383,6 +384,7 @@ export class Track {
         sTable: number[];
         totalLength: number;
         pitStops: Vec2[];
+        pitLaneSegments: PitLaneSegment[];
     }): Track {
         const track = new Track(data.laneWidth, data.numLanes);
         track.samples = [...data.samples];
@@ -390,6 +392,7 @@ export class Track {
         track.totalLength = data.totalLength;
         track.kappaTable = Track.buildKappaTable(track);
         track.pitStops = [...data.pitStops];
+        track.pitLaneSegments = [...data.pitLaneSegments];
         return track;
     }
 

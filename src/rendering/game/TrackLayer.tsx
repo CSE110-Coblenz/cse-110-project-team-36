@@ -78,6 +78,16 @@ export function TrackLayer({
         }));
     }, [track, laneDividers, camera, stageWidth, stageHeight]);
 
+    const pitStopPoints = useMemo(() => {
+        const points: number[] = []
+        for ( const pitStopPoint of track.getPitStops() ) {
+            const p = worldToScreen(pitStopPoint, camera, stageWidth, stageHeight);
+            points.push(p.x, p.y)
+        }
+
+        return points;
+    }, [track, camera, stageWidth, stageHeight])
+
     const finishLinePoints = useMemo(() => {
         // Draw a small perpendicular finish line stripe at s = 0
         const s = 0;
@@ -173,6 +183,13 @@ export function TrackLayer({
                     shadowColor="black"
                     shadowBlur={10}
                     shadowOpacity={0.6}
+                />
+                <Line 
+                    points={pitStopPoints}
+                    stroke="#8a8f97"
+                    strokeWidth={1}
+                    lineCap="round"
+                    lineJoin="round"
                 />
             </Group>
         </Layer>
