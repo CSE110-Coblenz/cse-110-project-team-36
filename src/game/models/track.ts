@@ -1,5 +1,12 @@
 export type Vec2 = { x: number; y: number };
 
+export type PitLaneSegment = {
+    startS: number; // distance along track where pit starts
+    endS: number; // distance along track where pit ends
+    points: Vec2[]; // world-space coordinates along the pit lane
+    offset: number; // lateral offset from centerline (so it aligns as a “lane”)
+};
+
 export type TrackJSON = {
     version: 1;
     numLanes: number; // number of lanes (required)
@@ -81,6 +88,8 @@ export class Track {
     private kappaTable: number[] = []; // curvature per sample (approximate)
 
     private totalLength = 0; // Total length of the track
+    private pitStops: Vec2[] = []; // Pit stop positions
+    private pitLaneSegments: PitLaneSegment[] = []; // Pit lane segments
 
     /**
      * Get total track width (computed from laneWidth * numLanes)
@@ -134,6 +143,7 @@ export class Track {
 
         // 2) Build uniform-arc samples
         t.buildUniformSamples(smoothed, j.sampleSpacing ?? 1.0);
+        t.generatePitStops();
         return t;
     }
 
@@ -175,6 +185,44 @@ export class Track {
         this.sTable = sTable;
         this.totalLength = L;
         this.kappaTable = Track.buildKappaTable(this);
+    }
+
+    private generatePitStops() {
+        const pitLength = 10; // length of pit stop segment
+        const sampleSpacing = 1.0; // 1 meter per loop iteration
+        const offset = this.getLaneOffset(this.numLanes - 1) + this.laneWidth; // offset from centerline to first lane
+
+        // pick a random sample index; pit stop can be located anywhere except start/finish line
+        let randomSampleIndex =
+            Math.floor(Math.random() * (this.samples.length - 2 + 1)) + 1;
+
+        // convert index → actual track distance
+        const startS = this.sTable[randomSampleIndex];
+        const endS = Math.min(startS + pitLength, this.totalLength);
+
+        const pitStopCoordinates: Vec2[] = [];
+
+        // generate pit stop coordinates until desired pitStop length is reached or nearing the end of track
+        for (let s = startS; s < endS; s += sampleSpacing) {
+            const p0 = this.posAt(s);
+            const normalp0 = this.normalAt(s);
+
+            pitStopCoordinates.push({
+                x: p0.x + normalp0.x * offset,
+                y: p0.y + normalp0.y * offset,
+            });
+
+            randomSampleIndex++;
+        }
+
+        this.pitStops = pitStopCoordinates;
+
+        this.pitLaneSegments.push({
+            startS: startS,
+            endS: endS,
+            points: pitStopCoordinates,
+            offset: offset,
+        });
     }
 
     /**
@@ -257,6 +305,14 @@ export class Track {
         return this.samples;
     }
 
+    getPitStops(): readonly Vec2[] {
+        return this.pitStops;
+    }
+
+    get PitLaneSegments(): readonly PitLaneSegment[] {
+        return this.pitLaneSegments;
+    }
+
     /**
      * Get the lateral offset from centerline for a given lane index
      *
@@ -310,6 +366,7 @@ export class Track {
             samples: this.samples.map((s) => ({ x: s.x, y: s.y })),
             sTable: [...this.sTable],
             totalLength: this.totalLength,
+            pitStops: [...this.pitStops],
         };
     }
 
@@ -325,12 +382,14 @@ export class Track {
         samples: Vec2[];
         sTable: number[];
         totalLength: number;
+        pitStops: Vec2[];
     }): Track {
         const track = new Track(data.laneWidth, data.numLanes);
         track.samples = [...data.samples];
         track.sTable = [...data.sTable];
         track.totalLength = data.totalLength;
         track.kappaTable = Track.buildKappaTable(track);
+        track.pitStops = [...data.pitStops];
         return track;
     }
 

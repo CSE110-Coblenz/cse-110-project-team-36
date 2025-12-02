@@ -79,7 +79,11 @@ export function useAppState(): UseAppStateReturn {
         setScreen('menu');
     };
 
-    const handleStartRace = (topic: string, difficulty: string, track: string) => {
+    const handleStartRace = (
+        topic: string,
+        difficulty: string,
+        track: string,
+    ) => {
         setSelectedTopic(topic);
         setSelectedDifficulty(difficulty);
         setSelectedTrack(track);
@@ -111,7 +115,7 @@ export function useAppState(): UseAppStateReturn {
 
             let controller: RaceController | null = null;
 
-            RaceControllerFactory.createRaceControllerAsync('race1.json', {
+            RaceControllerFactory.createRaceControllerAsync(selectedTrack, {
                 topic: topicStringToEnum(selectedTopic),
                 difficulty: difficultyStringToEnum(selectedDifficulty),
             })
@@ -155,4 +159,3 @@ export function useAppState(): UseAppStateReturn {
         handleStartRace,
     };
 }
-

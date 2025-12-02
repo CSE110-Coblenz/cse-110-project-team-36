@@ -72,5 +72,11 @@
             "y": -450
         }
     ],
-    "smoothIterations": 7
+    "smoothIterations": 7,
+    "pitStop": [
+        {
+            "x": 1250,
+            "y": -300
+        }
+    ]
 }

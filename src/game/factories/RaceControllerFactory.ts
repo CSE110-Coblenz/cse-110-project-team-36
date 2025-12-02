@@ -77,10 +77,7 @@ export class RaceControllerFactory {
         const gameState = GameStateFactory.createGameState(track, raceConfig);
 
         // Create controllers in dependency order
-        const carController = new CarController(
-            gameState,
-            raceConfig.physics,
-        );
+        const carController = new CarController(gameState, raceConfig.physics);
         carController.initializeCars();
 
         const cameraController = new CameraController(gameState);
@@ -138,10 +135,8 @@ export class RaceControllerFactory {
         const listenerController = new ListenerController(
             () => raceControllerInstance?.togglePause() ?? undefined,
             () =>
-                raceControllerInstance?.queueReward(
-                    gameState.playerCar,
-                    150,
-                ) ?? undefined,
+                raceControllerInstance?.queueReward(gameState.playerCar, 150) ??
+                undefined,
             {
                 onNumberInput: (char) => questionController.addChar(char),
                 onDelete: () => questionController.deleteChar(),
@@ -211,10 +206,7 @@ export class RaceControllerFactory {
         raceConfig: RaceConfig,
     ): RaceController {
         // Create controllers in dependency order
-        const carController = new CarController(
-            gameState,
-            raceConfig.physics,
-        );
+        const carController = new CarController(gameState, raceConfig.physics);
         carController.initializeCars();
 
         const cameraController = new CameraController(gameState);
@@ -270,10 +262,8 @@ export class RaceControllerFactory {
         const listenerController = new ListenerController(
             () => raceControllerInstance?.togglePause() ?? undefined,
             () =>
-                raceControllerInstance?.queueReward(
-                    gameState.playerCar,
-                    150,
-                ) ?? undefined,
+                raceControllerInstance?.queueReward(gameState.playerCar, 150) ??
+                undefined,
             {
                 onNumberInput: (char) => questionController.addChar(char),
                 onDelete: () => questionController.deleteChar(),
@@ -328,4 +318,3 @@ export class RaceControllerFactory {
         return raceControllerInstance;
     }
 }
-
