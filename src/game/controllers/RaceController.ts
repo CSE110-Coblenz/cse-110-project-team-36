@@ -202,7 +202,7 @@ export class RaceController {
             const cars = Array.from(this.gameState.getCars());
 
             // Handle all collisions in a single unified method call
-            this.collisionController.handleAllCollisions(cars, currentGameTime);
+            this.collisionController.handleAllCollisions(cars);
 
             // Update bot AI behavior
             this.botController.updateBots(currentGameTime);
