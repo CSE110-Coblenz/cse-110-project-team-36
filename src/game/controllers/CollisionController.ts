@@ -93,7 +93,6 @@ export class CollisionController {
             return false;
         }
 
-        // Simple AABB overlap check (no rotation)
         return (
             Math.abs(h1.centerX - h2.centerX) < h1.halfLength + h2.halfLength &&
             Math.abs(h1.centerY - h2.centerY) < h1.halfWidth + h2.halfWidth
@@ -108,10 +107,7 @@ export class CollisionController {
      * @param currentGameTime - Current game time in seconds
      */
     public handleAllCollisions(cars: Car[], currentGameTime: number): void {
-        // Detect all collisions using hitbox overlap
         const collisions = this.detectAllCollisions(cars);
-
-        // Handle each collision
         for (const collision of collisions) {
             this.handleCollision(collision, currentGameTime);
         }
@@ -150,8 +146,8 @@ export class CollisionController {
                 collisions.push({
                     car1,
                     car2,
-                        rear,
-                        front,
+                    rear,
+                    front,
                     isSideCollision,
                 });
             }
@@ -174,24 +170,15 @@ export class CollisionController {
         this.applyCrashEffects(car1);
         this.applyCrashEffects(car2);
 
-        // Handle based on collision type
         if (isSideCollision) {
-            // Side collision: maintain speed, separate laterally, cancel lane changes
-            // Cancel lane changes if either car is changing lanes
             if (car1.isChangingLanes()) {
                 this.laneController.cancelLaneChange(car1, currentGameTime);
             }
             if (car2.isChangingLanes()) {
                 this.laneController.cancelLaneChange(car2, currentGameTime);
             }
-
-            // Separate cars laterally (velocities remain unchanged)
-            // this.separateCarsLaterally(car1, car2);
         } else {
-            // Rear-end collision: apply full momentum transfer and boost front car slightly
             this.applyMomentumTransfer(rear, front);
-
-            // Boost front car position by epsilon to help separation
             const track = this.gameState.track;
             const epsilon = CollisionController.POSITION_ADJUSTMENT_EPSILON;
             front.s = track.wrapS(front.s + epsilon);
@@ -219,14 +206,14 @@ export class CollisionController {
      * @param front - The car ahead (gets all momentum)
      */
     private applyMomentumTransfer(rear: Car, front: Car): void {
-        // Calculate total momentum from both cars
         const totalMomentum = rear.v * rear.carLength + front.v * front.carLength;
-
-        // Rear car stops completely (velocity = 0, never negative)
         rear.v = 0;
-
-        // Front car gets all momentum (conservation of momentum)
-        // Clamp to ensure it never goes negative and respects vMax
-        front.v = Math.max(0, Math.min(totalMomentum / front.carLength, CollisionController.MAX_COLLISION_VELOCITY));
+        front.v = Math.max(
+            0, 
+            Math.min(
+                totalMomentum / front.carLength,
+                CollisionController.MAX_COLLISION_VELOCITY
+            )
+        );
     }
 }
