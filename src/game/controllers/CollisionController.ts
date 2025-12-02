@@ -2,7 +2,6 @@ import type { GameState } from '../models/game-state';
 import type { Car } from '../models/car';
 import type { LaneController } from './LaneController';
 import type { CarController } from './CarController';
-import type { PhysicsConfig } from '../config/types';
 import { getWrappedSDiff } from '../../utils/track';
 
 /**
@@ -35,13 +34,12 @@ export class CollisionController {
     private readonly trackLength: number;
 
     private static readonly POSITION_ADJUSTMENT_EPSILON = 1e-1; // Small boost to front car position
-    private static readonly LATERAL_SEPARATION_MARGIN = 2.0; // Safety margin for lateral separation
+    private static readonly MAX_COLLISION_VELOCITY = 50.0; // Maximum velocity for collision
 
     constructor(
         private gameState: GameState,
         private laneController: LaneController,
         private carController: CarController,
-        private physicsConfig: PhysicsConfig,
     ) {
         this.trackLength = this.gameState.track.length;
     }
@@ -107,14 +105,15 @@ export class CollisionController {
      * Uses hitbox-based detection to only detect actual visual overlaps
      *
      * @param cars - All cars in the game
+     * @param currentGameTime - Current game time in seconds
      */
-    public handleAllCollisions(cars: Car[]): void {
+    public handleAllCollisions(cars: Car[], currentGameTime: number): void {
         // Detect all collisions using hitbox overlap
         const collisions = this.detectAllCollisions(cars);
 
         // Handle each collision
         for (const collision of collisions) {
-            this.handleCollision(collision);
+            this.handleCollision(collision, currentGameTime);
         }
     }
 
@@ -166,8 +165,9 @@ export class CollisionController {
      * Applies crash effects and handles based on collision type
      *
      * @param collision - The collision to handle
+     * @param currentGameTime - Current game time in seconds
      */
-    private handleCollision(collision: Collision): void {
+    private handleCollision(collision: Collision, currentGameTime: number): void {
         const { car1, car2, rear, front, isSideCollision } = collision;
 
         // Apply crash effects to both cars (symmetric) - only clears rewards, no penalties
@@ -179,14 +179,14 @@ export class CollisionController {
             // Side collision: maintain speed, separate laterally, cancel lane changes
             // Cancel lane changes if either car is changing lanes
             if (car1.isChangingLanes()) {
-                this.laneController.cancelLaneChange(car1);
+                this.laneController.cancelLaneChange(car1, currentGameTime);
             }
             if (car2.isChangingLanes()) {
-                this.laneController.cancelLaneChange(car2);
+                this.laneController.cancelLaneChange(car2, currentGameTime);
             }
 
             // Separate cars laterally (velocities remain unchanged)
-            this.separateCarsLaterally(car1, car2);
+            // this.separateCarsLaterally(car1, car2);
         } else {
             // Rear-end collision: apply full momentum transfer and boost front car slightly
             this.applyMomentumTransfer(rear, front);
@@ -195,30 +195,6 @@ export class CollisionController {
             const track = this.gameState.track;
             const epsilon = CollisionController.POSITION_ADJUSTMENT_EPSILON;
             front.s = track.wrapS(front.s + epsilon);
-        }
-    }
-
-    /**
-     * Separate two cars laterally by pushing them apart
-     * Maintains their velocities (no speed changes)
-     *
-     * @param car1 - First car
-     * @param car2 - Second car
-     */
-    private separateCarsLaterally(car1: Car, car2: Car): void {
-        const lateralDiff = car1.lateral - car2.lateral;
-        const separationNeeded =
-            (car1.carWidth + car2.carWidth) / 2 +
-            CollisionController.LATERAL_SEPARATION_MARGIN;
-
-        if (lateralDiff > 0) {
-            // car1 is to the right, push it further right and car2 further left
-            car1.lateral += separationNeeded / 2;
-            car2.lateral -= separationNeeded / 2;
-        } else {
-            // car2 is to the right, push it further right and car1 further left
-            car1.lateral -= separationNeeded / 2;
-            car2.lateral += separationNeeded / 2;
         }
     }
 
@@ -251,6 +227,6 @@ export class CollisionController {
 
         // Front car gets all momentum (conservation of momentum)
         // Clamp to ensure it never goes negative and respects vMax
-        front.v = Math.max(0, Math.min(totalMomentum / front.carLength, this.physicsConfig.vMax));
+        front.v = Math.max(0, Math.min(totalMomentum / front.carLength, CollisionController.MAX_COLLISION_VELOCITY));
     }
 }

@@ -92,21 +92,22 @@ export class LaneController {
     }
 
     /**
-     * Cancel a lane change and boot car back to source lane
+     * Cancel a lane change and smoothly bump car back to source lane
+     * Initiates a smooth lane change back to the source lane with shorter duration
      *
      * @param car - The car to cancel lane change for
+     * @param currentGameTime - Current game time in seconds
      */
-    cancelLaneChange(car: Car): void {
+    cancelLaneChange(car: Car, currentGameTime: number): void {
         const track = this.gameState.track;
+        const currentLateral = car.lateral;
+        const currentVelocity = this.getLaneChangeVelocity(car, track, currentGameTime);
 
-        car.targetLaneIndex = null;
-        car.laneChangeStartTime = null;
+        car.laneChangeStartOffset = currentLateral;
+        car.laneChangeStartVelocity = currentVelocity;
+        car.targetLaneIndex = car.laneIndex;
+        car.laneChangeStartTime = currentGameTime - car.laneChangeDuration * 0.5;
         car.pendingLaneChanges = 0;
-        car.laneChangeStartOffset = null;
-        car.laneChangeStartVelocity = null;
-
-        car.lateral = track.getLaneOffset(car.laneIndex);
-        car.effectiveLanes = [car.laneIndex];
     }
 
     /**
