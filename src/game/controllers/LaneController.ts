@@ -72,9 +72,9 @@ export class LaneController {
         car.pendingLaneChanges += direction;
         const targetLane = car.laneIndex + car.pendingLaneChanges;
         if (targetLane < 0 || targetLane >= track.numLanes) {
-            // Invalid target - revert change and apply penalty
+            // Invalid target - revert change and apply slowdown penalty
             car.pendingLaneChanges -= direction;
-            this.carController.applyPenalty(car, INVALID_LANE_CHANGE_PENALTY);
+            this.carController.applySlowdownPenalty(car, INVALID_LANE_CHANGE_PENALTY);
             return false;
         }
 

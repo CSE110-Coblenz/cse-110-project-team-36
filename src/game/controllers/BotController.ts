@@ -296,7 +296,7 @@ export class BotController {
         if (isCorrect) {
             this.carController.queueReward(bot, 150);
         } else {
-            this.carController.applyPenalty(bot, 0.8);
+            this.carController.applySlowdownPenalty(bot, 0.8);
         }
 
         // Generate next answer time with Gaussian variation

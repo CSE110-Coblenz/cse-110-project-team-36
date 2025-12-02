@@ -194,6 +194,7 @@ export class CollisionController {
     private applyCrashEffects(car: Car): void {
         car.r = 0;
         this.carController.resetPendingRewards(car);
+        this.carController.applySlipFactor(car, 0.8);
     }
 
     /**

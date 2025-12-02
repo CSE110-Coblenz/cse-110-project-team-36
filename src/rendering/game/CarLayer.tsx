@@ -87,10 +87,8 @@ function CarRenderer({
         };
     }, [track, car, camera, stageWidth, stageHeight]);
 
-    const SPRITE_SCALE = 1.5;
-
-    const w = car.carLength * scale * SPRITE_SCALE * 1.4;
-    const h = car.carWidth * scale * SPRITE_SCALE * 2.0;
+    const w = car.carLength * scale * 1.4;
+    const h = car.carWidth * scale * 2.0;
 
     return (
         <Group x={screen.x} y={screen.y} rotation={screenRotation}>

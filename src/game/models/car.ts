@@ -13,8 +13,9 @@ export class Car {
     public v: number = 0; // physical velocity
     public lateral: number = 0; // lateral offset (world units)
 
-    public slipFactor: number = 0; // slip state [0, 1] for slip effect
+    public slipFactor: number = 0; // slip state [0, 1] for visual slip effect
     public slipWobble: number = 0; // angular wobble for slip effect
+    public slowdownPenalty: number = 0; // slowdown penalty [0, 1] for speed reduction (separate from visual slip)
 
     public color: string = '#22c55e'; // car color
     public carLength: number = 40; // car size (world units)
@@ -159,6 +160,7 @@ export class Car {
             lateral: this.lateral,
             slipFactor: this.slipFactor,
             slipWobble: this.slipWobble,
+            slowdownPenalty: this.slowdownPenalty,
             color: this.color,
             carLength: this.carLength,
             carWidth: this.carWidth,
@@ -188,6 +190,7 @@ export class Car {
         lateral: number;
         slipFactor?: number;
         slipWobble?: number;
+        slowdownPenalty?: number;
         color: string;
         carLength: number;
         carWidth: number;
@@ -215,6 +218,7 @@ export class Car {
         car.lateral = data.lateral;
         car.slipFactor = data.slipFactor ?? 0;
         car.slipWobble = data.slipWobble ?? 0;
+        car.slowdownPenalty = data.slowdownPenalty ?? 0;
         car.laneIndex = data.laneIndex ?? 0;
         car.targetLaneIndex = data.targetLaneIndex ?? null;
         car.laneChangeStartTime = data.laneChangeStartTime ?? null;

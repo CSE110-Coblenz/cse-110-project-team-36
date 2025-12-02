@@ -137,12 +137,12 @@ export class RaceController {
 
         const unsubIncorrect = events.on('AnsweredIncorrectly', () => {
             const playerCar = this.gameState.playerCar;
-            this.applyPenalty(playerCar, 0.8);
+            this.applySlowdownPenalty(playerCar, 0.8);
         });
 
         const unsubSkipped = events.on('QuestionSkipped', () => {
             const playerCar = this.gameState.playerCar;
-            this.applyPenalty(playerCar, 0.6);
+            this.applySlowdownPenalty(playerCar, 0.6);
         });
 
         const unsubCompleted = events.on('QuestionCompleted', (payload) => {
@@ -372,13 +372,24 @@ export class RaceController {
     }
 
     /**
-     * Apply penalty to a car
+     * Apply slowdown penalty to a car (for speed reduction)
      *
-     * @param car - The car to apply penalty to
+     * @param car - The car to apply slowdown penalty to
      * @param magnitude - The penalty magnitude (0-1)
      */
-    applyPenalty(car: Car, magnitude: number) {
-        this.carController.applyPenalty(car, magnitude);
+    applySlowdownPenalty(car: Car, magnitude: number) {
+        this.carController.applySlowdownPenalty(car, magnitude);
+        this.carController.applySlipFactor(car, magnitude);
+    }
+
+    /**
+     * Apply visual slip factor to a car (for visual effects only)
+     *
+     * @param car - The car to apply slip to
+     * @param magnitude - The slip magnitude (0-1)
+     */
+    applySlipFactor(car: Car, magnitude: number) {
+        this.carController.applySlipFactor(car, magnitude);
     }
 
     /**

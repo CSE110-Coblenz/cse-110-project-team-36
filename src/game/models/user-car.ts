@@ -29,6 +29,7 @@ export class UserCar extends Car {
         lateral: number;
         slipFactor?: number;
         slipWobble?: number;
+        slowdownPenalty?: number;
         color: string;
         carLength: number;
         carWidth: number;
@@ -55,6 +56,7 @@ export class UserCar extends Car {
         car.lateral = data.lateral;
         car.slipFactor = data.slipFactor ?? 0;
         car.slipWobble = data.slipWobble ?? 0;
+        car.slowdownPenalty = data.slowdownPenalty ?? 0;
         car.laneIndex = data.laneIndex ?? 0;
         car.targetLaneIndex = data.targetLaneIndex ?? null;
         car.laneChangeStartTime = data.laneChangeStartTime ?? null;
