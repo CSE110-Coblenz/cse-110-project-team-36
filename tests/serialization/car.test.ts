@@ -23,6 +23,7 @@ describe('Car Serialization', () => {
                 lateral: 5,
                 slipFactor: 0,
                 slipWobble: 0,
+                slowdownPenalty: 0,
                 color: '#ff0000',
                 carLength: 50,
                 carWidth: 30,
@@ -51,6 +52,7 @@ describe('Car Serialization', () => {
                 lateral: 0,
                 slipFactor: 0,
                 slipWobble: 0,
+                slowdownPenalty: 0,
                 color: '#22c55e',
                 carLength: 40,
                 carWidth: 22,
@@ -77,6 +79,7 @@ describe('Car Serialization', () => {
                 lateral: -2,
                 slipFactor: 0,
                 slipWobble: 0,
+                slowdownPenalty: 0,
                 color: '#00ff00',
                 carLength: 45,
                 carWidth: 25,
@@ -112,6 +115,7 @@ describe('Car Serialization', () => {
                 lateral: 1,
                 slipFactor: 0,
                 slipWobble: 0,
+                slowdownPenalty: 0,
                 color: '#0000ff',
                 carLength: 40,
                 carWidth: 22,
@@ -170,6 +174,7 @@ describe('Car Serialization', () => {
             expect(deserialized.lateral).toBe(-999);
             expect(deserialized.slipFactor).toBe(0);
             expect(deserialized.slipWobble).toBe(0);
+            expect(deserialized.slowdownPenalty).toBe(0);
             expect(deserialized.lapCount).toBe(100);
             expect(deserialized.color).toBe('#000000');
             expect(deserialized.carLength).toBe(1);
@@ -200,6 +205,7 @@ describe('Car Serialization', () => {
                 lateral: 0,
                 slipFactor: 0,
                 slipWobble: 0,
+                slowdownPenalty: 0,
                 color: '#test',
                 carLength: 40,
                 carWidth: 22,
