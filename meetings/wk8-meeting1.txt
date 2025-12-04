@@ -1,0 +1,98 @@
+==================================================
+
+Meeting: Sprint 2 Retro (Follow-Up) + Sprint 3 Planning + Standup — Week 8
+Date: Monday, November 17
+Time: 6:20pm - 7:20pm
+Location: Remote (Discord)
+
+Attendees:
+- Jared
+- Noe
+- Anthony
+- Eli
+- Jeff
+Note: All members present!
+
+==================================================
+
+Agenda:
+- Brief follow-up on outstanding Sprint 2 items
+- Define Sprint 3 goals and scope
+- Assign Sprint 3 stories/tasks
+- Quick standup for current work and immediate next steps
+
+==================================================
+
+Sprint 2 Retro Follow-Up:
+- Confirmed which Sprint 2 items are fully done vs. officially carried over:
+  - Done: core physics fixes, UI refactor, campaign mode, pause-on-blur, initial pitstop overlay, HUD updates,
+    race finish line, and basic minimap.
+  - Carry-over:
+    - Noe: [Sprint 2 / Task] Rework division question generation to accept fractions.
+    - Eli: [Sprint 2 / Story 5] Bot 1v1 minigame (integration and gameplay tuning).
+    - Jeff: [Sprint 2 / Story 2 / Task 2] Build tests for minimap rendering and extra minimap polish.
+- Team agreed that carry-over work should be explicitly part of Sprint 3, not “side projects.”
+
+==================================================
+
+Sprint 3 Planning:
+
+Goals for Sprint 3:
+- Solidify the “feel” of the race: bots, minimap, HUD, and streak/combo feedback should feel responsive and readable.
+- Introduce and refine Practice Mode as a lower-pressure on-ramp to the main game.
+- Polish visual presentation with car sprites/animations and cohesive UI across menus and in-race screens.
+- Improve test coverage for minimap, core HUD, and key gameplay flows.
+
+Stories / Tasks (Initial Sprint 3 Setup):
+- Anthony:
+  - Continue bot AI refinement and overtake behavior tuning.
+  - Conduct code review and refactor passes: [Sprint 3 / Task] Code review and refactor.
+- Jared:
+  - Sweep through remaining UI rough edges and align styles with final design decisions.
+  - Ensure streak/combo visuals integrate cleanly with the HUD and don’t obscure gameplay.
+- Noe:
+  - Implement fraction support in division questions: [Sprint 2 / Task] Rework division question generation
+    to accept fractions.
+  - Tighten campaign pacing and difficulty curve if time allows.
+- Eli:
+  - Focus on [Sprint 2 / Story 5] Bot 1v1 minigame integration (when it triggers, how players/bots enter/exit,
+    win/lose conditions, and feedback).
+- Jeff:
+  - Own [Sprint 3 / Story 3] Practice Mode implementation (simple race variant with tailored questions and
+    lower-stakes environment).
+  - Implement [Sprint 3 / Task] Car sprites and animations (both player and bot cars).
+  - Finish [Sprint 2 / Story 2 / Task 2] Build tests for minimap rendering and clean up any minimap UX issues.
+
+==================================================
+
+Standup Snapshot (Sprint 3 Kickoff):
+
+Yesterday / Last Worked On:
+- Jared: Wrapped up most of the UI refactor and streak combo visual alignment.
+- Noe: Finished core campaign mode structure and small polish items.
+- Anthony: Stabilized physics tweaks and started documenting bot behavior.
+- Eli: Iterated on pitstop 1v1 overlay and flow drafts.
+- Jeff: Finished HUD updates, started planning Practice Mode and car sprite pipeline.
+
+Today / Working On Next:
+- Jared: Create Sprint 3 UI polish tickets and start work on high-visibility screens.
+- Noe: Begin fraction question generation implementation and outline tests.
+- Anthony: Begin Sprint 3 refactor passes and refine bot AI logic in the new structure.
+- Eli: Break Bot 1v1 minigame into concrete subtasks and start with core gameplay loop.
+- Jeff: Wire in Practice Mode flow (from main menu → practice race) and start integrating car sprites.
+
+Blockers / Needs Help:
+- Noe: Wants input on how complex fraction questions should be for target age range.
+- Eli: Needs clarification on when Bot 1v1 should trigger (e.g., pitstop-only, mid-race events, etc.).
+- Jeff: Needs agreement on final car sprite assets (size, orientation, and basic animation expectations).
+
+==================================================
+
+Action Items & Assignees:
+- [ ] Anthony: Start [Sprint 3 / Task] Code review and refactor focusing on hot paths (race loop, bots, rendering).
+- [ ] Jared: Open tickets for remaining UI polish and connect them to Sprint 3.
+- [ ] Noe: Implement and test fraction-based division questions.
+- [ ] Eli: Document the full Bot 1v1 minigame spec and share with the team for feedback.
+- [ ] Jeff: Implement base Practice Mode flow and begin integrating car sprites and animations.
+
+==================================================

@@ -1,0 +1,51 @@
+==================================================
+
+Meeting: Standup — Week 7
+Date: Wednesday, November 12
+Time: 3:00pm - 4:00pm
+Location: In-Person
+
+Attendees:
+- Jared
+- Noe
+- Anthony
+- Eli
+- Jeff
+Note: All members present!
+
+==================================================
+
+Standup Format:
+
+Yesterday / Last Worked On:
+- Jared: Continued work on [Sprint 2 / Task] UI components refactoring (cleaned up shared components, reduced prop
+  bloat) and iterated on [Sprint 2 / Story 1] Streak/Combo Mode visuals. Helped review Anthony’s physics changes.
+- Noe: Polished [Sprint 2 / Story 4] Campaign Mode flow (separate campaign button and basic progression), continued
+  tuning track feel based on lap-time feedback, and wrapped up [Sprint 2 / Task] Pause the game when losing focus.
+- Anthony: Finished most of the physics tasks: [Sprint 2 / Task] Fix camera onto car rotation, [Sprint 2 / Task]
+  Fix collision physics when lane changing, and refinement of track smoothing. Started wiring pieces for bot behavior.
+- Eli: Iterated on pitstop 1v1 minigame UX (overlay layout, bars, triggers) and aligned with track layout for possible
+  [Sprint 2 / Story 5] Bot 1v1 minigame integration.
+- Jeff: Updated HUD UI to match the latest designs, pushed progress on minimap renderer, and continued organizing the
+  meetings/ folder plus standup notes.
+
+Today / Working On Next:
+- Jared: Push remaining [Sprint 2 / Task] UI components refactoring changes, finalize streak/combo visuals for player
+  feedback, and prep PRs.
+- Noe: Start on [Sprint 2 / Task] Rework division question generation to accept fractions if time allows, otherwise
+  continue campaign polish and finish screen tweaks.
+- Anthony: Focus on [Sprint 2 / Story 3 / Task 1] Build overtake logic and [Sprint 2 / Story 3 / Task 2] Build bot
+  car AI logic (timers, correctness, difficulty profiles).
+- Eli: Draft concrete plan for how [Sprint 2 / Story 5] Bot 1v1 minigame will integrate into the main race flow and
+  continue implementation details for the pitstop overlay.
+- Jeff: Finish [Sprint 2 / Story 2 / Task 2] Build tests for minimap rendering and polish [Sprint 2 / Task] Create
+  race finish line / lap line on track behavior for multi-lap support.
+
+==================================================
+
+Team Notes:
+- Goal is to keep Sprint 2 focused on core gameplay polish: physics, bots, minimap, campaign, and pitstop.
+- PRs should stay small and targeted (one feature set per PR) to keep reviews manageable.
+- Everyone should keep the board updated so we can see what’s at risk going into the next retro.
+
+==================================================
