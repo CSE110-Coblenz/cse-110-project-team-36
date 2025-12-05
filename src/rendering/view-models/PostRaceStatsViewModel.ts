@@ -9,4 +9,3 @@ export interface PostRaceStatsViewModel {
     time: number; // in seconds
     onExit: () => void;
 }
-

@@ -37,6 +37,8 @@ describe('Car Serialization', () => {
                 lapCount: 2,
                 lastS: expect.any(Number),
                 crossedFinish: expect.any(Boolean),
+                inPitStop: expect.any(Boolean),
+                completedPitStop: expect.any(Boolean),
             });
         });
 
@@ -66,6 +68,8 @@ describe('Car Serialization', () => {
                 lapCount: 0,
                 lastS: 0,
                 crossedFinish: false,
+                inPitStop: false,
+                completedPitStop: false,
             });
         });
     });
@@ -93,6 +97,8 @@ describe('Car Serialization', () => {
                 lapCount: 3,
                 lastS: 140,
                 crossedFinish: true,
+                inPitStop: expect.any(Boolean),
+                completedPitStop: expect.any(Boolean),
             };
 
             const car = UserCar.fromSerializedData(serializedData);
@@ -129,6 +135,8 @@ describe('Car Serialization', () => {
                 lapCount: 1,
                 lastS: 45,
                 crossedFinish: false,
+                inPitStop: expect.any(Boolean),
+                completedPitStop: expect.any(Boolean),
             };
 
             const car = UserCar.fromSerializedData(serializedData);
@@ -219,6 +227,8 @@ describe('Car Serialization', () => {
                 lapCount: 1,
                 lastS: 950, // Must be > 900 (90% of 1000)
                 crossedFinish: false,
+                inPitStop: expect.any(Boolean),
+                completedPitStop: expect.any(Boolean),
             };
 
             const car = UserCar.fromSerializedData(serializedData);

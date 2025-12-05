@@ -174,6 +174,39 @@ export function TrackLayer({
                     shadowBlur={10}
                     shadowOpacity={0.6}
                 />
+                {/* Pit Lane Segment with White Outline */}
+                {track.getPitLaneSegments.map((seg, i) => {
+                    const linePoints = seg.points.flatMap((p) => {
+                        const screen = worldToScreen(
+                            p,
+                            camera,
+                            stageWidth,
+                            stageHeight,
+                        );
+                        return [screen.x, screen.y];
+                    });
+
+                    return (
+                        <Group key={i}>
+                            {/* Outline line (white, thicker) */}
+                            <Line
+                                points={linePoints}
+                                stroke="#ffffff"
+                                strokeWidth={track.laneWidth * 1.3}
+                                lineCap="round"
+                                lineJoin="round"
+                            />
+                            {/* Inner pit lane line */}
+                            <Line
+                                points={linePoints}
+                                stroke="#0f172a" // pit color
+                                strokeWidth={track.laneWidth * 1.1}
+                                lineCap="round"
+                                lineJoin="round"
+                            />
+                        </Group>
+                    );
+                })}
             </Group>
         </Layer>
     );

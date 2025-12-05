@@ -10,6 +10,7 @@ import { PostRaceStats } from '../rendering/game/RaceFinishedPage';
 import { Button } from '../components/button';
 import styles from './styles/racePage.module.css';
 import { MiniMap } from '../rendering/game/MiniMap';
+import { MiniGameOverlay } from '../rendering/game/MiniGameOverlay';
 
 interface RacePageProps {
     raceController: RaceController;
@@ -31,6 +32,7 @@ export const RacePage: React.FC<RacePageProps> = ({
     const [size, setSize] = useState({ w: PAGE_WIDTH, h: PAGE_HEIGHT });
     const [, setFrame] = useState(0);
     const [, forceUpdate] = useState(0);
+    const [showMinigame, setShowMinigame] = useState(false);
 
     useEffect(() => {
         if (!containerRef.current) return;
@@ -66,9 +68,24 @@ export const RacePage: React.FC<RacePageProps> = ({
     }, []);
 
     const viewModel = raceController.buildViewModel(currentUser, onExit);
+    const questionAnswerViewModel = viewModel.questionAnswerViewModel;
     const gs = viewModel.gameState;
 
     const handleSettings = () => events.emit('SettingsRequested', {});
+
+    events.on('PitStop', (data) => {
+        if (data.value) {
+            setShowMinigame(true);
+        }
+    });
+
+    const handleCloseMinigame = () => {
+        setShowMinigame(false);
+        // optional: resume race here if you paused it above
+        // if (raceController.getGameState().paused) {
+        //     raceController.resume();
+        // }
+    };
 
     return (
         <div ref={containerRef} className={styles.racePage}>
@@ -111,6 +128,11 @@ export const RacePage: React.FC<RacePageProps> = ({
             />
 
             <PostRaceStats viewModel={viewModel.postRaceStatsViewModel} />
+            <MiniGameOverlay
+                visible={showMinigame}
+                onClose={handleCloseMinigame}
+                questionAnswerViewModel={questionAnswerViewModel}
+            />
         </div>
     );
 };

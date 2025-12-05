@@ -21,4 +21,3 @@ export interface RacePageViewModel {
     streakBarViewModel: StreakBarViewModel;
     postRaceStatsViewModel: PostRaceStatsViewModel;
 }
-

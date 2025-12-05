@@ -21,7 +21,10 @@ export class EscapeListener {
 
 export class SpaceRewardListener {
     private onKey = (e: Event) => {
-        if (e instanceof KeyboardEvent && (e.key === ' ' || e.key === 'Spacebar')) {
+        if (
+            e instanceof KeyboardEvent &&
+            (e.key === ' ' || e.key === 'Spacebar')
+        ) {
             e.preventDefault();
             this.onReward();
         }
@@ -40,7 +43,10 @@ export class SpaceRewardListener {
 
 export class NumberInputListener {
     private onKey = (e: Event) => {
-        if (e instanceof KeyboardEvent && (/^[0-9]$/.test(e.key) || e.key === '.' || e.key === '-')) {
+        if (
+            e instanceof KeyboardEvent &&
+            (/^[0-9]$/.test(e.key) || e.key === '.' || e.key === '-')
+        ) {
             this.onInput(e.key);
         }
     };
@@ -58,7 +64,10 @@ export class NumberInputListener {
 
 export class DeleteListener {
     private onKey = (e: Event) => {
-        if (e instanceof KeyboardEvent && (e.key === 'Backspace' || e.key === 'Delete')) {
+        if (
+            e instanceof KeyboardEvent &&
+            (e.key === 'Backspace' || e.key === 'Delete')
+        ) {
             e.preventDefault();
             this.onDelete();
         }

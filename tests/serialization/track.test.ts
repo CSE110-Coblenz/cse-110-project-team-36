@@ -172,6 +172,35 @@ describe('Track Serialization', () => {
                 ],
                 sTable: [0, 10, 20, 30, 40],
                 totalLength: 40,
+                pitStops: [
+                    { x: 0, y: 0 },
+                    { x: 10, y: 0 },
+                    { x: 10, y: 10 },
+                    { x: 0, y: 10 },
+                    { x: 0, y: 0 },
+                ],
+                pitLaneSegments: [
+                    {
+                        pitLength: 100,
+                        startS: 0,
+                        endS: 100,
+                        rawTrackPoints: [
+                            { x: 0, y: 0 },
+                            { x: 10, y: 0 },
+                            { x: 10, y: 10 },
+                            { x: 0, y: 10 },
+                            { x: 0, y: 0 },
+                        ],
+                        points: [
+                            { x: 0, y: 0 },
+                            { x: 10, y: 0 },
+                            { x: 10, y: 10 },
+                            { x: 0, y: 10 },
+                            { x: 0, y: 0 },
+                        ],
+                        offset: 10,
+                    },
+                ],
             };
 
             const track = Track.fromSerializedData(minimalData);

@@ -41,4 +41,3 @@ export class BrowserStorageService implements StorageService {
         return this.storage.length;
     }
 }
-

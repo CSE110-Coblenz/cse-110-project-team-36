@@ -1,0 +1,43 @@
+.formContainer {
+    display: grid;
+    gap: 14px; /* vertical spacing between input, error, buttons, text */
+    text-align: left;
+    margin-bottom: 0px;
+}
+
+/* === Form Inputs === */
+.input {
+    padding: 10px 12px;
+    border-radius: 12px;
+    border: 2px solid var(--color-neon-blue);
+    background-color: var(--color-gray-darker);
+    color: var(--color-white);
+    font-weight: 600;
+    font-size: 0.9rem;
+    box-shadow: var(--shadow-neon-blue);
+}
+
+.input:focus {
+    outline: none;
+    box-shadow:
+        0 0 8px 2px var(--color-neon-cyan),
+        0 0 24px var(--color-neon-green);
+}
+
+/* === Error Message === */
+.error {
+    color: var(--color-error);
+    font-size: 0.85rem;
+    text-align: center;
+    padding: 8px;
+    background: var(--color-error-bg);
+    border-radius: 8px;
+    border: 1px solid var(--color-error-border);
+}
+
+.helperText {
+    font-size: 0.75rem;
+    color: var(--color-gray-light);
+    text-shadow: 0 0 4px var(--color-black);
+    margin-top: 4px;
+}

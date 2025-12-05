@@ -11,4 +11,3 @@ export interface QuestionAnswerViewModel {
     onSubmit: () => void;
     onSkip: () => void;
 }
-

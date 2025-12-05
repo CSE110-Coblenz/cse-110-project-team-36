@@ -2,7 +2,7 @@ import React from 'react';
 import { Input } from '../input';
 import { Button } from '../button';
 import { ErrorMessage } from '../errorMsg';
-import styles from "../../pages/styles/loginPage.module.css";
+import styles from '../styles/authStyle.module.css';
 
 export const SignupStep: React.FC<{
     username: string;

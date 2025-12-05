@@ -6,4 +6,3 @@ import { UserService } from './UserService';
  * Components can use this instance directly
  */
 export const userService = new UserService(new BrowserStorageService());
-

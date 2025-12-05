@@ -15,9 +15,7 @@ import {
 } from '../../src/game/config/types';
 import { RaceController } from '../../src/game/controllers/RaceController';
 import { RaceControllerFactory } from '../../src/game/factories/RaceControllerFactory';
-import {
-    QuestionTopic,
-} from '../../src/game/models/question';
+import { QuestionTopic } from '../../src/game/models/question';
 
 /**
  * Creates a simple rectangular test track
@@ -312,7 +310,7 @@ export function createDefaultRaceConfig(): RaceConfig {
         laneIndices: [1, 2, 0],
         userCarLaneIndex: 1,
         userCarInitialPosition: 0,
-        raceDifficulty: Difficulty.MEDIUM
+        raceDifficulty: Difficulty.MEDIUM,
     };
 }
 

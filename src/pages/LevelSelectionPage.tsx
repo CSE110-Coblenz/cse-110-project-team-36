@@ -5,7 +5,7 @@
 import React, { useState } from 'react';
 import { LevelSelectionController } from '../game/controllers/LevelSelectionController';
 import type { Level } from '../game/models/LevelModel';
-import { Button } from "../components/button";
+import { Button } from '../components/button';
 
 import styles from './styles/levelSelectionPage.module.css';
 

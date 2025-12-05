@@ -101,7 +101,11 @@ export function useAppState(): UseAppStateReturn {
         setScreen('menu');
     };
 
-    const handleStartRace = (topic: string, difficulty: string, track: string) => {
+    const handleStartRace = (
+        topic: string,
+        difficulty: string,
+        track: string,
+    ) => {
         setSelectedTopic(topic);
         setSelectedDifficulty(difficulty);
         setSelectedTrack(track);
@@ -178,4 +182,3 @@ export function useAppState(): UseAppStateReturn {
         handleStartRace,
     };
 }
-

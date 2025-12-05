@@ -335,11 +335,12 @@ describe('GameState Serialization', () => {
             const persistenceService = new PersistenceService(
                 new BrowserStorageService(),
             );
-            const loadedController = persistenceService.loadRaceControllerFromString(
-                jsonString,
-                questionConfig,
-                createDefaultRaceConfig(),
-            );
+            const loadedController =
+                persistenceService.loadRaceControllerFromString(
+                    jsonString,
+                    questionConfig,
+                    createDefaultRaceConfig(),
+                );
 
             const originalPlayerReward =
                 raceController.getGameState().playerCar.r;

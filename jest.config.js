@@ -15,6 +15,9 @@ export default {
             },
         ],
     },
+    moduleNameMapper: {
+        '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
+    },
     testMatch: [
         '<rootDir>/src/**/__tests__/**/*.(test|spec).(ts|tsx)',
         '<rootDir>/tests/**/*.(test|spec).(ts|tsx)',

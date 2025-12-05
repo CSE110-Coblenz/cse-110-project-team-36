@@ -6,9 +6,7 @@ interface PostRaceStatsProps {
     viewModel: PostRaceStatsViewModel;
 }
 
-export const PostRaceStats: React.FC<PostRaceStatsProps> = ({
-    viewModel,
-}) => {
+export const PostRaceStats: React.FC<PostRaceStatsProps> = ({ viewModel }) => {
     const [show, setShow] = useState(false);
 
     useEffect(() => {
