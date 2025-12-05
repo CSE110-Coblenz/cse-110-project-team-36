@@ -1,39 +1,39 @@
 import React from 'react';
 import { Button } from '../../components/button';
 import styles from '../styles/miniGameOverlay.module.css';
-import { QuestionController } from '../../game/controllers/QuestionController';
+import { type QuestionAnswerViewModel } from '../view-models/QuestionAnswerViewModel';
 import { useTimedMiniGame } from './hooks/useTimedMiniGame';
 
 interface MiniGameOverlayProps {
     visible: boolean;
     onClose: () => void;
-    questionController: QuestionController;
+    questionAnswerViewModel: QuestionAnswerViewModel;
 }
 
 export const MiniGameOverlay: React.FC<MiniGameOverlayProps> = ({
     visible,
     onClose,
-    questionController,
+    questionAnswerViewModel,
 }) => {
     const { state, resetRun, accuracy, progressPercent, config } =
         useTimedMiniGame(visible);
 
     if (!visible) return null;
 
-    const answer = questionController.getAnswer();
-    const feedback = questionController.getFeedback();
-    const currentQuestion = questionController.getCurrentQuestion();
+    const answer = questionAnswerViewModel.answer;
+    const feedback = questionAnswerViewModel.feedback;
+    const currentQuestion = questionAnswerViewModel.currentQuestion;
     const { correct, missed, answered, timeLeft, stage } = state;
 
     const handleSubmit: React.FormEventHandler = (e) => {
         e.preventDefault();
         if (stage === 'finished') return;
-        questionController.submitAnswer();
+        questionAnswerViewModel.onSubmit;
     };
 
     const handleSkip = () => {
         if (stage === 'finished') return;
-        questionController.skipQuestion();
+        questionAnswerViewModel.onSkip;
     };
 
     const feedbackClass =
