@@ -50,6 +50,7 @@
     font-weight: 600;
     cursor: pointer;
     transition: all var(--transition-medium);
+    z-index: 1;
 }
 
 .logoutButton:hover {
