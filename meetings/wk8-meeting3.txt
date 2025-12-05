@@ -1,0 +1,82 @@
+==================================================
+
+Meeting: Playtesting & Demo Prep — Week 8
+Date: Friday, November 21
+Time: 5:30pm - 6:30pm
+Location: Remote (Discord)
+
+Attendees:
+- Jared
+- Noe
+- Anthony
+- Jeff
+Note: Eli Out from surgery.
+
+==================================================
+
+Agenda:
+- Run structured playtests of the current Formula Fun build
+- Collect feedback on bots, minimap, Practice Mode, campaign, and UI
+- Identify demo-blocking bugs and high-priority polish tasks
+- Assign owners for fixes before Week 9
+
+==================================================
+
+Playtesting Notes (By Feature):
+
+Bots & Physics (Anthony):
+- Bots feel significantly more “alive” than in earlier sprints.
+- Over-aggressive behavior in some corners; occasional weird lane-change moments.
+- Difficulty curve between “easy” and “hard” bots is noticeable but could be tuned more.
+
+UI & Streak/Combo (Jared):
+- Streak/Combo indicators are readable and satisfying when triggered.
+- In rare cases, combo text slightly competes with question text on smaller screens.
+- Menu flow feels mostly smooth; only minor spacing issues on some resolutions.
+
+Campaign & Questions (Noe):
+- Campaign progression feels coherent (early races are manageable, later ones more challenging).
+- Fraction-based division questions work but can feel a bit dense if too many appear in a row.
+- No obvious crashes or soft-locks tied to specific question types.
+
+Practice Mode, Minimap, Car Sprites (Jeff):
+- Practice Mode is a good low-pressure entry point; players understood its purpose quickly.
+- Minimap is helpful for seeing track position; some testers suggested slightly thicker or clearer car markers.
+- Car sprites and basic animations make the race feel more “game-like” and polished.
+
+Bot 1v1 Minigame (Eli):
+- Out from surgery.
+
+==================================================
+
+Bugs / Issues Discovered:
+- Occasional minor clipping when bots change lanes near tight turns.
+- Rare UI overlap between streak text and question text on smaller window sizes.
+- A couple of fraction questions generated edge cases (e.g., awkward mixed numbers) that felt out of scope.
+- Minimap car icons can be slightly hard to see on very bright backgrounds.
+- Bot 1v1 trigger frequency feels high in long races.
+
+==================================================
+
+Polish Tasks & Assignments:
+
+- Anthony:
+  - Tweak bot lane-change rules to avoid clipping in tight corners.
+  - Slightly smooth acceleration/deceleration around sharp turns.
+
+- Jared:
+  - Adjust HUD layout to prevent streak/combo overlays from overlapping question text.
+  - Double-check menu spacing and alignment at common resolutions.
+
+- Noe:
+  - Clamp fraction question difficulty (e.g., limit denominators) and remove the strangest edge cases.
+  - Ensure question generation still plays nicely with streak/combo logic.
+
+- Jeff:
+  - Increase visibility of minimap car markers (size/shape tweaks).
+  - Confirm car sprite scaling looks consistent across different aspect ratios.
+
+- Eli:
+  - Out from surgery.
+
+==================================================

@@ -1,0 +1,50 @@
+==================================================
+
+Meeting: Standup — Week 8
+Date: Wednesday, November 19
+Time: 3:00pm - 4:00pm
+Location: In-Person
+
+Attendees:
+- Jared
+- Noe
+- Anthony
+- Eli
+- Jeff
+Note: All members present!
+
+==================================================
+
+Standup Format:
+
+Yesterday / Last Worked On:
+- Jared: Applied UI cleanup to menus and in-race HUD, reduced duplicated styling, and ensured streak/combo visual
+  cues are visible but not overwhelming.
+- Noe: Implemented first pass of fraction-based division questions and confirmed they appear correctly in the pool.
+- Anthony: Started [Sprint 3 / Task] Code review and refactor, focusing on race controllers and physics helpers.
+- Eli: Scoped out Bot 1v1 minigame flow and built a basic playable loop (entering minigame, answering, resolving).
+- Jeff: Wired [Sprint 3 / Story 3] Practice Mode entry from the main menu and integrated basic car sprites for the
+  player and bots.
+
+Today / Working On Next:
+- Jared: Finish remaining UI refactor edge cases and start reviewing others’ PRs for visual consistency.
+- Noe: Add validation and edge-case handling for fraction questions; verify they don’t break streak/combo logic.
+- Anthony: Continue refactor in areas that touch bots and collision logic; clean up naming and comments.
+- Eli: Out from surgery.
+- Jeff: Expand Practice Mode with clearer tutorial-esque copy and finalize the first pass of car animations.
+
+Blockers / Needs Help:
+- Jared: Wants feedback from the team on font sizing and spacing for the streak/combo overlay.
+- Noe: Needs sample question sets from others to test fractions in “real” gameplay scenarios.
+- Anthony: None currently, but may ask for help validating physics changes in playtests.
+- Eli: Out from surgery.
+- Jeff: Needs confirmation that car sprite sizes look okay across different devices/resolutions.
+
+==================================================
+
+Team Notes:
+- We should start thinking about final demo flow: what we show first (menu → campaign → practice → main race).
+- Encourage frequent playtesting this week so we don’t find UX issues at the last minute.
+- Everyone should link PRs to sprint items so it’s easy to see progress on the board.
+
+==================================================
