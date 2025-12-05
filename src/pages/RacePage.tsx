@@ -74,13 +74,11 @@ export const RacePage: React.FC<RacePageProps> = ({
 
     const handleSettings = () => events.emit('SettingsRequested', {});
 
-    const handleOpenMinigame = () => {
-        setShowMinigame(true);
-        // optional: pause race when entering minigame if API supports it
-        // if (!raceController.getGameState().paused) {
-        //     raceController.togglePause();
-        // }
-    };
+    events.on("PitStop", (data) => {
+        if ( data.value ) {
+            setShowMinigame(true);
+        }
+    })
 
     const handleCloseMinigame = () => {
         setShowMinigame(false);
@@ -113,15 +111,7 @@ export const RacePage: React.FC<RacePageProps> = ({
                 >
                     Pause
                 </Button>
-
-                {/* neww Minigame button */}
-                <Button
-                    onClick={handleOpenMinigame}
-                    title="Open Minigame"
-                    className={styles.minigameButton}
-                >
-                    Minigame
-                </Button>
+               
             </div>
 
             <Hud
