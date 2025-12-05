@@ -24,6 +24,28 @@ interface UseAppStateReturn {
 }
 
 /**
+ * Map track ID to race config file name
+ *
+ * @param track - Track ID (e.g., 'track1', 'campaigntrack1')
+ * @returns Race config file name (e.g., 'race1.json', 'campaign1.json')
+ */
+function getRaceFileForTrack(track: string): string {
+    // Regular tracks
+    if (track === 'track1') {
+        return 'race1.json';
+    }
+
+    // Campaign tracks
+    if (track.startsWith('campaigntrack')) {
+        const num = track.replace('campaigntrack', '');
+        return `campaign${num}.json`;
+    }
+
+    // Default fallback
+    return 'race1.json';
+}
+
+/**
  * Custom hook for managing application state
  * Handles screen navigation, user state, and race controller lifecycle
  */
@@ -115,7 +137,8 @@ export function useAppState(): UseAppStateReturn {
 
             let controller: RaceController | null = null;
 
-            RaceControllerFactory.createRaceControllerAsync('race1.json', {
+            const raceFile = getRaceFileForTrack(selectedTrack);
+            RaceControllerFactory.createRaceControllerAsync(raceFile, {
                 topic: topicStringToEnum(selectedTopic),
                 difficulty: difficultyStringToEnum(selectedDifficulty),
             })

@@ -1,7 +1,7 @@
 import type { PhysicsConfig } from '../../game/config/types';
 
 const config: PhysicsConfig = {
-    vMin: 5,
+    vMin: 0,
     vMax: 500,
     aBase: 0,
     tauA: 0.5,

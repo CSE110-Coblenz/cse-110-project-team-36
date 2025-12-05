@@ -45,17 +45,6 @@ export class BotController {
             if (!bot.isChangingLanes()) {
                 const direction = this.shouldLaneChange(bot, currentGameTime);
                 if (direction !== 0) {
-                    // Before committing to lane change, do a predictive collision check
-                    if (
-                        this.wouldLaneChangeCauseCollision(
-                            bot,
-                            direction,
-                            currentGameTime,
-                        )
-                    ) {
-                        // Skip this lane change to avoid immediate collision
-                        continue;
-                    }
                     this.laneController.switchLane(
                         bot,
                         direction,
@@ -78,7 +67,14 @@ export class BotController {
         const distance = getWrappedDistance(bot.s, car.s, this.trackLength);
         const relativeVelocity = bot.v - car.v;
 
-        // Only calculate if cars are approaching each other
+        const minSafeDistance = (bot.carLength + car.carLength) / 2 + 20;
+        if (distance < minSafeDistance) {
+            if (Math.abs(relativeVelocity) <= 0.1) {
+                return 0.1;
+            }
+            return distance / Math.max(Math.abs(relativeVelocity), 0.5);
+        }
+
         if (Math.abs(relativeVelocity) <= 0.1) {
             return null;
         }
@@ -117,16 +113,13 @@ export class BotController {
             const timeToCollision = this.calculateTimeToCollision(bot, car);
             if (timeToCollision === null) continue;
 
-            // Determine if car is ahead or behind
             const sDiff = getWrappedSDiff(car.s, bot.s, this.trackLength);
             const isAhead = sDiff > 0;
             const relativeVelocity = bot.v - car.v;
 
             if (isAhead && relativeVelocity > 0) {
-                // Car ahead, bot catching up
                 minTimeAhead = Math.min(minTimeAhead, timeToCollision);
             } else if (!isAhead && relativeVelocity < 0) {
-                // Car behind, bot being caught
                 minTimeBehind = Math.min(minTimeBehind, timeToCollision);
             }
         }
@@ -139,6 +132,7 @@ export class BotController {
 
     /**
      * Determine if bot should change lanes
+     * Proactively evaluates all available lanes and chooses the safest one
      *
      * @param bot - The bot car to evaluate
      * @param currentGameTime - Current game time in seconds
@@ -146,15 +140,10 @@ export class BotController {
      */
     shouldLaneChange(bot: BotCar, currentGameTime: number): -1 | 0 | 1 {
         const currentSafety = this.evaluateSafetyMetric(bot, currentGameTime);
-        const minSafety = Math.min(
+        const currentMinSafety = Math.min(
             currentSafety.timeAhead,
             currentSafety.timeBehind,
         );
-
-        // If current lane is safe enough, don't change
-        if (minSafety >= bot.safetyTimeThreshold) {
-            return 0;
-        }
 
         const track = this.gameState.track;
         const currentLane = bot.laneIndex;
@@ -162,72 +151,62 @@ export class BotController {
         const rightLane = currentLane + 1;
 
         let bestLane: number | null = null;
-        let bestSafety = minSafety;
+        let bestSafety = currentMinSafety;
 
-        // Check left lane
         if (leftLane >= 0) {
-            const leftSafety = this.evaluateLaneSafety(
+            const leftMetric = this.evaluateLaneSafetyMetric(
                 bot,
                 leftLane,
                 currentGameTime,
             );
             if (
-                leftSafety > bestSafety &&
-                this.isLaneSafeToChangeInto(
-                    bot,
-                    leftLane,
-                    currentGameTime,
-                    leftSafety,
-                )
+                leftMetric.safetyTime > bestSafety &&
+                leftMetric.isSafeToChange
             ) {
                 bestLane = leftLane;
-                bestSafety = leftSafety;
+                bestSafety = leftMetric.safetyTime;
             }
         }
 
-        // Check right lane
         if (rightLane < track.numLanes) {
-            const rightSafety = this.evaluateLaneSafety(
+            const rightMetric = this.evaluateLaneSafetyMetric(
                 bot,
                 rightLane,
                 currentGameTime,
             );
             if (
-                rightSafety > bestSafety &&
-                this.isLaneSafeToChangeInto(
-                    bot,
-                    rightLane,
-                    currentGameTime,
-                    rightSafety,
-                )
+                rightMetric.safetyTime > bestSafety &&
+                rightMetric.isSafeToChange
             ) {
                 bestLane = rightLane;
-                bestSafety = rightSafety;
+                bestSafety = rightMetric.safetyTime;
             }
         }
 
-        if (bestLane === null) {
-            return 0;
+        if (bestLane !== null && bestSafety > currentMinSafety * 1.1) {
+            return bestLane < currentLane ? -1 : 1;
         }
 
-        return bestLane < currentLane ? -1 : 1;
+        return 0;
     }
 
     /**
-     * Evaluate safety of a specific lane for a bot
+     * Unified lane safety evaluation
+     * Returns both the minimum safety time and whether it's safe to change into the lane
      *
      * @param bot - The bot car
      * @param laneIndex - The lane to evaluate
      * @param currentGameTime - Current game time in seconds
-     * @returns Minimum safety time for that lane
+     * @returns Object with safetyTime and isSafeToChange
      */
-    private evaluateLaneSafety(
+    private evaluateLaneSafetyMetric(
         bot: BotCar,
         laneIndex: number,
         currentGameTime: number,
-    ): number {
+    ): { safetyTime: number; isSafeToChange: boolean } {
         const allCars = this.gameState.getCars();
         let minTime = Infinity;
+        const minDistance = bot.carLength * 2; // Minimum safe distance (2 car lengths)
 
         for (const car of allCars) {
             if (car === bot) continue;
@@ -236,91 +215,37 @@ export class BotController {
                 car,
                 currentGameTime,
             );
-            if (!carLanes.includes(laneIndex)) continue;
-
-            const timeToCollision = this.calculateTimeToCollision(bot, car);
-            if (timeToCollision !== null) {
-                minTime = Math.min(minTime, timeToCollision);
-            }
-        }
-
-        return minTime;
-    }
-
-    /**
-     * Check if a lane is safe to change into
-     * Checks both cars already in the lane and cars attempting to change into it
-     *
-     * @param bot - The bot car
-     * @param laneIndex - The lane to check
-     * @param currentGameTime - Current game time in seconds
-     * @param laneSafetyTime - The minimum safety time for this lane (from evaluateLaneSafety)
-     * @returns True if safe to change into
-     */
-    private isLaneSafeToChangeInto(
-        bot: BotCar,
-        laneIndex: number,
-        currentGameTime: number,
-        laneSafetyTime: number,
-    ): boolean {
-        // First check: lane must have acceptable safety time (accounts for cars already in lane)
-        if (laneSafetyTime < bot.safetyTimeThreshold) {
-            return false;
-        }
-
-        const allCars = this.gameState.getCars();
-        const minDistance = (bot.carLength + 40) * 2; // Minimum 2 car lengths of clearance
-
-        for (const car of allCars) {
-            if (car === bot) continue;
-
-            const carLanes = this.laneController.getEffectiveLanes(
-                car,
-                currentGameTime,
-            );
-            const carInTargetLane = carLanes.includes(laneIndex);
-
-            // Check if car is attempting to change into this lane OR already in it
-            const isChangingIntoTarget =
+            const carInLane = carLanes.includes(laneIndex);
+            const isChangingInto =
                 car.isChangingLanes() && car.targetLaneIndex === laneIndex;
 
-            if (carInTargetLane || isChangingIntoTarget) {
+            if (carInLane || isChangingInto) {
                 const distance = getWrappedDistance(
                     bot.s,
                     car.s,
                     this.trackLength,
                 );
 
-                // Minimum distance check: don't change if too close
-                if (distance < minDistance) {
-                    return false;
+                const timeToCollision = this.calculateTimeToCollision(bot, car);
+                if (timeToCollision !== null) {
+                    minTime = Math.min(minTime, timeToCollision);
                 }
 
-                // Dynamic safety distance based on relative velocity
-                const relativeVelocity = bot.v - car.v;
-                const maxVelocity = Math.max(bot.v, car.v);
-
-                // For cars approaching from behind (faster car catching up), use larger safety distance
-                const sDiff = getWrappedSDiff(car.s, bot.s, this.trackLength);
-                const isCarBehind = sDiff < 0;
-                const isApproaching = isCarBehind
-                    ? relativeVelocity < 0
-                    : relativeVelocity > 0;
-
-                // Use relative velocity for safety distance calculation
-                const effectiveVelocity = isApproaching
-                    ? maxVelocity
-                    : Math.abs(relativeVelocity);
-                const safetyDistance =
-                    bot.safetyTimeThreshold * effectiveVelocity;
-
-                if (distance < safetyDistance) {
-                    return false;
+                if (distance < minDistance) {
+                    return {
+                        safetyTime: minTime,
+                        isSafeToChange: false,
+                    };
                 }
             }
         }
 
-        return true;
+        const isSafeToChange = minTime >= bot.safetyTimeThreshold;
+
+        return {
+            safetyTime: minTime,
+            isSafeToChange,
+        };
     }
 
     /**
@@ -336,75 +261,14 @@ export class BotController {
         if (isCorrect) {
             this.carController.queueReward(bot, 150);
         } else {
-            this.carController.applyPenalty(bot, 0.8);
+            this.carController.applySlowdownPenalty(bot, 0.8);
         }
 
-        // Generate next answer time with Gaussian variation
         const nextSpeed = Math.max(
             0.1,
             gaussian(bot.answerSpeed, bot.answerSpeedStdDev),
         );
         bot.nextAnswerTime = currentGameTime + nextSpeed;
-    }
-
-    /**
-     * Check if a lane change would cause an immediate collision
-     * Predictive check before committing to lane change
-     *
-     * @param bot - The bot car
-     * @param direction - The direction of lane change (-1 or 1)
-     * @param currentGameTime - Current game time in seconds
-     * @returns True if lane change would cause collision
-     */
-    private wouldLaneChangeCauseCollision(
-        bot: BotCar,
-        direction: -1 | 1,
-        currentGameTime: number,
-    ): boolean {
-        const track = this.gameState.track;
-        const targetLane = bot.laneIndex + direction;
-
-        // Check bounds
-        if (targetLane < 0 || targetLane >= track.numLanes) {
-            return true; // Would cause out-of-bounds, treat as collision
-        }
-
-        const allCars = this.gameState.getCars();
-        const minDistance = (bot.carLength + 40) / 2; // Half car length overlap threshold
-
-        // Check all other cars to see if we'd overlap during lane change
-        for (const car of allCars) {
-            if (car === bot) continue;
-
-            // Get lanes this car will be in during the lane change
-            // We'll be in both source and target lanes during transition
-            const botFutureLanes = [bot.laneIndex, targetLane];
-            const carLanes = this.laneController.getEffectiveLanes(
-                car,
-                currentGameTime,
-            );
-
-            // Check if we'd share any lanes
-            const wouldShareLane = botFutureLanes.some((l) =>
-                carLanes.includes(l),
-            );
-            if (!wouldShareLane) continue;
-
-            // Check if we'd be too close
-            const distance = getWrappedDistance(bot.s, car.s, this.trackLength);
-            if (distance < minDistance) {
-                return true; // Would cause immediate collision
-            }
-
-            // Check relative velocity - if approaching quickly, avoid
-            const timeToCollision = this.calculateTimeToCollision(bot, car);
-            if (timeToCollision !== null && timeToCollision < 0.5) {
-                // Would collide within 0.5 seconds
-                return true;
-            }
-        }
-
-        return false;
     }
 
     /**

@@ -100,13 +100,13 @@ export class CarController {
                 this.pendingRewards.set(car, 0);
             }
 
-            // 3. Base + reward + decay + slip accelerations (unconstrained)
+            // 3. Base + reward + decay + slowdown penalty accelerations (unconstrained)
             // Decay: a_decay(v) = -β 1_{v > vMin}
             const aDecay = v > this.config.vMin ? -this.config.beta : 0;
 
-            // Slip extra deceleration toward vMin
-            const slipDecel =
-                car.slipFactor > 0
+            // Slowdown penalty deceleration toward vMin
+            const slowdownDecel =
+                car.slowdownPenalty > 0
                     ? -this.config.slipVelocityDecay * (v - this.config.vMin)
                     : 0;
 
@@ -115,11 +115,17 @@ export class CarController {
                 this.config.aBase + // baseline
                 car.r + // smoothed reward
                 aDecay + // decay toward vMin
-                slipDecel; // slip penalties
+                slowdownDecel; // slowdown penalties
 
-            // 4. Curvature-based speed cap with effective friction depending on slip
+            // 4. Curvature-based speed cap with effective friction depending on slowdown penalty
             const kappa = track.curvatureAt(s);
-            const muEffective = this.config.baseMu * (1 - car.slipFactor * 0.6);
+            const muEffective = this.config.baseMu * (1 - car.slowdownPenalty * 0.6);
+
+            // Decay slowdown penalty over time
+            car.slowdownPenalty = Math.max(
+                0,
+                car.slowdownPenalty - this.config.slipDecay * dt,
+            );
             const vKappaRaw = Math.sqrt(
                 (muEffective * 9.81) / (Math.abs(kappa) + this.config.kappaEps),
             );
@@ -137,7 +143,7 @@ export class CarController {
             let vNext = vTemp + aBrake * dt;
 
             // Global clamps
-            vNext = clamp(vNext, 0, this.config.vMax);
+            vNext = Math.max(this.config.vMin, clamp(vNext, 0, this.config.vMax));
 
             // 6. Optionally enforce a floor for motion; vUsed is what we integrate s with
             const vUsed = Math.max(this.config.vMin, vNext);
@@ -146,7 +152,6 @@ export class CarController {
             car.v = vNext;
             car.s = track.wrapS(s + vUsed * dt);
         }
-        
     }
 
     /**
@@ -194,13 +199,23 @@ export class CarController {
     }
 
     /**
-     * Apply penalty/slip to a car
+     * Apply visual slip effect to a car 
      *
-     * @param car - The car to apply penalty to
-     * @param magnitude - The penalty magnitude (0-1, affects slipFactor)
+     * @param car - The car to apply slip to
+     * @param magnitude - The slip magnitude (0-1, affects slipFactor for visual effects)
      */
-    applyPenalty(car: Car, magnitude: number): void {
+    applySlipFactor(car: Car, magnitude: number): void {
         car.slipFactor = Math.min(1, car.slipFactor + magnitude);
+    }
+
+    /**
+     * Apply slowdown penalty to a car (for speed reduction only)
+     *
+     * @param car - The car to apply slowdown penalty to
+     * @param magnitude - The penalty magnitude (0-1, affects slowdownPenalty for speed reduction)
+     */
+    applySlowdownPenalty(car: Car, magnitude: number): void {
+        car.slowdownPenalty = Math.min(1, car.slowdownPenalty + magnitude);
     }
 
     /**

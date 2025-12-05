@@ -9,6 +9,7 @@ import { events } from '../shared/events';
 import { PostRaceStats } from '../rendering/game/RaceFinishedPage';
 import { Button } from '../components/button';
 import styles from './styles/racePage.module.css';
+import { MiniMap } from '../rendering/game/MiniMap';
 
 
 interface RacePageProps {
@@ -77,6 +78,12 @@ export const RacePage: React.FC<RacePageProps> = ({
                 streakBarViewModel={viewModel.streakBarViewModel}
             />
             <GameStage gs={gs} width={size.w} height={size.h} />
+
+            <MiniMap
+                track={gs.track}
+                cars={gs.getCars()}
+                playerCar={gs.playerCar}
+            />
 
             <div className={styles.pausePlacement}>
                 <Button

@@ -14,8 +14,9 @@ export class Car {
     public v: number = 0; // physical velocity
     public lateral: number = 0; // lateral offset (world units)
 
-    public slipFactor: number = 0; // slip state [0, 1] for slip effect
+    public slipFactor: number = 0; // slip state [0, 1] for visual slip effect
     public slipWobble: number = 0; // angular wobble for slip effect
+    public slowdownPenalty: number = 0; // slowdown penalty [0, 1] for speed reduction (separate from visual slip)
 
     public color: string = '#22c55e'; // car color
     public carLength: number = 40; // car size (world units)
@@ -28,6 +29,7 @@ export class Car {
     public pendingLaneChanges: number = 0; // net lane changes requested (direction-based queue)
     public laneChangeStartOffset: number | null = null; // lateral offset (world units) where lane change started from (for smooth interruptions)
     public laneChangeStartVelocity: number | null = null; // lateral velocity (world units/sec) when lane change started (for smooth interruptions)
+    public effectiveLanes: number[] = [0]; // cached effective lane indices (computed once per frame in updateLaneChanges)
     public crashedThisFrame: boolean = false; // flag to indicate crash occurred this frame (skip physics smoothing)
 
     public lapCount: number = 0;
@@ -61,6 +63,7 @@ export class Car {
         if (laneIndex !== undefined) {
             this.laneIndex = laneIndex;
         }
+        this.effectiveLanes = [this.laneIndex];
     }
 
     /**
@@ -165,6 +168,7 @@ export class Car {
             lateral: this.lateral,
             slipFactor: this.slipFactor,
             slipWobble: this.slipWobble,
+            slowdownPenalty: this.slowdownPenalty,
             color: this.color,
             carLength: this.carLength,
             carWidth: this.carWidth,
@@ -174,6 +178,7 @@ export class Car {
             pendingLaneChanges: this.pendingLaneChanges,
             laneChangeStartOffset: this.laneChangeStartOffset,
             laneChangeStartVelocity: this.laneChangeStartVelocity,
+            effectiveLanes: this.effectiveLanes,
             lapCount: this.lapCount,
             lastS: this.lastS,
             crossedFinish: this.crossedFinish,
@@ -195,6 +200,7 @@ export class Car {
         lateral: number;
         slipFactor?: number;
         slipWobble?: number;
+        slowdownPenalty?: number;
         color: string;
         carLength: number;
         carWidth: number;
@@ -204,6 +210,7 @@ export class Car {
         pendingLaneChanges?: number;
         laneChangeStartOffset?: number | null;
         laneChangeStartVelocity?: number | null;
+        effectiveLanes?: number[];
         lapCount: number;
         lastS: number;
         crossedFinish: boolean;
@@ -223,12 +230,14 @@ export class Car {
         car.lateral = data.lateral;
         car.slipFactor = data.slipFactor ?? 0;
         car.slipWobble = data.slipWobble ?? 0;
+        car.slowdownPenalty = data.slowdownPenalty ?? 0;
         car.laneIndex = data.laneIndex ?? 0;
         car.targetLaneIndex = data.targetLaneIndex ?? null;
         car.laneChangeStartTime = data.laneChangeStartTime ?? null;
         car.pendingLaneChanges = data.pendingLaneChanges ?? 0;
         car.laneChangeStartOffset = data.laneChangeStartOffset ?? null;
         car.laneChangeStartVelocity = data.laneChangeStartVelocity ?? null;
+        car.effectiveLanes = data.effectiveLanes ?? [car.laneIndex];
         car.lapCount = data.lapCount;
         car.lastS = data.lastS;
         car.crossedFinish = data.crossedFinish;

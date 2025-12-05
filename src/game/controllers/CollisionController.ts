@@ -2,20 +2,44 @@ import type { GameState } from '../models/game-state';
 import type { Car } from '../models/car';
 import type { LaneController } from './LaneController';
 import type { CarController } from './CarController';
-import type { PhysicsConfig } from '../config/types';
-import { getWrappedDistance } from '../../utils/track';
+import { getWrappedSDiff } from '../../utils/track';
+
+/**
+ * Hitbox representation for a car in world space
+ */
+interface Hitbox {
+    centerX: number;
+    centerY: number;
+    halfLength: number; // carLength / 2
+    halfWidth: number;  // carWidth / 2
+    rotation: number;   // rotation angle in radians
+}
+
+/**
+ * Simplified collision record
+ */
+interface Collision {
+    car1: Car;
+    car2: Car;
+    rear: Car;
+    front: Car;
+    isSideCollision: boolean; // true if lateral overlap > longitudinal overlap
+}
 
 /**
  * Collision controller for detecting collisions between cars
+ * Uses hitbox-based detection for accurate visual overlap detection
  */
 export class CollisionController {
     private readonly trackLength: number;
+
+    private static readonly POSITION_ADJUSTMENT_EPSILON = 1e-1; // Small boost to front car position
+    private static readonly MAX_COLLISION_VELOCITY = 50.0; // Maximum velocity for collision
 
     constructor(
         private gameState: GameState,
         private laneController: LaneController,
         private carController: CarController,
-        private physicsConfig: PhysicsConfig,
     ) {
         this.trackLength = this.gameState.track.length;
     }
@@ -27,448 +51,170 @@ export class CollisionController {
         return this.trackLength;
     }
 
+
+    /**
+     * Calculate hitbox for a car in world space
+     * Uses the car's world position and dimensions to create a bounding box
+     * Assumes rotation 0 (axis-aligned) for simplicity
+     *
+     * @param car - The car to calculate hitbox for
+     * @returns Hitbox in world coordinates
+     */
+    private getCarHitbox(car: Car): Hitbox {
+        const track = this.gameState.track;
+        const worldPos = car.getWorldPosition(track, car.lateral);
+
+        return {
+            centerX: worldPos.x,
+            centerY: worldPos.y,
+            halfLength: car.carLength / 2,
+            halfWidth: car.carWidth / 2,
+            rotation: 0, // Assume no rotation for simplified collision detection
+        };
+    }
+
+    /**
+     * Check if two hitboxes overlap using simple AABB (Axis-Aligned Bounding Box) detection
+     * Assumes cars are axis-aligned (rotation 0)
+     *
+     * @param h1 - First hitbox
+     * @param h2 - Second hitbox
+     * @returns True if hitboxes overlap
+     */
+    private doHitboxesOverlap(h1: Hitbox, h2: Hitbox): boolean {
+        // Quick distance check: if cars are far apart, they can't overlap
+        const dx = h1.centerX - h2.centerX;
+        const dy = h1.centerY - h2.centerY;
+        const maxDistance = Math.max(
+            h1.halfLength + h1.halfWidth,
+            h2.halfLength + h2.halfWidth,
+        ) * 2;
+        if (dx * dx + dy * dy > maxDistance * maxDistance) {
+            return false;
+        }
+
+        return (
+            Math.abs(h1.centerX - h2.centerX) < h1.halfLength + h2.halfLength &&
+            Math.abs(h1.centerY - h2.centerY) < h1.halfWidth + h2.halfWidth
+        );
+    }
+
     /**
      * Handle all collisions in a single unified method
-     * Categorizes and handles: tiebreaker collisions, merge collisions, and regular collisions
+     * Uses hitbox-based detection to only detect actual visual overlaps
      *
      * @param cars - All cars in the game
      * @param currentGameTime - Current game time in seconds
      */
     public handleAllCollisions(cars: Car[], currentGameTime: number): void {
-        // Detect all potential collisions
-        const collisions = this.detectAllCollisions(cars, currentGameTime);
-
-        // Categorize and handle each collision
+        const collisions = this.detectAllCollisions(cars);
         for (const collision of collisions) {
-            if (collision.type === 'tiebreaker') {
-                this.handleTiebreakerCollision(collision);
-            } else if (collision.type === 'merge') {
-                this.handleMergeCollision(collision, currentGameTime);
-            } else {
-                this.handleRegularCollision(collision);
-            }
+            this.handleCollision(collision, currentGameTime);
         }
     }
 
     /**
-     * Get the lanes where a collision occurred (intersection of both cars' effective lanes)
+     * Detect all collisions using hitbox overlap detection
+     * Only detects collisions when cars actually overlap visually
      *
-     * @param car1 - First car
-     * @param car2 - Second car
-     * @param currentGameTime - Current game time in seconds
-     * @returns Array of lane indices where collision occurred
+     * @param cars - All cars in the game
+     * @returns Array of detected collisions
      */
-    private getCollisionLanes(
-        car1: Car,
-        car2: Car,
-        currentGameTime: number,
-    ): number[] {
-        const car1Lanes = this.laneController.getEffectiveLanes(
-            car1,
-            currentGameTime,
-        );
-        const car2Lanes = this.laneController.getEffectiveLanes(
-            car2,
-            currentGameTime,
-        );
-        return car1Lanes.filter((lane) => car2Lanes.includes(lane));
-    }
+    private detectAllCollisions(cars: Car[]): Collision[] {
+        const collisions: Collision[] = [];
 
-    /**
-     * Check if a merging car's target lane is involved in the collision
-     * and if the other car is/will be in that target lane
-     *
-     * @param mergingCar - The car that is changing lanes
-     * @param otherCar - The other car involved in collision
-     * @param collisionLanes - The lanes where collision occurred
-     * @param currentGameTime - Current game time in seconds
-     * @returns True if target lane is involved and other car is/will be there
-     */
-    private isTargetLaneInvolved(
-        mergingCar: Car,
-        otherCar: Car,
-        collisionLanes: number[],
-        currentGameTime: number,
-    ): boolean {
-        if (mergingCar.targetLaneIndex === null) {
-            return false;
-        }
-
-        const targetLane = mergingCar.targetLaneIndex;
-
-        // Check if target lane is in collision lanes
-        if (!collisionLanes.includes(targetLane)) {
-            return false;
-        }
-
-        // Check if other car is currently in or will be in the target lane
-        const otherCarLanes = this.laneController.getEffectiveLanes(
-            otherCar,
-            currentGameTime,
-        );
-        if (otherCarLanes.includes(targetLane)) {
-            return true;
-        }
-
-        // Check if other car is also changing into the target lane
-        if (
-            otherCar.isChangingLanes() &&
-            otherCar.targetLaneIndex === targetLane
-        ) {
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * Check if both cars' target lanes conflict (are the same)
-     *
-     * @param car1 - First car
-     * @param car2 - Second car
-     * @returns True if both are changing into the same target lane
-     */
-    private doTargetLanesConflict(car1: Car, car2: Car): boolean {
-        if (!car1.isChangingLanes() || !car2.isChangingLanes()) {
-            return false;
-        }
-        return (
-            car1.targetLaneIndex !== null &&
-            car2.targetLaneIndex !== null &&
-            car1.targetLaneIndex === car2.targetLaneIndex
-        );
-    }
-
-    /**
-     * Detect all collisions and categorize them
-     */
-    private detectAllCollisions(
-        cars: Car[],
-        currentGameTime: number,
-    ): Array<{
-        type: 'tiebreaker' | 'merge' | 'regular';
-        car1: Car;
-        car2: Car;
-        rear: Car;
-        front: Car;
-        car1Changing: boolean;
-        car2Changing: boolean;
-        car1TargetLane: number | null;
-        car2TargetLane: number | null;
-        car1SourceLane: number;
-        car2SourceLane: number;
-        collisionLanes: number[];
-    }> {
-        const results: Array<{
-            type: 'tiebreaker' | 'merge' | 'regular';
-            car1: Car;
-            car2: Car;
-            rear: Car;
-            front: Car;
-            car1Changing: boolean;
-            car2Changing: boolean;
-            car1TargetLane: number | null;
-            car2TargetLane: number | null;
-            car1SourceLane: number;
-            car2SourceLane: number;
-            collisionLanes: number[];
-        }> = [];
-        const pairKeys = new Set<string>();
-
-        // Simple O(n²) all-pairs check
         for (let i = 0; i < cars.length; i++) {
             for (let j = i + 1; j < cars.length; j++) {
-                const a = cars[i];
-                const b = cars[j];
+                const car1 = cars[i];
+                const car2 = cars[j];
 
-                // Check if they share lanes (call getEffectiveLanes once per car)
-                const aLanes = this.laneController.getEffectiveLanes(
-                    a,
-                    currentGameTime,
-                );
-                const bLanes = this.laneController.getEffectiveLanes(
-                    b,
-                    currentGameTime,
-                );
-                const same = aLanes.some((l) => bLanes.includes(l));
-                if (!same) continue;
+                const hitbox1 = this.getCarHitbox(car1);
+                const hitbox2 = this.getCarHitbox(car2);
 
-                // Get the lanes where collision occurred (intersection)
-                const collisionLanes = this.getCollisionLanes(
-                    a,
-                    b,
-                    currentGameTime,
-                );
-
-                // Determine rear/front based on wrapped s position
-                const half = this.trackLength / 2;
-                const sDiff = a.s - b.s;
-                const wDiff =
-                    sDiff > half
-                        ? sDiff - this.trackLength
-                        : sDiff < -half
-                          ? sDiff + this.trackLength
-                          : sDiff;
-                const rear = wDiff < 0 ? a : b;
-                const front = wDiff < 0 ? b : a;
-
-                // Deduplicate pairs
-                const key = `${i}-${j}`;
-                if (pairKeys.has(key)) continue;
-                pairKeys.add(key);
-
-                const aChanging = a.isChangingLanes();
-                const bChanging = b.isChangingLanes();
-                const aTargetLane = a.targetLaneIndex;
-                const bTargetLane = b.targetLaneIndex;
-                const aSourceLane = a.laneIndex;
-                const bSourceLane = b.laneIndex;
-
-                // Check for tiebreaker: both changing into same target lane
-                if (
-                    aChanging &&
-                    bChanging &&
-                    aTargetLane !== null &&
-                    bTargetLane !== null &&
-                    aTargetLane === bTargetLane
-                ) {
-                    const laneDistance = Math.abs(aSourceLane - bSourceLane);
-                    const d = getWrappedDistance(a.s, b.s, this.trackLength);
-                    const threshold = (a.carLength + b.carLength) / 2;
-
-                    // Tiebreaker: same target, 1+ lanes apart, not overlapping yet
-                    // Extended to handle 1-lane-apart cases for better prevention
-                    if (laneDistance >= 1 && d >= threshold) {
-                        results.push({
-                            type: 'tiebreaker',
-                            car1: a,
-                            car2: b,
-                            rear,
-                            front,
-                            car1Changing: aChanging,
-                            car2Changing: bChanging,
-                            car1TargetLane: aTargetLane,
-                            car2TargetLane: bTargetLane,
-                            car1SourceLane: aSourceLane,
-                            car2SourceLane: bSourceLane,
-                            collisionLanes,
-                        });
+                if (!this.doHitboxesOverlap(hitbox1, hitbox2)) {
                         continue;
-                    }
                 }
 
-                // Check for overlap (actual collision)
-                const d = getWrappedDistance(a.s, b.s, this.trackLength);
-                const threshold = (a.carLength + b.carLength) / 2;
-                if (d > threshold) continue;
+                const sDiff = getWrappedSDiff(car1.s, car2.s, this.trackLength);
+                const rear = sDiff < 0 ? car1 : car2;
+                const front = sDiff < 0 ? car2 : car1;
 
-                // Merge collision: at least one car is changing lanes and overlapping
-                if (aChanging || bChanging) {
-                    results.push({
-                        type: 'merge',
-                        car1: a,
-                        car2: b,
-                        rear,
-                        front,
-                        car1Changing: aChanging,
-                        car2Changing: bChanging,
-                        car1TargetLane: aTargetLane,
-                        car2TargetLane: bTargetLane,
-                        car1SourceLane: aSourceLane,
-                        car2SourceLane: bSourceLane,
-                        collisionLanes,
-                    });
-                } else {
-                    // Regular collision: both in stable lanes
-                    results.push({
-                        type: 'regular',
-                        car1: a,
-                        car2: b,
-                        rear,
-                        front,
-                        car1Changing: false,
-                        car2Changing: false,
-                        car1TargetLane: null,
-                        car2TargetLane: null,
-                        car1SourceLane: aSourceLane,
-                        car2SourceLane: bSourceLane,
-                        collisionLanes,
-                    });
-                }
+                const longitudinalDistance = Math.abs(sDiff);
+                const lateralDistance = Math.abs(car1.lateral - car2.lateral);
+                const isSideCollision = lateralDistance > longitudinalDistance;
+
+                collisions.push({
+                    car1,
+                    car2,
+                    rear,
+                    front,
+                    isSideCollision,
+                });
             }
         }
 
-        return results;
+        return collisions;
     }
 
     /**
-     * Handle tiebreaker collision: two cars merging into same lane, faster car wins
+     * Handle a single collision
+     * Applies crash effects and handles based on collision type
+     *
+     * @param collision - The collision to handle
+     * @param currentGameTime - Current game time in seconds
      */
-    private handleTiebreakerCollision(collision: {
-        car1: Car;
-        car2: Car;
-        rear: Car;
-        front: Car;
-    }): void {
-        const { car1, car2 } = collision;
+    private handleCollision(collision: Collision, currentGameTime: number): void {
+        const { car1, car2, rear, front, isSideCollision } = collision;
 
-        // Determine slower car (faster car continues lane change)
-        const slowerCar = car1.v > car2.v ? car2 : car1;
+        // Apply crash effects to both cars (symmetric) - only clears rewards, no penalties
+        this.applyCrashEffects(car1);
+        this.applyCrashEffects(car2);
 
-        // Slower car: cancel lane change (faster car continues)
-        this.laneController.cancelLaneChange(slowerCar);
-
-        // No penalties for tiebreaker (not a crash, just a tiebreaker)
-    }
-
-    /**
-     * Handle merge collision: one car merges onto another
-     */
-    private handleMergeCollision(
-        collision: {
-            car1: Car;
-            car2: Car;
-            rear: Car;
-            front: Car;
-            car1Changing: boolean;
-            car2Changing: boolean;
-            collisionLanes: number[];
-        },
-        currentGameTime: number,
-    ): void {
-        const {
-            car1,
-            car2,
-            rear,
-            front,
-            car1Changing,
-            car2Changing,
-            collisionLanes,
-        } = collision;
-
-        // Apply crash effects regardless
-        this.applyCrashEffects({ rear, front });
-
-        // Case 1: One car is changing, other is stationary
-        if (car1Changing && !car2Changing) {
-            // Check if collision is in merging car's target lane and other car is there
-            if (
-                this.isTargetLaneInvolved(
-                    car1,
-                    car2,
-                    collisionLanes,
-                    currentGameTime,
-                )
-            ) {
-                // Target lane is involved - cancel lane change
-                this.carController.applyPenalty(car2, 0.4);
-                this.carController.applyPenalty(car1, 0.8);
-                this.laneController.cancelLaneChange(car1);
-            } else {
-                // Collision in source/intermediate lane, target lane is clear - allow lane change to continue
-                this.carController.applyPenalty(car2, 0.4);
-                this.carController.applyPenalty(car1, 0.8);
-                // Don't cancel lane change - it can complete
+        if (isSideCollision) {
+            if (car1.isChangingLanes()) {
+                this.laneController.cancelLaneChange(car1, currentGameTime);
             }
-        } else if (car2Changing && !car1Changing) {
-            // Same logic for car2 changing
-            if (
-                this.isTargetLaneInvolved(
-                    car2,
-                    car1,
-                    collisionLanes,
-                    currentGameTime,
-                )
-            ) {
-                this.carController.applyPenalty(car1, 0.4);
-                this.carController.applyPenalty(car2, 0.8);
-                this.laneController.cancelLaneChange(car2);
-            } else {
-                this.carController.applyPenalty(car1, 0.4);
-                this.carController.applyPenalty(car2, 0.8);
-                // Don't cancel lane change
-            }
-        } else if (car1Changing && car2Changing) {
-            // Case 2: Both cars are changing lanes
-            // Check if target lanes conflict
-            if (this.doTargetLanesConflict(car1, car2)) {
-                // Both changing into same target lane - faster car wins (tiebreaker should have caught this, but handle it here too)
-                const fasterCar = car1.v > car2.v ? car1 : car2;
-                const slowerCar = car1.v > car2.v ? car2 : car1;
-                this.carController.applyPenalty(slowerCar, 0.8);
-                this.carController.applyPenalty(fasterCar, 0.8);
-                this.laneController.cancelLaneChange(slowerCar);
-            } else {
-                // Different target lanes - check if each car's target lane is involved
-                const car1TargetInvolved = this.isTargetLaneInvolved(
-                    car1,
-                    car2,
-                    collisionLanes,
-                    currentGameTime,
-                );
-                const car2TargetInvolved = this.isTargetLaneInvolved(
-                    car2,
-                    car1,
-                    collisionLanes,
-                    currentGameTime,
-                );
-
-                // Apply penalties to both
-                this.carController.applyPenalty(car1, 0.8);
-                this.carController.applyPenalty(car2, 0.8);
-
-                // Only cancel if target lane is involved
-                if (car1TargetInvolved) {
-                    this.laneController.cancelLaneChange(car1);
-                }
-                if (car2TargetInvolved) {
-                    this.laneController.cancelLaneChange(car2);
-                }
+            if (car2.isChangingLanes()) {
+                this.laneController.cancelLaneChange(car2, currentGameTime);
             }
         } else {
-            // Neither changing (shouldn't happen in merge collision, but handle gracefully)
-            const fasterCar = car1.v > car2.v ? car1 : car2;
-            const slowerCar = car1.v > car2.v ? car2 : car1;
-            this.carController.applyPenalty(slowerCar, 0.8);
-            this.carController.applyPenalty(fasterCar, 0.8);
+            this.applyMomentumTransfer(rear, front);
+            const track = this.gameState.track;
+            const epsilon = CollisionController.POSITION_ADJUSTMENT_EPSILON;
+            front.s = track.wrapS(front.s + epsilon);
         }
     }
 
     /**
-     * Handle regular collision: both cars in stable lanes
+     * Apply symmetric crash effects to a single car
+     * Effects: clear rewards only (no penalties)
+     *
+     * @param car - The car to apply effects to
      */
-    private handleRegularCollision(collision: { rear: Car; front: Car }): void {
-        const { rear, front } = collision;
-        const track = this.gameState.track;
-        this.applyCrashEffects({ rear, front });
-        const separationDistance =
-            (rear.carLength + front.carLength) / 2 + 1e-3;
-        const epsilon = 1e-1;
-        front.s = track.wrapS(front.s + epsilon);
-        rear.s = track.wrapS(front.s - separationDistance);
+    private applyCrashEffects(car: Car): void {
+        car.r = 0;
+        this.carController.resetPendingRewards(car);
+        this.carController.applySlipFactor(car, 0.8);
     }
 
     /**
-     * Apply crash effects (velocity, slip, rewards) without position separation
-     * Used for lane-change collisions where only lateral position should change
+     * Apply full momentum transfer physics between two cars
+     * Rear car stops completely (velocity goes to 0)
+     * Front car gets all momentum from both cars
+     * Ensures velocities never go negative (cars never go backwards)
      *
-     * @param pair - The collision pair
+     * @param rear - The car behind (stops completely)
+     * @param front - The car ahead (gets all momentum)
      */
-    public applyCrashEffects(pair: { rear: Car; front: Car }): void {
-        const { rear, front } = pair;
-
-        const originalRearV = rear.v;
-        rear.v = this.physicsConfig.vMin;
-        rear.r = 0;
-        this.carController.resetPendingRewards(rear);
-        rear.slipFactor = Math.min(1, rear.slipFactor + 0.8);
-
-        const momentum = originalRearV * rear.carLength;
-        const speedBump =
-            (momentum * this.physicsConfig.momentumTransfer) / front.carLength;
-        front.v = Math.min(front.v + speedBump, this.physicsConfig.vMax * 1.5);
-        front.r = 0;
-        this.carController.resetPendingRewards(front);
-        front.slipFactor = Math.min(1, front.slipFactor + 0.8);
+    private applyMomentumTransfer(rear: Car, front: Car): void {
+        const totalMomentum = rear.v * rear.carLength + front.v * front.carLength;
+        rear.v = 0;
+        front.v = Math.max(
+            0, 
+            Math.min(
+                totalMomentum / front.carLength,
+                CollisionController.MAX_COLLISION_VELOCITY
+            )
+        );
     }
 }
