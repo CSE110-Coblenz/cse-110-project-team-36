@@ -42,7 +42,7 @@ export interface SerializedTrack {
     samples: { x: number; y: number }[];
     sTable: number[];
     totalLength: number;
-    pitStops: { x: number; y: number}[];
+    pitStops: { x: number; y: number }[];
     pitLaneSegments: PitLaneSegment[];
 }
 

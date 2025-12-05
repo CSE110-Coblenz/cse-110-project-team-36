@@ -68,6 +68,32 @@ export class LaneController {
         const track = this.gameState.track;
         car.pendingLaneChanges += direction;
         const targetLane = car.laneIndex + car.pendingLaneChanges;
+
+        const isPitStop = this.isMergeAPitStop(track, car);
+
+
+        // handles case where car wants to merge to pitStop
+        if ( targetLane == -1 && isPitStop ) {
+
+            car.emitStateChanged(isPitStop);
+            car.inPitStop = true;
+
+            const currentState = this.getLaneChangeState(
+                car,
+                track,
+                currentGameTime,
+                isPitStop
+            );
+            car.laneChangeStartOffset = currentState.offset;
+            car.laneChangeStartVelocity = currentState.velocity;
+    
+            car.targetLaneIndex = targetLane;
+            car.laneChangeStartTime = currentGameTime;
+        }
+
+        car.emitStateChanged(false);
+        car.inPitStop = false;
+
         if (targetLane < 0 || targetLane >= track.numLanes) {
             // Invalid target - revert change and apply penalty
             car.pendingLaneChanges -= direction;
@@ -137,6 +163,18 @@ export class LaneController {
         }
     }
 
+
+    // Want to check if car is in pitstop's world coordinates
+    isMergeAPitStop(track: Track, car: Car) {
+        const carPosition = car.getWorldPosition(track, car.lateral);
+        const pitLaneSegments = track.getPitLaneSegments;
+        const trackPitStops = pitLaneSegments.flatMap(segment => segment.rawTrackPoints);
+        const EPS = pitLaneSegments[0].pitLength / 10; // pit size
+        return trackPitStops.some(p => 
+            Math.hypot(p.x - carPosition.x, p.y - carPosition.y) < EPS   // checking if coordinates are within pitstop range
+        );
+    }
+
     /**
      * Get the effective lane indices a car is currently in
      * During lane change, car is only in the two lanes it's actively transitioning between
@@ -189,6 +227,7 @@ export class LaneController {
         car: Car,
         track: Track,
         currentGameTime: number,
+        isPitStop?: boolean
     ): { offset: number; velocity: number } {
         if (car.laneChangeStartTime === null || car.targetLaneIndex === null) {
             return {
@@ -205,7 +244,7 @@ export class LaneController {
             car.laneChangeStartVelocity !== null
                 ? car.laneChangeStartVelocity
                 : 0;
-        const targetOffset = track.getLaneOffset(car.targetLaneIndex);
+        const targetOffset = isPitStop ?  track.getPitLaneSegments[0].offset : track.getLaneOffset(car.targetLaneIndex);
         return interpolateLaneChange({
             startOffset,
             targetOffset,

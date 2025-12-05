@@ -43,6 +43,7 @@ export type EventMap = {
     QuestionStateChanged: Record<string, never>;
     StreakActivated: { value: boolean };
     RaceFinished: Record<string, never>;
+    PitStop: { value: boolean};
 };
 
 export const events = new EventBus<EventMap>();

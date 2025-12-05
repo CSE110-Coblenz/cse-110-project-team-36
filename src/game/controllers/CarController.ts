@@ -79,65 +79,74 @@ export class CarController {
      * @param track - The track to update the car on
      */
     private updateCarPosition(car: Car, dt: number, track: Track): void {
-        const v = car.v;
-        const s = car.s;
+        if ( car.inPitStop ) {
+            car.v = 0;
+            car.r = 0
 
-        // 1. Reward smoothing: r_{k+1} = ρ r_k + Σ A_k
-        const rho = Math.exp(-dt / this.config.tauA);
-        car.r = rho * car.r;
-
-        // 2. Consume pending reward impulse(s): add A_k into r
-        const Ak = this.pendingRewards.get(car) ?? 0;
-        if (Ak !== 0) {
-            car.r += Ak;
             this.pendingRewards.set(car, 0);
+            return;
+        } else {
+            const v = car.v;
+            const s = car.s;
+
+            // 1. Reward smoothing: r_{k+1} = ρ r_k + Σ A_k
+            const rho = Math.exp(-dt / this.config.tauA);
+            car.r = rho * car.r;
+
+            // 2. Consume pending reward impulse(s): add A_k into r
+            const Ak = this.pendingRewards.get(car) ?? 0;
+            if (Ak !== 0) {
+                car.r += Ak;
+                this.pendingRewards.set(car, 0);
+            }
+
+            // 3. Base + reward + decay + slip accelerations (unconstrained)
+            // Decay: a_decay(v) = -β 1_{v > vMin}
+            const aDecay = v > this.config.vMin ? -this.config.beta : 0;
+
+            // Slip extra deceleration toward vMin
+            const slipDecel =
+                car.slipFactor > 0
+                    ? -this.config.slipVelocityDecay * (v - this.config.vMin)
+                    : 0;
+
+            // Unconstrained acceleration
+            const aUn =
+                this.config.aBase + // baseline
+                car.r + // smoothed reward
+                aDecay + // decay toward vMin
+                slipDecel; // slip penalties
+
+            // 4. Curvature-based speed cap with effective friction depending on slip
+            const kappa = track.curvatureAt(s);
+            const muEffective = this.config.baseMu * (1 - car.slipFactor * 0.6);
+            const vKappaRaw = Math.sqrt(
+                (muEffective * 9.81) / (Math.abs(kappa) + this.config.kappaEps),
+            );
+            const vKappaMax = this.config.vKappaScale * vKappaRaw;
+            const vCap = vKappaMax + this.config.vBonus;
+
+            // 5. Soft braking:
+            //    vTemp = v + aUn * dt
+            //    a_brake = -kKappaBrake * max(0, vTemp - vCap)
+            //    vNext = clamp(vTemp + a_brake * dt, 0, vMax)
+            const vTemp = v + aUn * dt;
+
+            const overspeed = Math.max(0, vTemp - vCap);
+            const aBrake = -this.config.kKappaBrake * overspeed;
+            let vNext = vTemp + aBrake * dt;
+
+            // Global clamps
+            vNext = clamp(vNext, 0, this.config.vMax);
+
+            // 6. Optionally enforce a floor for motion; vUsed is what we integrate s with
+            const vUsed = Math.max(this.config.vMin, vNext);
+
+            // 7. Commit back to car (authoritative state)
+            car.v = vNext;
+            car.s = track.wrapS(s + vUsed * dt);
         }
-
-        // 3. Base + reward + decay + slip accelerations (unconstrained)
-        // Decay: a_decay(v) = -β 1_{v > vMin}
-        const aDecay = v > this.config.vMin ? -this.config.beta : 0;
-
-        // Slip extra deceleration toward vMin
-        const slipDecel =
-            car.slipFactor > 0
-                ? -this.config.slipVelocityDecay * (v - this.config.vMin)
-                : 0;
-
-        // Unconstrained acceleration
-        const aUn =
-            this.config.aBase + // baseline
-            car.r + // smoothed reward
-            aDecay + // decay toward vMin
-            slipDecel; // slip penalties
-
-        // 4. Curvature-based speed cap with effective friction depending on slip
-        const kappa = track.curvatureAt(s);
-        const muEffective = this.config.baseMu * (1 - car.slipFactor * 0.6);
-        const vKappaRaw = Math.sqrt(
-            (muEffective * 9.81) / (Math.abs(kappa) + this.config.kappaEps),
-        );
-        const vKappaMax = this.config.vKappaScale * vKappaRaw;
-        const vCap = vKappaMax + this.config.vBonus;
-
-        // 5. Soft braking:
-        //    vTemp = v + aUn * dt
-        //    a_brake = -kKappaBrake * max(0, vTemp - vCap)
-        //    vNext = clamp(vTemp + a_brake * dt, 0, vMax)
-        const vTemp = v + aUn * dt;
-
-        const overspeed = Math.max(0, vTemp - vCap);
-        const aBrake = -this.config.kKappaBrake * overspeed;
-        let vNext = vTemp + aBrake * dt;
-
-        // Global clamps
-        vNext = clamp(vNext, 0, this.config.vMax);
-
-        // 6. Optionally enforce a floor for motion; vUsed is what we integrate s with
-        const vUsed = Math.max(this.config.vMin, vNext);
-
-        // 7. Commit back to car (authoritative state)
-        car.v = vNext;
-        car.s = track.wrapS(s + vUsed * dt);
+        
     }
 
     /**

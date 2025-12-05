@@ -1,5 +1,6 @@
 import type { Track } from './track';
 import { clamp } from '../../utils/math';
+import { events } from "../../shared/events";
 
 /**
  * Car class
@@ -32,6 +33,9 @@ export class Car {
     public lapCount: number = 0;
     protected lastS: number = 0;
     protected crossedFinish: boolean = false;
+
+    public inPitStop: boolean = false;
+    protected completedPitStop: boolean = false;
 
     /**
      * Constructor
@@ -142,6 +146,10 @@ export class Car {
         return { x: wp.x, y: wp.y, angleDeg };
     }
 
+    emitStateChanged(inPitStop: boolean) {
+        events.emit('PitStop', { value: inPitStop} );
+    }
+
     // === SERIALIZATION METHODS ===
 
     /**
@@ -169,6 +177,8 @@ export class Car {
             lapCount: this.lapCount,
             lastS: this.lastS,
             crossedFinish: this.crossedFinish,
+            inPitStop: this.inPitStop,
+            completedPitStop: this.completedPitStop,
         };
     }
 
@@ -197,6 +207,8 @@ export class Car {
         lapCount: number;
         lastS: number;
         crossedFinish: boolean;
+        inPitStop: boolean;
+        completedPitStop: boolean;
     }): Car {
         const car = new Car(
             data.s,
@@ -220,6 +232,8 @@ export class Car {
         car.lapCount = data.lapCount;
         car.lastS = data.lastS;
         car.crossedFinish = data.crossedFinish;
+        car.inPitStop = data.inPitStop;
+        car.completedPitStop = data.completedPitStop;
         return car;
     }
 }

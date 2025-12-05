@@ -78,16 +78,6 @@ export function TrackLayer({
         }));
     }, [track, laneDividers, camera, stageWidth, stageHeight]);
 
-    const pitStopPoints = useMemo(() => {
-        const points: number[] = []
-        for ( const pitStopPoint of track.getPitStops() ) {
-            const p = worldToScreen(pitStopPoint, camera, stageWidth, stageHeight);
-            points.push(p.x, p.y)
-        }
-
-        return points;
-    }, [track, camera, stageWidth, stageHeight])
-
     const finishLinePoints = useMemo(() => {
         // Draw a small perpendicular finish line stripe at s = 0
         const s = 0;
@@ -184,13 +174,34 @@ export function TrackLayer({
                     shadowBlur={10}
                     shadowOpacity={0.6}
                 />
-                <Line 
-                    points={pitStopPoints}
-                    stroke="#8a8f97"
-                    strokeWidth={1}
-                    lineCap="round"
-                    lineJoin="round"
-                />
+               {/* Pit Lane Segment with White Outline */}
+                {track.getPitLaneSegments.map((seg, i) => {
+                    const linePoints = seg.points.flatMap(p => {
+                        const screen = worldToScreen(p, camera, stageWidth, stageHeight);
+                        return [screen.x, screen.y];
+                    });
+
+                    return (
+                        <Group key={i}>
+                            {/* Outline line (white, thicker) */}
+                            <Line
+                                points={linePoints}
+                                stroke="#ffffff"
+                                strokeWidth={track.laneWidth * 1.3}
+                                lineCap="round"
+                                lineJoin="round"
+                            />
+                            {/* Inner pit lane line */}
+                            <Line
+                                points={linePoints}
+                                stroke = "#0f172a"  // pit color
+                                strokeWidth={track.laneWidth * 1.1} 
+                                lineCap="round"
+                                lineJoin="round"
+                            />
+                        </Group>
+                    );
+                })}
             </Group>
         </Layer>
     );
