@@ -1,0 +1,72 @@
+==================================================
+
+Meeting: Sprint 3 Retrospective — Week 9
+Date: Wednesday, November 26
+Time: 3:00pm - 4:00pm
+Location: Remote (Discord)
+
+Attendees:
+- Jared
+- Noe
+- Anthony
+- Eli
+- Jeff
+Note: All members present!
+
+==================================================
+
+Agenda:
+- Review Sprint 3 goals vs. what we shipped
+- Discuss what went well and what could be improved
+- Reflect on the project as a whole (across all sprints)
+- Capture lessons learned for future team projects
+
+==================================================
+
+Sprint 3 Outcomes:
+
+Highlights:
+- Practice Mode (Jeff):
+  - [Sprint 3 / Story 3] Practice Mode implemented as a friendly entry point into races.
+  - Smooth flow from main menu into practice, focusing on learning without heavy penalties.
+- Visuals & Presentation (Jeff):
+  - [Sprint 3 / Task] Car sprites and animations added for both player and bot cars.
+  - Overall race readability improved with minimap, HUD updates, and consistent art direction.
+- Bots & Physics (Anthony):
+  - Continued refinement of bot AI, overtake behavior, and physics tuning.
+  - Major code cleanup completed via [Sprint 3 / Task] Code review and refactor.
+- UI & Streaks (Jared):
+  - UI components refactor completed; common components are cleaner and easier to reuse.
+  - Streak/Combo Mode feels more rewarding without overwhelming the player visually.
+- Campaign & Questions (Noe):
+  - Campaign Mode tied together core gameplay beats with a structured progression.
+  - Fraction-based division questions added, expanding question variety.
+- Minigames & Docs (Eli):
+  - Bot 1v1 minigame integrated in a way that complements the main race rather than derailing it.
+  - README and project documentation updated so teammates and graders can understand and run the project.
+
+==================================================
+
+What Went Well:
+- The game now feels like a coherent experience rather than a set of disconnected prototypes.
+- Collaboration improved each sprint; fewer miscommunications and more async alignment via notes and board usage.
+- The MVC-ish structure and refactors made it easier to reason about where new logic should live.
+- Everyone owned visible, demo-able features (Practice Mode, bots, campaign, minigame, UI polish, etc.).
+
+What Could Be Improved:
+- Estimation: some features (like Bot 1v1, Practice Mode polish, and AI tuning) still took longer than expected.
+- Testing: while coverage improved, tests were again most concentrated near the end of the sprint.
+
+Project-Level Lessons Learned:
+- Writing meeting notes and keeping a meetings/ directory actually helped future us remember decisions.
+- Clear ownership per feature, but with review/backup from others, prevented work from getting stuck.
+- Small, frequent PRs were significantly easier to manage than large “mega-PRs.”
+- Planning concrete Definitions of Done at sprint start would have reduced ambiguity throughout.
+
+==================================================
+
+Action Items / Future Recommendations:
+- Everyone: Reflect on which parts of this project they’d highlight on their resumes/portfolios and clean up
+  branches or repos to make it easy to share.
+
+==================================================

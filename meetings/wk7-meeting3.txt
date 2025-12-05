@@ -1,0 +1,70 @@
+==================================================
+
+Meeting: Sprint 2 Retrospective — Week 7
+Date: Friday, November 14
+Time: 5:30pm - 6:30pm
+Location: Remote (Discord)
+
+Attendees:
+- Jared
+- Noe
+- Anthony
+- Eli
+- Jeff
+Note: All members present!
+
+==================================================
+
+Agenda:
+- Review Sprint 2 commitments vs. completed work
+- Identify what went well, what didn’t, and what to change
+- Decide which items move into Sprint 3
+- Capture process improvements for the next sprint
+
+==================================================
+
+Sprint 2 Outcomes:
+
+Completed (Highlights):
+- Anthony:
+  - Finished core physics fixes: camera rotation, lane-change collision behavior, and track smoothing.
+  - Contributed toward [Sprint 2 / Story 3] Bots & Competition with overtake logic and initial AI behavior.
+- Jared:
+  - Completed [Sprint 2 / Task] UI components refactoring (cleaner shared components, better prop usage).
+  - Implemented [Sprint 2 / Story 1] Streak/Combo Mode and [Sprint 2 / Story 3 / Task 3] Wire in bot car settings
+    with the race creation page.
+- Noe:
+  - Shipped [Sprint 2 / Story 4] Campaign Mode (basic structure + entry button) and [Sprint 2 / Task] Pause the game
+    when losing focus on browser.
+- Eli:
+  - Built the first iteration of the pitstop minigame overlay, including progress bars and trigger logic.
+  - Completed [Sprint 2 / Task] README Creation to document the project.
+- Jeff:
+  - Updated HUD UI to match the new visual direction.
+  - Implemented race finish/lap line behavior and got the minimap renderer working at a basic level.
+
+Partially Completed / Moving to Sprint 3:
+- Anthony: Further refinement of bot AI difficulty profiles and long-race tuning.
+- Jared: Additional UI polish for streak/combo effects and minor component cleanup.
+- Noe: [Sprint 2 / Task] Rework division question generation to accept fractions.
+- Eli: [Sprint 2 / Story 5] Bot 1v1 minigame integration into core race flow.
+- Jeff: [Sprint 2 / Story 2 / Task 2] Build tests for minimap rendering and additional minimap polish.
+
+==================================================
+
+What Went Well:
+- Clearer task breakdown (Stories vs. Tasks) helped everyone understand their responsibilities.
+- Track physics and camera experience improved noticeably; playtests felt more “race-like.”
+- Collaboration on UI/UX (HUD, campaign, pitstop) made the game feel more cohesive.
+- Using the meetings/ folder + standup notes (Jeff) made it easier to remember decisions.
+
+==================================================
+
+Action Items & Follow-Ups:
+- Anthony: Document a simple bot difficulty scheme (easy/medium/hard) with parameters to tune in Sprint 3.
+- Jared: Create backlog items for any remaining UI polish work that didn’t fit into Sprint 2.
+- Noe: Move fraction-based question generation task into Sprint 3 and outline test cases.
+- Eli: Turn the Bot 1v1 minigame concept into a clear set of tasks (layout, triggers, integration).
+- Jeff: Add minimap test coverage and ensure core race HUD elements are tested in Sprint 3.
+
+==================================================

@@ -1,0 +1,45 @@
+==================================================
+
+Meeting: Standup — Week 9
+Date: Monday, November 24
+Time: 6:20pm - 7:00pm
+Location: Remote (Discord)
+
+Attendees:
+- Jared
+- Noe
+- Anthony
+- Eli
+- Jeff
+Note: All members present!
+
+==================================================
+
+Standup Format:
+
+Yesterday / Last Worked On:
+- Jared: Closed out the last major UI refactor tasks, tuned streak/combo visuals for readability, and fixed a couple
+  of minor layout bugs.
+- Noe: Tightened fraction question generation (simplified some cases) and playtested campaign mode with real question
+  pools.
+- Anthony: Completed a major pass of [Sprint 3 / Task] Code review and refactor, removing dead code and clarifying
+  controller logic.
+- Eli: Adjusted Bot 1v1 flow based on feedback, ensuring it doesn’t stall the race and feels like a focused challenge.
+- Jeff: Finished core Practice Mode flow, integrated car sprites and basic animations, and added more robust minimap
+  tests.
+
+Today / Working On Next:
+- Jared: Focus on small polish fixes, reviewing any remaining PRs, and ensuring UI is consistent in the demo path.
+- Noe: Run more end-to-end playtests to confirm campaign and fraction questions feel fair and bug-free.
+- Anthony: Do targeted tweaks to bot behavior and physics after playtest feedback.
+- Eli: Final polish on Bot 1v1 visuals, feedback, and balancing.
+- Jeff: Do a final pass on Practice Mode and minimap clarity, then assist with documentation or demo setup.
+
+Blockers / Needs Help:
+- Jared: Wants sign-off from the team on the final UI look (menus + in-race HUD).
+- Noe: Needs extra eyes on fraction question difficulty levels.
+- Anthony: Needs the team to report any weird physics edge cases they find.
+- Eli: Wants input on whether the minigame frequency feels right over a full race.
+- Jeff: None at the moment; will help others if he finishes early.
+
+==================================================
