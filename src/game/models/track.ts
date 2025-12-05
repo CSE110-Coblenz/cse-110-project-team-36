@@ -195,7 +195,7 @@ export class Track {
         const offset = this.getLaneOffset(0) + this._laneWidth; // offset from centerline to right most lane + width of lane
 
         // pick a random sample index; pit stop can be located anywhere except start/finish line
-        let randomSampleIndex =
+        const randomSampleIndex =
             Math.floor(Math.random() * (this.samples.length - 2 + 1)) + 1;
 
         // convert index → actual track distance
@@ -203,20 +203,20 @@ export class Track {
         const endS = Math.min(startS + pitLength, this.totalLength);
 
         const pitStopCoordinates: Vec2[] = []; // race track coordinates scaled by offset (where the pitstop will be located)
-        const rawTrackCoordinates: Vec2[] = [] // race track coordinates used prior to the offset
+        const rawTrackCoordinates: Vec2[] = []; // race track coordinates used prior to the offset
 
         // generate pit stop coordinates until desired pitStop length is reached or nearing the end of track
         for (let s = startS; s < endS; s += sampleSpacing) {
             const p0 = this.posAt(s);
             const normalp0 = this.normalAt(s);
-            
+
             if (!isFinite(p0.x) || !isFinite(p0.y)) {
                 continue;
             }
 
             rawTrackCoordinates.push({
                 x: p0.x + normalp0.x,
-                y: p0.y + normalp0.y * offset
+                y: p0.y + normalp0.y * offset,
             });
 
             pitStopCoordinates.push({
@@ -379,7 +379,7 @@ export class Track {
             sTable: [...this.sTable],
             totalLength: this.totalLength,
             pitStops: [...this.pitStops],
-            pitLaneSegments: [...this.pitLaneSegments]
+            pitLaneSegments: [...this.pitLaneSegments],
         };
     }
 

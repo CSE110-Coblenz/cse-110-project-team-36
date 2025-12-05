@@ -20,4 +20,3 @@ export class BrowserTimerService implements TimerService {
         window.clearTimeout(id);
     }
 }
-

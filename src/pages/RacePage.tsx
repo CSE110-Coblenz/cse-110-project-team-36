@@ -12,7 +12,6 @@ import styles from './styles/racePage.module.css';
 import { MiniMap } from '../rendering/game/MiniMap';
 import { MiniGameOverlay } from '../rendering/game/MiniGameOverlay';
 
-
 interface RacePageProps {
     raceController: RaceController;
     currentUser: string | null;
@@ -32,7 +31,7 @@ export const RacePage: React.FC<RacePageProps> = ({
     const containerRef = useRef<HTMLDivElement>(null);
     const [size, setSize] = useState({ w: PAGE_WIDTH, h: PAGE_HEIGHT });
     const [, setFrame] = useState(0);
-    const [, forceUpdate] = useState(0)
+    const [, forceUpdate] = useState(0);
     const [showMinigame, setShowMinigame] = useState(false);
 
     useEffect(() => {
@@ -74,11 +73,11 @@ export const RacePage: React.FC<RacePageProps> = ({
 
     const handleSettings = () => events.emit('SettingsRequested', {});
 
-    events.on("PitStop", (data) => {
-        if ( data.value ) {
+    events.on('PitStop', (data) => {
+        if (data.value) {
             setShowMinigame(true);
         }
-    })
+    });
 
     const handleCloseMinigame = () => {
         setShowMinigame(false);
@@ -111,7 +110,6 @@ export const RacePage: React.FC<RacePageProps> = ({
                 >
                     Pause
                 </Button>
-               
             </div>
 
             <Hud

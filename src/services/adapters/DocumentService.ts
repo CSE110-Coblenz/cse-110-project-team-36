@@ -40,4 +40,3 @@ export class BrowserDocumentService implements DocumentService {
         await document.exitFullscreen?.();
     }
 }
-

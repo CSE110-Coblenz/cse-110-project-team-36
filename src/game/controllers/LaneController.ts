@@ -33,11 +33,11 @@ function easeInOutCubicDerivative(t: number): number {
  * @returns Interpolated offset and velocity
  */
 function interpolateLaneChange(params: {
-    startOffset: number;    // Starting lateral offset (world units)
-    targetOffset: number;   // Target lateral offset (world units)
-    startVelocity: number;  // Starting lateral velocity (world units/sec)
-    progress: number;       // Normalized progress [0, 1], precondition: 0 <= progress <= 1
-    duration: number;       // Total duration of lane change (seconds)
+    startOffset: number; // Starting lateral offset (world units)
+    targetOffset: number; // Target lateral offset (world units)
+    startVelocity: number; // Starting lateral velocity (world units/sec)
+    progress: number; // Normalized progress [0, 1], precondition: 0 <= progress <= 1
+    duration: number; // Total duration of lane change (seconds)
 }): { offset: number; velocity: number } {
     const { startOffset, targetOffset, startVelocity, progress, duration } =
         params;
@@ -74,10 +74,8 @@ export class LaneController {
 
         const isPitStop = this.isMergeAPitStop(track, car);
 
-
         // handles case where car wants to merge to pitStop
-        if ( targetLane == -1 && isPitStop ) {
-
+        if (targetLane == -1 && isPitStop) {
             car.emitStateChanged(isPitStop);
             car.inPitStop = true;
 
@@ -85,11 +83,11 @@ export class LaneController {
                 car,
                 track,
                 currentGameTime,
-                isPitStop
+                isPitStop,
             );
             car.laneChangeStartOffset = currentState.offset;
             car.laneChangeStartVelocity = currentState.velocity;
-    
+
             car.targetLaneIndex = targetLane;
             car.laneChangeStartTime = currentGameTime;
         }
@@ -100,7 +98,10 @@ export class LaneController {
         if (targetLane < 0 || targetLane >= track.numLanes) {
             // Invalid target - revert change and apply slowdown penalty
             car.pendingLaneChanges -= direction;
-            this.carController.applySlowdownPenalty(car, INVALID_LANE_CHANGE_PENALTY);
+            this.carController.applySlowdownPenalty(
+                car,
+                INVALID_LANE_CHANGE_PENALTY,
+            );
             return false;
         }
 
@@ -127,12 +128,17 @@ export class LaneController {
     cancelLaneChange(car: Car, currentGameTime: number): void {
         const track = this.gameState.track;
         const currentLateral = car.lateral;
-        const currentVelocity = this.getLaneChangeVelocity(car, track, currentGameTime);
+        const currentVelocity = this.getLaneChangeVelocity(
+            car,
+            track,
+            currentGameTime,
+        );
 
         car.laneChangeStartOffset = currentLateral;
         car.laneChangeStartVelocity = currentVelocity;
         car.targetLaneIndex = car.laneIndex;
-        car.laneChangeStartTime = currentGameTime - car.laneChangeDuration * 0.5;
+        car.laneChangeStartTime =
+            currentGameTime - car.laneChangeDuration * 0.5;
         car.pendingLaneChanges = 0;
     }
 
@@ -166,15 +172,16 @@ export class LaneController {
         }
     }
 
-
     // Want to check if car is in pitstop's world coordinates
     isMergeAPitStop(track: Track, car: Car) {
         const carPosition = car.getWorldPosition(track, car.lateral);
         const pitLaneSegments = track.getPitLaneSegments;
-        const trackPitStops = pitLaneSegments.flatMap(segment => segment.rawTrackPoints);
+        const trackPitStops = pitLaneSegments.flatMap(
+            (segment) => segment.rawTrackPoints,
+        );
         const EPS = pitLaneSegments[0].pitLength / 10; // pit size
-        return trackPitStops.some(p => 
-            Math.hypot(p.x - carPosition.x, p.y - carPosition.y) < EPS   // checking if coordinates are within pitstop range
+        return trackPitStops.some(
+            (p) => Math.hypot(p.x - carPosition.x, p.y - carPosition.y) < EPS, // checking if coordinates are within pitstop range
         );
     }
 
@@ -226,7 +233,7 @@ export class LaneController {
         car: Car,
         track: Track,
         currentGameTime: number,
-        isPitStop?: boolean
+        isPitStop?: boolean,
     ): { offset: number; velocity: number } {
         if (car.laneChangeStartTime === null || car.targetLaneIndex === null) {
             return {
@@ -243,7 +250,9 @@ export class LaneController {
             car.laneChangeStartVelocity !== null
                 ? car.laneChangeStartVelocity
                 : 0;
-        const targetOffset = isPitStop ?  track.getPitLaneSegments[0].offset : track.getLaneOffset(car.targetLaneIndex);
+        const targetOffset = isPitStop
+            ? track.getPitLaneSegments[0].offset
+            : track.getLaneOffset(car.targetLaneIndex);
         return interpolateLaneChange({
             startOffset,
             targetOffset,

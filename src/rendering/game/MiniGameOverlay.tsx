@@ -28,25 +28,22 @@ export const MiniGameOverlay: React.FC<MiniGameOverlayProps> = ({
     const handleSubmit: React.FormEventHandler = (e) => {
         e.preventDefault();
         if (stage === 'finished') return;
-        questionAnswerViewModel.onSubmit;
+        questionAnswerViewModel.onSubmit();
     };
 
     const handleSkip = () => {
         if (stage === 'finished') return;
-        questionAnswerViewModel.onSkip;
+        questionAnswerViewModel.onSkip();
     };
 
     const feedbackClass =
         feedback === 'correct'
             ? styles.questionCorrect
             : feedback === 'incorrect'
-                ? styles.questionIncorrect
-                : '';
+              ? styles.questionIncorrect
+              : '';
 
-    const timePercent = Math.max(
-        0,
-        (timeLeft / config.totalTimeSeconds) * 100,
-    );
+    const timePercent = Math.max(0, (timeLeft / config.totalTimeSeconds) * 100);
 
     return (
         <div className={styles.overlay}>
@@ -92,14 +89,13 @@ export const MiniGameOverlay: React.FC<MiniGameOverlayProps> = ({
                 {/* Question */}
                 <div className={`${styles.question} ${feedbackClass}`}>
                     <span className={styles.questionLabel}>Solve:</span>
-                    <span className={styles.questionText}>{currentQuestion}</span>
+                    <span className={styles.questionText}>
+                        {currentQuestion}
+                    </span>
                 </div>
 
                 {/* Answer */}
-                <div
-                    className={styles.answerInput}
-                    aria-label="Current answer"
-                >
+                <div className={styles.answerInput} aria-label="Current answer">
                     {answer}
                     <span className={styles.cursor} aria-hidden>
                         |
@@ -140,7 +136,11 @@ export const MiniGameOverlay: React.FC<MiniGameOverlayProps> = ({
                 ) : (
                     <>
                         <div className={styles.actions}>
-                            <Button type="submit" className={styles.btnPrimary} onClick={() => {}}>
+                            <Button
+                                type="submit"
+                                className={styles.btnPrimary}
+                                onClick={() => {}}
+                            >
                                 Submit
                             </Button>
 

@@ -6,4 +6,3 @@ export interface StreakBarViewModel {
     gauge: number;
     state: string;
 }
-

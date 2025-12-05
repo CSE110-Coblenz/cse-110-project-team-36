@@ -191,7 +191,7 @@ describe('Track Serialization', () => {
                             { x: 0, y: 10 },
                             { x: 0, y: 0 },
                         ],
-                        points : [
+                        points: [
                             { x: 0, y: 0 },
                             { x: 10, y: 0 },
                             { x: 10, y: 10 },
@@ -199,8 +199,8 @@ describe('Track Serialization', () => {
                             { x: 0, y: 0 },
                         ],
                         offset: 10,
-                    }
-                ]
+                    },
+                ],
             };
 
             const track = Track.fromSerializedData(minimalData);

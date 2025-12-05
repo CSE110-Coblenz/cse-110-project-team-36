@@ -5,4 +5,3 @@ import { BrowserDocumentService } from './adapters/DocumentService';
  * Components can use this instance directly
  */
 export const documentService = new BrowserDocumentService();
-

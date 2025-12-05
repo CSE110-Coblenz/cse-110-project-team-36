@@ -29,4 +29,3 @@ const race: RaceConfig = {
 };
 
 export default race;
-

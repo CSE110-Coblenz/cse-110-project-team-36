@@ -42,7 +42,6 @@ export class UserCar extends Car {
         lapCount: number;
         lastS: number;
         crossedFinish: boolean;
-        
     }): UserCar {
         const car = new UserCar(
             data.s,

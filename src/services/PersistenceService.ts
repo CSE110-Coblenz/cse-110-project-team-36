@@ -1,7 +1,10 @@
 import type { GameState } from '../game/models/game-state';
 import type { QuestionConfig } from '../game/managers/QuestionManager';
 import type { RaceConfig } from '../game/config/types';
-import { serializeGameState, deserializeGameState } from '../serialization/game';
+import {
+    serializeGameState,
+    deserializeGameState,
+} from '../serialization/game';
 import type { StorageService } from './adapters/StorageService';
 import { RaceControllerFactory } from '../game/factories/RaceControllerFactory';
 import { RaceController } from '../game/controllers/RaceController';
@@ -162,4 +165,3 @@ export class PersistenceService {
         );
     }
 }
-

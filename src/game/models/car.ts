@@ -1,6 +1,6 @@
 import type { Track } from './track';
 import { clamp } from '../../utils/math';
-import { events } from "../../shared/events";
+import { events } from '../../shared/events';
 
 /**
  * Car class
@@ -150,7 +150,7 @@ export class Car {
     }
 
     emitStateChanged(inPitStop: boolean) {
-        events.emit('PitStop', { value: inPitStop} );
+        events.emit('PitStop', { value: inPitStop });
     }
 
     // === SERIALIZATION METHODS ===

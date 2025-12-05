@@ -15,4 +15,3 @@ export class BrowserDOMService implements DOMService {
         return document.body;
     }
 }
-

@@ -114,7 +114,10 @@ export class ListenerController {
             this.windowService,
         );
 
-        this.resizeListener = new ResizeListener(this.domService.getBody(), () => {});
+        this.resizeListener = new ResizeListener(
+            this.domService.getBody(),
+            () => {},
+        );
     }
 
     /**
@@ -160,7 +163,10 @@ export class ListenerController {
             return;
         }
 
-        this.windowService.removeEventListener('keydown', this.pauseKeyListener);
+        this.windowService.removeEventListener(
+            'keydown',
+            this.pauseKeyListener,
+        );
 
         this.resizeListener.stop();
         this.visibilityListener.stop();

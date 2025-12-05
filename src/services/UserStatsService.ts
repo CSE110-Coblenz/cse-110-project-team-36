@@ -18,4 +18,3 @@ export class UserStatsService {
         this.userService.updateUserStats(username, Array.from(stats));
     }
 }
-

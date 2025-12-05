@@ -59,7 +59,6 @@ function CarRenderer({
     stageHeight: number;
     camera: Camera;
     isPlayer: boolean;
-
 }) {
     const [playerSprite] = useImage(playerCarSprite);
     const [enemySprite] = useImage(enemyCarSprite);

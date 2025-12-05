@@ -79,9 +79,9 @@ export class CarController {
      * @param track - The track to update the car on
      */
     private updateCarPosition(car: Car, dt: number, track: Track): void {
-        if ( car.inPitStop ) {
+        if (car.inPitStop) {
             car.v = 0;
-            car.r = 0
+            car.r = 0;
 
             this.pendingRewards.set(car, 0);
             return;
@@ -119,7 +119,8 @@ export class CarController {
 
             // 4. Curvature-based speed cap with effective friction depending on slowdown penalty
             const kappa = track.curvatureAt(s);
-            const muEffective = this.config.baseMu * (1 - car.slowdownPenalty * 0.6);
+            const muEffective =
+                this.config.baseMu * (1 - car.slowdownPenalty * 0.6);
 
             // Decay slowdown penalty over time
             car.slowdownPenalty = Math.max(
@@ -143,7 +144,10 @@ export class CarController {
             let vNext = vTemp + aBrake * dt;
 
             // Global clamps
-            vNext = Math.max(this.config.vMin, clamp(vNext, 0, this.config.vMax));
+            vNext = Math.max(
+                this.config.vMin,
+                clamp(vNext, 0, this.config.vMax),
+            );
 
             // 6. Optionally enforce a floor for motion; vUsed is what we integrate s with
             const vUsed = Math.max(this.config.vMin, vNext);
@@ -199,7 +203,7 @@ export class CarController {
     }
 
     /**
-     * Apply visual slip effect to a car 
+     * Apply visual slip effect to a car
      *
      * @param car - The car to apply slip to
      * @param magnitude - The slip magnitude (0-1, affects slipFactor for visual effects)

@@ -11,8 +11,8 @@ interface Hitbox {
     centerX: number;
     centerY: number;
     halfLength: number; // carLength / 2
-    halfWidth: number;  // carWidth / 2
-    rotation: number;   // rotation angle in radians
+    halfWidth: number; // carWidth / 2
+    rotation: number; // rotation angle in radians
 }
 
 /**
@@ -51,7 +51,6 @@ export class CollisionController {
         return this.trackLength;
     }
 
-
     /**
      * Calculate hitbox for a car in world space
      * Uses the car's world position and dimensions to create a bounding box
@@ -85,10 +84,11 @@ export class CollisionController {
         // Quick distance check: if cars are far apart, they can't overlap
         const dx = h1.centerX - h2.centerX;
         const dy = h1.centerY - h2.centerY;
-        const maxDistance = Math.max(
-            h1.halfLength + h1.halfWidth,
-            h2.halfLength + h2.halfWidth,
-        ) * 2;
+        const maxDistance =
+            Math.max(
+                h1.halfLength + h1.halfWidth,
+                h2.halfLength + h2.halfWidth,
+            ) * 2;
         if (dx * dx + dy * dy > maxDistance * maxDistance) {
             return false;
         }
@@ -132,7 +132,7 @@ export class CollisionController {
                 const hitbox2 = this.getCarHitbox(car2);
 
                 if (!this.doHitboxesOverlap(hitbox1, hitbox2)) {
-                        continue;
+                    continue;
                 }
 
                 const sDiff = getWrappedSDiff(car1.s, car2.s, this.trackLength);
@@ -163,7 +163,10 @@ export class CollisionController {
      * @param collision - The collision to handle
      * @param currentGameTime - Current game time in seconds
      */
-    private handleCollision(collision: Collision, currentGameTime: number): void {
+    private handleCollision(
+        collision: Collision,
+        currentGameTime: number,
+    ): void {
         const { car1, car2, rear, front, isSideCollision } = collision;
 
         // Apply crash effects to both cars (symmetric) - only clears rewards, no penalties
@@ -207,14 +210,15 @@ export class CollisionController {
      * @param front - The car ahead (gets all momentum)
      */
     private applyMomentumTransfer(rear: Car, front: Car): void {
-        const totalMomentum = rear.v * rear.carLength + front.v * front.carLength;
+        const totalMomentum =
+            rear.v * rear.carLength + front.v * front.carLength;
         rear.v = 0;
         front.v = Math.max(
-            0, 
+            0,
             Math.min(
                 totalMomentum / front.carLength,
-                CollisionController.MAX_COLLISION_VELOCITY
-            )
+                CollisionController.MAX_COLLISION_VELOCITY,
+            ),
         );
     }
 }

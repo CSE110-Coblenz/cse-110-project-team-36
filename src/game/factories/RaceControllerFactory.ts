@@ -87,7 +87,7 @@ export class RaceControllerFactory {
         const collisionController = new CollisionController(
             gameState,
             laneController,
-            carController
+            carController,
         );
 
         const slipController = new SlipController(
@@ -215,7 +215,7 @@ export class RaceControllerFactory {
         const collisionController = new CollisionController(
             gameState,
             laneController,
-            carController
+            carController,
         );
 
         const slipController = new SlipController(

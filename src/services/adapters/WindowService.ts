@@ -37,4 +37,3 @@ export class BrowserWindowService implements WindowService {
         window.removeEventListener(type, listener, options);
     }
 }
-
